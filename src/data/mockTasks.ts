@@ -19,6 +19,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-21',
     tag: 'Producto',
     assignee: 'MN',
+    workspaceId: 'job-1',
   },
   {
     id: 'task-2',
@@ -31,6 +32,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-21',
     tag: 'Frontend',
     assignee: 'AL',
+    workspaceId: 'job-1',
   },
   {
     id: 'task-3',
@@ -43,6 +45,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-20',
     tag: 'Frontend',
     assignee: 'CR',
+    workspaceId: 'job-1',
   },
   {
     id: 'task-4',
@@ -55,6 +58,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-18',
     tag: 'UI',
     assignee: 'MN',
+    workspaceId: 'job-1',
   },
   {
     id: 'task-5',
@@ -67,6 +71,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-21',
     tag: 'Modelo',
     assignee: 'LT',
+    workspaceId: 'job-1',
   },
   {
     id: 'task-6',
@@ -79,6 +84,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-21',
     tag: 'QA',
     assignee: 'CR',
+    workspaceId: 'job-2',
   },
   {
     id: 'task-7',
@@ -91,6 +97,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-17',
     tag: 'Datos',
     assignee: 'AL',
+    workspaceId: 'job-2',
   },
   {
     id: 'task-8',
@@ -103,6 +110,7 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-21',
     tag: 'Arquitectura',
     assignee: 'MN',
+    workspaceId: 'job-2',
   },
   {
     id: 'task-9',
@@ -115,5 +123,6 @@ export const mockTasks: Task[] = [
     createdAt: '2026-04-21',
     tag: 'Diseno',
     assignee: 'LT',
+    workspaceId: 'job-2',
   },
 ]

@@ -16,4 +16,5 @@ export interface Task {
   createdAt: string
   tag: string
   assignee: string
+  workspaceId: 'job-1' | 'job-2'
 }
