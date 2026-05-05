@@ -55,6 +55,8 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - Inputs, color pickers, previews y acciones no deben competir por el mismo espacio.
 - Si una interaccion necesita varios controles, usar un formulario, panel o zona separada.
 - Estados hover, editar, eliminar y agregar deben ser comodos y no tapar texto ni acciones principales.
+- Si un input o textarea necesita cursor de texto, usar `cursor-text-dark` junto con `caret-gray-900`; evita que el I-beam nativo se vea blanco/invisible.
+- Si un popover/dropdown se abre dentro de un modal, revisar z-index; `PopoverContent` usa portal y debe quedar encima del modal/backdrop.
 
 ## Comandos utiles
 

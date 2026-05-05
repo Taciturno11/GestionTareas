@@ -76,6 +76,7 @@ interface BoardTask {
   assignee: string
   workspaceId: string
   color?: string
+  notes?: string
 }
 
 type EditableTaskField = keyof Pick<
@@ -686,7 +687,8 @@ export default function DashboardPage() {
         startDate: '',
         endDate: '',
         assignee: 'MN',
-        workspaceId: defaultProjectId
+        workspaceId: defaultProjectId,
+        notes: '',
       })
     }
     setIsPanelClosing(false)
@@ -744,6 +746,7 @@ export default function DashboardPage() {
       priority: 'Media', tag: 'General', startDate: '—', endDate: '—', assignee: 'MN',
       workspaceId: defaultProjectId,
       color: '#FFFFFF',
+      notes: '',
     }])
     setNewTaskTitle('')
     setAddingToCol(null)
@@ -762,6 +765,7 @@ export default function DashboardPage() {
       assignee: 'MN',
       workspaceId: defaultProjectId,
       color: '#FFFFFF',
+      notes: '',
     }
 
     setTasks(prev => [task, ...prev])
@@ -785,6 +789,7 @@ export default function DashboardPage() {
         assignee: 'MN',
         workspaceId: defaultProjectId,
         color: '#FFFFFF',
+        notes: '',
       }
 
       setTasks(prev => [...prev, task])

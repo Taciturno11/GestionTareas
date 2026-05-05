@@ -9,8 +9,8 @@
 @layer base {
   :root {
     /* ── Accent global (sidebar) ── */
-    --color-accent:       #4F46E5;   /* indigo-600 */
-    --color-accent-light: #EEF2FF;   /* indigo-50  */
+    --color-accent:       #4B5563;   /* gray-600 */
+    --color-accent-light: #F3F4F6;   /* gray-100 */
 
     /* ── Texto ── */
     --color-text-primary:   #111827;  /* gray-900 */
@@ -51,6 +51,10 @@
     background-color: var(--color-accent-light);
     color: var(--color-accent);
     font-weight: 600;
+  }
+
+  .cursor-text-dark {
+    cursor: url("data:image/svg+xml,%3Csvg width='10' height='18' viewBox='0 0 10 18' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 1.5H7M5 1.5V16.5M3 16.5H7' stroke='%23111827' stroke-width='1.25' stroke-linecap='round'/%3E%3C/svg%3E") 5 9, text;
   }
 }
 

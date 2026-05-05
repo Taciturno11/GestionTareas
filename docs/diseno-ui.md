@@ -13,6 +13,7 @@ Este documento define reglas practicas para mantener una experiencia visual cons
 ## Formularios e inputs
 
 - Un input debe tener ancho util suficiente para escribir con comodidad.
+- Los inputs y textareas editables deben usar `cursor-text-dark` y `caret-gray-900` para evitar I-beam blanco/invisible.
 - Los inputs no deben competir por espacio con selectores de color, botones, iconos o previews.
 - Si una accion necesita input, preview, colores y botones, usar un formulario separado en vez de meter todo dentro de una card pequena.
 - Un boton pequeno de `Agregar` no debe transformarse en un formulario complejo si eso comprime el contenido.
@@ -29,6 +30,7 @@ Este documento define reglas practicas para mantener una experiencia visual cons
 
 - Los selectores deben abrirse con posicion clara, sin superponerse de forma confusa con el input o el trigger.
 - Los dropdowns deben usar el ancho necesario para su contenido; evitar width grande si la lista es corta o los labels son breves.
+- Los dropdowns dentro de modales deben renderizar por encima del modal/backdrop; revisar z-index si usan portal.
 - Los color pickers deben vivir en una fila o zona separada cuando hay tambien un input principal.
 - No comprimir una lista de colores dentro del mismo espacio horizontal del input si reduce su legibilidad.
 - El color seleccionado debe tener un indicador visible, pero discreto.

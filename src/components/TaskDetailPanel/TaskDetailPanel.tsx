@@ -15,6 +15,7 @@ export interface TaskDetailPanelTask {
   endDate: string
   assignee: string
   workspaceId: string
+  notes: string
 }
 
 interface TaskDetailPanelOption {
@@ -58,7 +59,7 @@ export default function TaskDetailPanel({
         aria-label="Cerrar panel"
       />
       <aside
-        className={`absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col border-l border-gray-200 bg-white shadow-[-12px_0_32px_rgba(15,23,42,0.12)] duration-200 ${
+        className={`absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col border-l border-gray-200 bg-white shadow-[-12px_0_32px_rgba(15,23,42,0.12)] duration-200 ${
           isClosing
             ? 'animate-out slide-out-to-right'
             : 'animate-in slide-in-from-right'
@@ -77,49 +78,53 @@ export default function TaskDetailPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-        <input
-          autoFocus
-          className="mb-6 w-full resize-none border-none bg-transparent text-[24px] font-bold leading-tight text-gray-900 outline-none placeholder:text-gray-300"
-          placeholder="Tarea sin titulo"
-          value={task.title ?? ''}
-          onChange={event => onChange({ ...task, title: event.target.value })}
-        />
+          <input
+            autoFocus
+            className="cursor-text-dark mb-6 w-full resize-none border-none bg-transparent text-[24px] font-bold leading-tight text-gray-900 caret-gray-900 outline-none placeholder:text-gray-300"
+            placeholder="Tarea sin titulo"
+            value={task.title ?? ''}
+            onChange={event => onChange({ ...task, title: event.target.value })}
+          />
 
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Estado</label>
-            <TaskSelect
-              value={task.colId ?? 'pendiente'}
-              options={columns}
-              onChange={value => onChange({ ...task, colId: value })}
-            />
+          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="min-w-0">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Estado</label>
+              <TaskSelect
+                value={task.colId ?? 'pendiente'}
+                options={columns}
+                onChange={value => onChange({ ...task, colId: value })}
+              />
+            </div>
+
+            <div className="min-w-0">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Prioridad</label>
+              <TaskSelect
+                value={task.priority ?? 'Media'}
+                options={priorities}
+                onChange={value => onChange({ ...task, priority: value as TaskPriority })}
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Prioridad</label>
-            <TaskSelect
-              value={task.priority ?? 'Media'}
-              options={priorities}
-              onChange={value => onChange({ ...task, priority: value as TaskPriority })}
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="min-w-0">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Etiqueta</label>
+              <TaskSelect
+                value={task.tag ?? 'General'}
+                options={tags}
+                onChange={value => onChange({ ...task, tag: value })}
+              />
+            </div>
 
-          <div>
-            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Etiqueta</label>
-            <TaskSelect
-              value={task.tag ?? 'General'}
-              options={tags}
-              onChange={value => onChange({ ...task, tag: value })}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Responsable</label>
-            <TaskSelect
-              value={task.assignee ?? 'MN'}
-              options={assignees}
-              onChange={value => onChange({ ...task, assignee: value })}
-            />
+            <div className="min-w-0">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Responsable</label>
+              <TaskSelect
+                value={task.assignee ?? 'MN'}
+                options={assignees}
+                onChange={value => onChange({ ...task, assignee: value })}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -149,7 +154,18 @@ export default function TaskDetailPanel({
               />
             </div>
           )}
-        </div>
+
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Notas</label>
+            <textarea
+              value={task.notes ?? ''}
+              onChange={event => onChange({ ...task, notes: event.target.value })}
+              placeholder="Escribe notas de esta tarea..."
+              rows={6}
+              className="cursor-text-dark w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] leading-relaxed text-gray-800 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+            />
+          </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50 px-5 py-4">

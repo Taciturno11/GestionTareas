@@ -11,6 +11,12 @@ Este directorio guarda los Architecture Decision Records del proyecto.
 - [0005 - Uso de mock data local mientras se define el backend](./0005-uso-de-mock-data-local-mientras-se-define-el-backend.md)
 - [0006 - Contenedor global para paginas principales](./0006-contenedor-global-para-paginas-principales.md)
 - [0007 - Reglas generales de diseno UI](./0007-reglas-generales-de-diseno-ui.md)
+- [0008 - Workspaces y paginas locales](./0008-workspaces-y-paginas-locales.md)
+- [0009 - Espacios dentro de workspaces](./0009-espacios-dentro-de-workspaces.md)
+- [0010 - Sidebar con titulo fijo y espacios como organizacion principal](./0010-sidebar-con-titulo-fijo-y-espacios.md)
+- [0011 - Subespacios en sidebar](./0011-subespacios-en-sidebar.md)
+- [0012 - Vista propia para subespacios](./0012-vista-propia-para-subespacios.md)
+- [0013 - Iconos con color en espacios](./0013-iconos-con-color-en-espacios.md)
 
 ## Convencion
 

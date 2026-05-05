@@ -59,6 +59,8 @@ Las rutas principales estan en `src/App.tsx`.
 - `/calendario`: vista mensual de calendario.
 - `/archivo`: placeholder.
 - `/ajustes`: configuracion de opciones de tareas.
+- `/p/:pageId`: hoja creada dentro de workspace.
+- `/s/:spaceId`: vista propia de subespacio.
 
 Las rutas privadas se renderizan dentro de `AppLayout`, que incluye `Sidebar`, `Header` y el area principal con `Outlet`.
 
@@ -90,7 +92,68 @@ Entradas actuales:
 - Calendario
 - Ajustes
 
+El sidebar tambien incluye:
+
+- titulo fijo `Gestion de Tareas` arriba.
+- seccion `Espacios` para agrupar hojas.
+- seccion `Hojas` para crear hojas generales.
+- acciones para crear espacios y hojas.
+
 El sidebar puede colapsarse desde el header. El estado `collapsed` vive en `AppLayout`.
+
+## Workspaces y hojas
+
+Archivos:
+
+- `src/types/workspace.ts`
+- `src/data/workspaces.ts`
+- `src/pages/PageView.tsx`
+- `src/pages/BlankPage.tsx`
+
+Persistencia temporal:
+
+- `gt_workspaces`
+- `gt_workspace_pages`
+- `gt_active_workspace`
+
+Tipos iniciales:
+
+- `WorkspaceSpace`: grupo interno dentro de un workspace.
+- `blank`: hoja en blanco con titulo y contenido.
+- `tasks`: hoja de tareas base.
+
+Comportamiento actual:
+
+- la parte superior del sidebar es solo titulo fijo; no funciona como selector.
+- la seccion `Espacios` agrupa hojas dentro del workspace.
+- los espacios pueden tener subespacios de un nivel mediante `parentId`.
+- `+` en `Espacios` abre dialog para crear espacio con nombre e icono, y crea una hoja inicial.
+- el icono `+` de un espacio permite escoger entre crear subespacio o crear hoja.
+- crear subespacio crea tambien una hoja inicial dentro de ese subespacio.
+- cada espacio se puede expandir/colapsar.
+- cada subespacio se puede expandir/colapsar.
+- al presionar el nombre de un subespacio se abre su vista propia.
+- cada espacio tiene accion directa para editar y borrar.
+- cada subespacio tiene accion directa para editar y borrar.
+- editar espacio permite cambiar nombre e icono en una sola linea.
+- los iconos de espacios usan una lista cerrada ampliada basada en Heroicons, similar a selector simple tipo Notion.
+- espacios y subespacios guardan color de icono mediante `iconColor`.
+- borrar espacio muestra confirmacion antes de eliminar sus subespacios y hojas.
+- cada hoja tiene `...` con accion de borrar.
+- `Hoja` desde el menu `+` del espacio crea una hoja dentro del espacio.
+- `+ Nueva hoja` dentro de un subespacio crea una hoja dentro de ese subespacio.
+- la seccion `Hojas` muestra las hojas generales.
+- `Nueva hoja` en la seccion `Hojas` crea una hoja general y queda visible ahi, no dentro de `Espacios`.
+- `/p/:pageId` renderiza la hoja.
+- `/s/:spaceId` renderiza el subespacio con descripcion editable y enlaces a sus hojas.
+- `BlankPage` permite editar titulo y contenido.
+
+Pendiente:
+
+- conectar hojas tipo `tasks` con tareas reales mediante `pageId`.
+- permitir duplicar y renombrar hojas desde sidebar.
+- crear nuevos workspaces desde UI.
+- permitir mover hojas entre espacios.
 
 ## Pagina Inicio
 
@@ -137,6 +200,15 @@ Funcionalidades actuales:
 - colores de proyecto se reflejan en las tareas y en el panel lateral.
 
 La vista por ahora es de lectura. La edicion de tareas sigue viviendo en `Mis tareas`.
+
+Pendiente para Calendario:
+
+- abrir el panel de detalle al hacer click en una tarea del calendario.
+- permitir crear tarea desde un dia del calendario.
+- permitir filtros adicionales: responsable, prioridad, etiqueta y estado.
+- agregar vista semanal o agenda si la vista mensual queda cargada.
+- mejorar responsive mobile/tablet.
+- sincronizar automaticamente cambios de `gt_tasks` si se modifican tareas en otra vista mientras Calendario esta abierto.
 
 ## Pagina Mis tareas
 
@@ -237,6 +309,7 @@ Campos actuales:
 - responsable
 - fechas de inicio y fin
 - proyecto
+- notas
 
 El panel usa:
 
@@ -244,6 +317,13 @@ El panel usa:
 - `DatePicker`
 
 El campo Proyecto del panel muestra el punto de color definido en Ajustes.
+
+Layout actual:
+
+- panel derecho usa ancho maximo de `520px`.
+- estado y prioridad van en una sola fila.
+- etiqueta y responsable van en una sola fila.
+- notas aparece debajo de proyecto como textarea amplio.
 
 ## Selector reutilizable
 
@@ -360,6 +440,12 @@ Decisiones actuales:
 - `0005`: mock data local mientras no exista backend.
 - `0006`: `PageContainer` como contenedor global para paginas principales.
 - `0007`: reglas generales de diseno UI.
+- `0008`: workspaces y paginas locales.
+- `0009`: espacios dentro de workspaces.
+- `0010`: sidebar con titulo fijo y espacios como organizacion principal.
+- `0011`: subespacios de un nivel dentro del sidebar.
+- `0012`: vista propia para subespacios.
+- `0013`: iconos con color en espacios.
 
 ## Deuda tecnica conocida
 
@@ -370,6 +456,11 @@ Decisiones actuales:
 - `localStorage` puede quedar con datos viejos que no coincidan con nuevos ajustes si se cambian ids.
 - El filtro de tareas por ahora solo cubre proyecto; mas adelante puede ampliarse a responsable, prioridad, etiqueta, estado y fechas.
 - Si se borran opciones usadas por tareas existentes, todavia no hay validacion o migracion automatica de esas tareas.
+- Calendario y Mis tareas comparten datos via `localStorage`, pero todavia no hay una capa unica de repositorio/servicio.
+- Workspaces y hojas usan `localStorage`; falta integracion real con tareas por `pageId`.
+- Hay logica repetida de formato visual: project pills, date ranges, colores de prioridad y lectura de tareas.
+- No existe manejo global de errores o boundary para fallos de componentes complejos como drag and drop.
+- El bundle sigue grande; Vite recomienda revisar code splitting.
 
 ## Convenciones actuales para seguir trabajando
 
@@ -387,8 +478,37 @@ Decisiones actuales:
 ## Siguientes mejoras sugeridas
 
 - Extraer logica de tareas de `DashboardPage` a hooks o helpers.
+- Crear una capa `taskRepository` o similar para leer/escribir `gt_tasks` y `gt_task_settings`.
+- Extraer componentes compartidos: `ProjectPill`, `PriorityPill`, `TaskDateLabel`, `TaskFilterDropdown`.
+- Hacer que Calendario abra `TaskDetailPanel` al seleccionar una tarea.
+- Permitir crear tareas desde Calendario seleccionando un dia.
+- Ampliar filtros de tareas a responsable, prioridad, etiqueta, estado y fechas.
+- Agregar validacion cuando se elimina una opcion de Ajustes usada por tareas existentes.
 - Formalizar ADR de React Router.
 - Formalizar ADR de shadcn/Base UI y componentes UI.
-- Ampliar filtros de tareas a responsable, prioridad, etiqueta, estado y fechas.
-- Agregar servicios o repositorios de datos cuando se defina backend.
 - Revisar code splitting porque Vite advierte bundle grande.
+
+## Pendientes priorizados para retomar
+
+### Prioridad alta
+
+- Extraer una capa compartida de datos para tareas y ajustes.
+- Conectar hojas tipo `tasks` con `DashboardPage` usando `pageId`.
+- Abrir detalle de tarea desde Calendario.
+- Crear tarea desde Calendario con fecha prellenada.
+- Validar o manejar opciones borradas en Ajustes que ya estan usadas por tareas.
+
+### Prioridad media
+
+- Extraer componentes visuales repetidos de `DashboardPage` y `CalendarPage`.
+- Agregar filtros por responsable, prioridad, etiqueta y estado.
+- Mejorar responsive de Calendario.
+- Crear ADR para React Router.
+- Crear ADR para Base UI/shadcn/iconos.
+
+### Prioridad baja
+
+- Agregar vista semanal o agenda en Calendario.
+- Agregar contador/resumen de tareas por proyecto.
+- Revisar code splitting y lazy loading por advertencia de bundle grande.
+- Agregar error boundary general.

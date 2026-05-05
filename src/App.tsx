@@ -5,6 +5,8 @@ import CalendarPage from './pages/CalendarPage'
 import DashboardPage from './pages/DashboardPage'
 import InicioPage from './pages/InicioPage'
 import LoginPage from './pages/LoginPage'
+import PageView from './pages/PageView'
+import SubspaceView from './pages/SubspaceView'
 
 // Páginas placeholder para rutas futuras
 function PlaceholderPage({ title }: { title: string }) {
@@ -35,6 +37,8 @@ export default function App() {
           <Route path="/calendario" element={<CalendarPage />} />
           <Route path="/archivo"    element={<PlaceholderPage title="Archivo" />} />
           <Route path="/ajustes"    element={<AjustesPage />} />
+          <Route path="/p/:pageId"   element={<PageView />} />
+          <Route path="/s/:spaceId"  element={<SubspaceView />} />
         </Route>
 
         {/* Catch-all */}
