@@ -1,0 +1,77 @@
+# AGENTS.md
+
+Contexto operativo para agentes IA que trabajen en este repositorio.
+
+## Objetivo del proyecto
+
+Construir el frontend de una aplicacion de gestion de tareas. La app debe permitir evolucionar hacia vistas de inicio, tareas, proyectos, calendario y archivo.
+
+## Estado actual
+
+- Proyecto frontend SPA.
+- Backend no definido todavia.
+- Datos actuales viven como mock data local.
+- Routing ya existe con `react-router-dom`.
+- UI usa Tailwind CSS, componentes `components/ui`, Base UI/shadcn y algunos iconos de Heroicons/Lucide.
+
+## Stack principal
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- shadcn/Base UI
+
+## Estructura importante
+
+- `src/App.tsx`: rutas principales.
+- `src/components/AppLayout/`: layout base de app privada.
+- `src/components/Header/`: cabecera.
+- `src/components/Sidebar/`: navegacion lateral.
+- `src/components/ui/`: componentes base reutilizables.
+- `src/data/`: mock data local.
+- `src/pages/`: paginas principales.
+- `src/types/`: tipos compartidos.
+- `docs/adr/`: decisiones arquitectonicas.
+
+## Reglas para cambios
+
+- Leer ADRs antes de cambiar decisiones de arquitectura.
+- Crear ADR nuevo si una decision aprobada cambia o aparece una decision tecnica relevante.
+- No editar ADR antiguo para ocultar historia; solo corregir typos o enlaces.
+- Preferir patrones existentes sobre abstracciones nuevas.
+- Mantener mock data desacoplada para reemplazo futuro por API.
+- Evitar mezclar nuevos sistemas de estilos sin ADR o razon clara.
+- Mantener componentes de UI reutilizables en `src/components/ui/`.
+- Mantener vistas principales en `src/pages/`.
+
+## Reglas de diseno UX/UI
+
+- Revisar `docs/diseno-ui.md` antes de crear o modificar componentes visuales.
+- Antes de aplicar o cerrar un cambio visual, verificar que el resto de componentes de la misma seccion sigan viendose bien.
+- Probar componentes reutilizables en sus variantes principales, no solo en el caso que se esta editando.
+- No meter formularios complejos dentro de cards pequenas, pills o botones si eso comprime inputs o genera saltos de layout.
+- Inputs, color pickers, previews y acciones no deben competir por el mismo espacio.
+- Si una interaccion necesita varios controles, usar un formulario, panel o zona separada.
+- Estados hover, editar, eliminar y agregar deben ser comodos y no tapar texto ni acciones principales.
+
+## Comandos utiles
+
+```bash
+npm run dev
+npm run build
+npm run lint
+```
+
+## Antes de terminar una tarea
+
+- Ejecutar `npm run build` si cambia codigo TypeScript o configuracion.
+- Ejecutar `npm run lint` si cambia logica, componentes o imports.
+- Actualizar README o ADR si cambia contexto, estructura o decision tecnica.
+
+## Notas de contexto
+
+- `docs/adr/0002` dice que routing se evaluaria despues, pero el repo ya usa React Router. Conviene crear ADR nuevo para formalizar esa decision.
+- `docs/adr/0003` describe una estructura inicial; la estructura real ya incluye `components/ui` y `lib`.
+- `docs/adr/0004` cubre Tailwind, pero no formaliza shadcn/Base UI/iconos.

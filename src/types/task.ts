@@ -12,7 +12,8 @@ export interface Task {
   description: string
   status: string
   priority: TaskPriority
-  dueDate: string
+  startDate: string
+  endDate: string
   createdAt: string
   tag: string
   assignee: string

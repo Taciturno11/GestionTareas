@@ -1,27 +1,19 @@
 import {
-  ArchiveBoxIcon,
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
-  FolderIcon,
   HomeIcon,
   PlusIcon,
   BellIcon,
   MagnifyingGlassIcon,
-  BriefcaseIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 
 const NAVIGATION = [
   { label: 'Inicio',     icon: HomeIcon,                  to: '/' },
   { label: 'Mis tareas', icon: ClipboardDocumentListIcon, to: '/tareas' },
-  { label: 'Proyectos',  icon: FolderIcon,                to: '/proyectos' },
   { label: 'Calendario', icon: CalendarDaysIcon,          to: '/calendario' },
-  { label: 'Archivo',    icon: ArchiveBoxIcon,            to: '/archivo' },
-]
-
-const WORKSPACES = [
-  { id: 'job-1', label: 'Trabajo 1' },
-  { id: 'job-2', label: 'Trabajo 2' },
+  { label: 'Ajustes',    icon: Cog6ToothIcon,             to: '/ajustes' },
 ]
 
 interface SidebarProps {
@@ -29,9 +21,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed }: SidebarProps) {
-  const location = useLocation()
-  const currentWorkspace = new URLSearchParams(location.search).get('w')
-
   return (
     <aside
       className="flex flex-col shrink-0 transition-all duration-300 overflow-hidden border-r"
@@ -81,58 +70,24 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           Páginas
         </p>
         {NAVIGATION.map(({ label, icon: Icon, to }) => {
-          // If this is the "Mis tareas" link, only highlight if there's NO workspace selected
-          const isGlobalTasksLink = to === '/tareas'
-          const isActiveOverride = isGlobalTasksLink && currentWorkspace != null ? false : undefined
-
           return (
             <NavLink
               key={to}
               to={to}
               end={to === '/'}
               className={({ isActive }) => {
-                const finalActive = isActiveOverride !== undefined ? isActiveOverride : isActive
                 return `flex items-center gap-2.5 w-full px-3 py-1.5 rounded-md text-[13px] transition-colors mb-0.5 ${
-                  finalActive ? 'nav-active' : 'hover:bg-gray-100'
+                  isActive ? 'nav-active' : 'hover:bg-gray-100'
                 }`
               }}
               style={({ isActive }) => {
-                const finalActive = isActiveOverride !== undefined ? isActiveOverride : isActive
                 return {
-                  color: finalActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                  color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                 }
               }}
             >
               <Icon className="h-4 w-4 shrink-0" />
               {label}
-            </NavLink>
-          )
-        })}
-
-        <div className="mt-6 mb-2 flex items-center justify-between px-3">
-          <p
-            className="text-[11px] font-semibold uppercase tracking-widest"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Entornos
-          </p>
-        </div>
-
-        {WORKSPACES.map((ws) => {
-          const isActive = location.pathname === '/tareas' && currentWorkspace === ws.id
-          return (
-            <NavLink
-              key={ws.id}
-              to={`/tareas?w=${ws.id}`}
-              className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-md text-[13px] transition-colors mb-0.5 ${
-                isActive ? 'bg-indigo-50/80 font-medium' : 'hover:bg-gray-100'
-              }`}
-              style={{
-                color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-              }}
-            >
-              <BriefcaseIcon className="h-4 w-4 shrink-0" />
-              {ws.label}
             </NavLink>
           )
         })}

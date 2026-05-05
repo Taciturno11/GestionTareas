@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { HandRaisedIcon } from '@heroicons/react/24/solid'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import PageContainer from '@/components/PageContainer/PageContainer'
 import { mockStats, mockProjects, mockActivity, mockUpcoming } from '../data/mockHome'
 import { mockTasks } from '../data/mockTasks'
 
@@ -79,10 +80,7 @@ export default function InicioPage() {
      *     LEFT  (55%): tareas recientes (flex-1) + upcoming debajo
      *     RIGHT (45%): proyectos (flex-1) + actividad debajo
      */
-    <div
-      className="max-w-[1200px] mx-auto w-full"
-      style={{ padding: '32px 40px' }}
-    >
+    <PageContainer size="wide">
 
       {/* ══════════════════════════════════════════
           ROW 1 — Title
@@ -162,7 +160,7 @@ export default function InicioPage() {
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0" style={{ background: prio.bg, color: prio.text }}>{prio.label}</span>
                     <span className="flex items-center gap-0.5 text-[10px] text-gray-400 shrink-0">
                       <CalendarIcon className="h-2.5 w-2.5" />
-                      {task.dueDate.slice(5).replace('-', '/')}
+                      {task.endDate.slice(5).replace('-', '/')}
                     </span>
                     <div className="h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0" style={{ background: avatar.bg, color: avatar.text }}>
                       {task.assignee}
@@ -212,8 +210,8 @@ export default function InicioPage() {
               <ChartBarIcon className="h-4 w-4 text-gray-500" />
               <h2 className="text-[13px] font-semibold text-gray-800">Progreso de Metas</h2>
             </div>
-            <div className="p-4" style={{ height: 260 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="min-w-0 p-4" style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={mockProjects} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <XAxis 
                     dataKey="name" 
@@ -273,6 +271,6 @@ export default function InicioPage() {
 
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

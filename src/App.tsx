@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from './components/AppLayout/AppLayout'
+import AjustesPage from './pages/AjustesPage'
+import CalendarPage from './pages/CalendarPage'
 import DashboardPage from './pages/DashboardPage'
 import InicioPage from './pages/InicioPage'
 import LoginPage from './pages/LoginPage'
@@ -30,8 +32,9 @@ export default function App() {
           <Route path="/"           element={<InicioPage />} />
           <Route path="/tareas"     element={<DashboardPage />} />
           <Route path="/proyectos"  element={<PlaceholderPage title="Proyectos" />} />
-          <Route path="/calendario" element={<PlaceholderPage title="Calendario" />} />
+          <Route path="/calendario" element={<CalendarPage />} />
           <Route path="/archivo"    element={<PlaceholderPage title="Archivo" />} />
+          <Route path="/ajustes"    element={<AjustesPage />} />
         </Route>
 
         {/* Catch-all */}
