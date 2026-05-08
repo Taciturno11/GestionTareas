@@ -17,6 +17,8 @@ Este directorio guarda los Architecture Decision Records del proyecto.
 - [0011 - Subespacios en sidebar](./0011-subespacios-en-sidebar.md)
 - [0012 - Vista propia para subespacios](./0012-vista-propia-para-subespacios.md)
 - [0013 - Iconos con color en espacios](./0013-iconos-con-color-en-espacios.md)
+- [0014 - Hojas de texto y pizarra](./0014-hojas-texto-y-pizarra.md)
+- [0015 - Diagramas BD con React Flow](./0015-diagramas-bd-con-react-flow.md)
 
 ## Convencion
 

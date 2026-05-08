@@ -56,6 +56,47 @@
   .cursor-text-dark {
     cursor: url("data:image/svg+xml,%3Csvg width='10' height='18' viewBox='0 0 10 18' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 1.5H7M5 1.5V16.5M3 16.5H7' stroke='%23111827' stroke-width='1.25' stroke-linecap='round'/%3E%3C/svg%3E") 5 9, text;
   }
+
+  .prose-editor h1 {
+    margin: 1.1rem 0 0.45rem;
+    font-size: 2rem;
+    line-height: 1.15;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .prose-editor h2 {
+    margin: 1rem 0 0.4rem;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .prose-editor h3 {
+    margin: 0.9rem 0 0.35rem;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    font-weight: 650;
+    color: #111827;
+  }
+
+  .prose-editor ul,
+  .prose-editor ol {
+    padding-left: 1.4rem;
+  }
+
+  .prose-editor ul {
+    list-style: disc;
+  }
+
+  .prose-editor ol {
+    list-style: decimal;
+  }
+
+  .prose-editor p {
+    margin: 0.35rem 0;
+  }
 }
 
 /* ── Scrollbar discreta ── */

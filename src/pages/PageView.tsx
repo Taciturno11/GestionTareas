@@ -4,7 +4,9 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 
 import { findWorkspacePage, updateWorkspacePage, WORKSPACE_DATA_CHANGE_EVENT } from '@/data/workspaces'
 import type { WorkspacePage } from '@/types/workspace'
-import BlankPage from './BlankPage'
+import BoardPage from './BoardPage'
+import DatabaseDiagramPage from './DatabaseDiagramPage'
+import TextPage from './TextPage'
 
 export default function PageView() {
   const { pageId } = useParams()
@@ -39,8 +41,16 @@ export default function PageView() {
     updateWorkspacePage(page.id, patch)
   }
 
-  if (page.type === 'blank') {
-    return <BlankPage page={page} onChange={handleChange} />
+  if (page.type === 'blank' || page.type === 'text') {
+    return <TextPage page={page} onChange={handleChange} />
+  }
+
+  if (page.type === 'board') {
+    return <BoardPage page={page} onChange={handleChange} />
+  }
+
+  if (page.type === 'database') {
+    return <DatabaseDiagramPage page={page} onChange={handleChange} />
   }
 
   return (

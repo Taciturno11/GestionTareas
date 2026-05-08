@@ -12,6 +12,8 @@ Los subespacios dejaron de ser solo contenedores colapsables en el sidebar. El u
 
 Agregar una ruta propia para subespacios: `/s/:spaceId`.
 
+Posteriormente se agrega `/e/:spaceId` para espacios principales, usando la misma vista base, porque al borrar una hoja abierta la aplicacion debe volver al contenedor que la tenia.
+
 Reglas:
 
 - Solo los subespacios navegan a una vista propia.
@@ -21,6 +23,7 @@ Reglas:
 - La vista del subespacio permite editar nombre y descripcion.
 - La parte inferior de la vista muestra enlaces a hojas creadas dentro de ese subespacio.
 - La descripcion se guarda en `WorkspaceSpace.description` dentro de `localStorage`.
+- Al borrar una hoja abierta, se navega al subespacio o espacio principal que la contenia.
 
 ## Consecuencias
 

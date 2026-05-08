@@ -22,6 +22,9 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - Tailwind CSS
 - React Router
 - shadcn/Base UI
+- Tiptap para hojas de texto enriquecido
+- tldraw para hojas tipo pizarra
+- React Flow para diagramas BD
 
 ## Estructura importante
 
@@ -34,6 +37,7 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - `src/pages/`: paginas principales.
 - `src/types/`: tipos compartidos.
 - `docs/adr/`: decisiones arquitectonicas.
+- `docs/hojas-texto-pizarra.md`: reglas operativas para hojas de texto y pizarra.
 
 ## Reglas para cambios
 
@@ -45,6 +49,11 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - Evitar mezclar nuevos sistemas de estilos sin ADR o razon clara.
 - Mantener componentes de UI reutilizables en `src/components/ui/`.
 - Mantener vistas principales en `src/pages/`.
+- Para hojas de texto enriquecido, usar Tiptap; no volver a textarea plano salvo compatibilidad puntual.
+- Para pizarras, usar tldraw; no crear canvas propio mientras tldraw cubra el caso.
+- Para diagramas BD, usar React Flow (`@xyflow/react`); no construir motor de nodos/conexiones propio.
+- Si se cambia el modelo de `WorkspacePage.content` o `WorkspacePage.type`, crear o actualizar ADR/documentacion.
+- Antes de agregar extensiones pesadas de Tiptap/tldraw, revisar impacto en bundle y considerar lazy loading.
 
 ## Reglas de diseno UX/UI
 

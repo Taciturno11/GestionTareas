@@ -8,11 +8,11 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardDocumentListIcon,
+  CircleStackIcon,
   Cog6ToothIcon,
   CodeBracketIcon,
   CpuChipIcon,
   DocumentTextIcon,
-  EllipsisHorizontalIcon,
   FireIcon,
   FlagIcon,
   FolderIcon,
@@ -43,6 +43,7 @@ import {
   loadWorkspacePages,
   loadWorkspaceSpaces,
   loadWorkspaces,
+  updateWorkspacePage,
   updateWorkspaceSpace,
   WORKSPACE_DATA_CHANGE_EVENT,
 } from '@/data/workspaces'
@@ -94,6 +95,12 @@ function getSpaceIconOption(icon?: string) {
   return SPACE_ICON_OPTIONS.find(option => option.id === icon) ?? SPACE_ICON_OPTIONS[0]
 }
 
+function getPageIcon(page: WorkspacePage) {
+  if (page.type === 'board') return PaintBrushIcon
+  if (page.type === 'database') return CircleStackIcon
+  return DocumentTextIcon
+}
+
 interface SidebarProps {
   collapsed: boolean
 }
@@ -115,6 +122,23 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   const [spaceDraftName, setSpaceDraftName] = useState('')
   const [spaceDraftIcon, setSpaceDraftIcon] = useState('')
   const [spaceDraftIconColor, setSpaceDraftIconColor] = useState('#6472EB')
+  const [spaceMenu, setSpaceMenu] = useState<{
+    space: WorkspaceSpace
+    x: number
+    y: number
+  } | null>(null)
+  const [subspaceMenu, setSubspaceMenu] = useState<{
+    space: WorkspaceSpace
+    x: number
+    y: number
+  } | null>(null)
+  const [pageMenu, setPageMenu] = useState<{
+    page: WorkspacePage
+    x: number
+    y: number
+  } | null>(null)
+  const [editingPage, setEditingPage] = useState<WorkspacePage | null>(null)
+  const [pageDraftTitle, setPageDraftTitle] = useState('')
 
   useEffect(() => {
     const syncWorkspaceData = () => {
@@ -127,6 +151,27 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     window.addEventListener(WORKSPACE_DATA_CHANGE_EVENT, syncWorkspaceData)
     return () => window.removeEventListener(WORKSPACE_DATA_CHANGE_EVENT, syncWorkspaceData)
   }, [])
+
+  useEffect(() => {
+    if (!spaceMenu && !subspaceMenu && !pageMenu) return
+
+    const closeMenu = () => {
+      setSpaceMenu(null)
+      setSubspaceMenu(null)
+      setPageMenu(null)
+    }
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMenu()
+    }
+
+    window.addEventListener('click', closeMenu)
+    window.addEventListener('keydown', closeWithEscape)
+
+    return () => {
+      window.removeEventListener('click', closeMenu)
+      window.removeEventListener('keydown', closeWithEscape)
+    }
+  }, [spaceMenu, subspaceMenu, pageMenu])
 
   const activeWorkspace = workspaces.find(workspace => workspace.id === activeWorkspaceId) ?? workspaces[0]
   const activePages = pages.filter(page => page.workspaceId === activeWorkspace?.id)
@@ -159,13 +204,23 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     setNewSpaceIconColor('#6472EB')
     setCreatingSpaceParentId(null)
     setIsCreateSpaceOpen(false)
-    handleCreatePage('blank', space.id)
+    handleCreatePage('text', space.id)
   }
 
   function handleDeletePage(pageId: string) {
+    const deletedPage = pages.find(page => page.id === pageId)
+    const deletedPageSpace = deletedPage
+      ? spaces.find(space => space.id === deletedPage.spaceId)
+      : null
+    const fallbackPath = deletedPageSpace
+      ? deletedPageSpace.parentId
+        ? `/s/${deletedPageSpace.id}`
+        : `/e/${deletedPageSpace.id}`
+      : '/'
+
     deleteWorkspacePage(pageId)
     setPages(loadWorkspacePages())
-    if (pathname === `/p/${pageId}`) navigate('/')
+    if (pathname === `/p/${pageId}`) navigate(fallbackPath)
   }
 
   function handleDeleteSpace(spaceId: string) {
@@ -197,6 +252,23 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     setSpaceDraftName(space.name)
     setSpaceDraftIcon(space.icon ?? '')
     setSpaceDraftIconColor(space.iconColor ?? '#6472EB')
+  }
+
+  function openEditPage(page: WorkspacePage) {
+    setEditingPage(page)
+    setPageDraftTitle(page.title)
+  }
+
+  function savePageEdit() {
+    if (!editingPage) return
+    if (!pageDraftTitle.trim()) {
+      setEditingPage(null)
+      return
+    }
+
+    updateWorkspacePage(editingPage.id, { title: pageDraftTitle.trim() })
+    setPages(loadWorkspacePages())
+    setEditingPage(null)
   }
 
   function saveSpaceEdit() {
@@ -307,61 +379,30 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                   <button
                     type="button"
                     onClick={() => handleToggleSpace(space)}
-                    className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-3 py-1.5 pr-12 text-left text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                    onContextMenu={event => {
+                      event.preventDefault()
+                      setSpaceMenu({
+                        space,
+                        x: event.clientX,
+                        y: event.clientY,
+                      })
+                    }}
+                    className="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-3 py-1.5 text-left text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
                   >
-                    {space.collapsed ? (
-                      <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                    ) : (
-                      <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                    )}
-                    <SpaceIcon className="h-3.5 w-3.5 shrink-0" style={{ color: space.iconColor ?? '#6472EB' }} />
+                    <span className="relative h-3.5 w-3.5 shrink-0">
+                      <SpaceIcon
+                        className="absolute inset-0 h-3.5 w-3.5 transition-opacity group-hover/space:opacity-0"
+                        style={{ color: space.iconColor ?? '#6472EB' }}
+                      />
+                      {space.collapsed ? (
+                        <ChevronRightIcon className="absolute inset-0 h-3.5 w-3.5 text-gray-400 opacity-0 transition-opacity group-hover/space:opacity-100" />
+                      ) : (
+                        <ChevronDownIcon className="absolute inset-0 h-3.5 w-3.5 text-gray-400 opacity-0 transition-opacity group-hover/space:opacity-100" />
+                      )}
+                    </span>
                     <span className="truncate">{space.name}</span>
                   </button>
 
-                  <div className="absolute right-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/space:opacity-100">
-                    <Popover>
-                      <PopoverTrigger
-                        className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                        title="Crear"
-                      >
-                        <PlusIcon className="h-4 w-4" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-40 gap-1 p-1.5" align="start" sideOffset={4}>
-                        <button
-                          type="button"
-                          onClick={() => openCreateSpace(space.id)}
-                          className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                        >
-                          <FolderIcon className="h-4 w-4" />
-                          Subespacio
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCreatePage('blank', space.id)}
-                          className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                        >
-                          <DocumentTextIcon className="h-4 w-4" />
-                          Hoja
-                        </button>
-                      </PopoverContent>
-                    </Popover>
-                    <button
-                      type="button"
-                      onClick={() => openEditSpace(space)}
-                      className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                      title="Editar espacio"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeletingSpace(space)}
-                      className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-600"
-                      title="Borrar espacio"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
                 </div>
 
                 {!space.collapsed && (
@@ -373,21 +414,18 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                       return (
                         <div key={subspace.id} className="mb-1">
                           <div className="group/subspace relative flex items-center">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleSpace(subspace)}
-                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-                            >
-                              {subspace.collapsed ? (
-                                <ChevronRightIcon className="h-3.5 w-3.5" />
-                              ) : (
-                                <ChevronDownIcon className="h-3.5 w-3.5" />
-                              )}
-                            </button>
                             <NavLink
                               to={`/s/${subspace.id}`}
+                              onContextMenu={event => {
+                                event.preventDefault()
+                                setSubspaceMenu({
+                                  space: subspace,
+                                  x: event.clientX,
+                                  y: event.clientY,
+                                })
+                              }}
                               className={({ isActive }) => {
-                                return `flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-2 py-1.5 pr-12 text-left text-[13px] transition-colors ${
+                                return `flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors ${
                                   isActive ? 'nav-active' : 'hover:bg-gray-100'
                                 }`
                               }}
@@ -397,39 +435,46 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                                 }
                               }}
                             >
-                              <SubspaceIcon
-                                className="h-3.5 w-3.5 shrink-0"
-                                style={{ color: subspace.iconColor ?? '#6472EB' }}
-                              />
+                              <span
+                                className="relative h-3.5 w-3.5 shrink-0"
+                                onClick={event => {
+                                  event.preventDefault()
+                                  event.stopPropagation()
+                                  handleToggleSpace(subspace)
+                                }}
+                                title={subspace.collapsed ? 'Expandir subespacio' : 'Colapsar subespacio'}
+                              >
+                                <SubspaceIcon
+                                  className="absolute inset-0 h-3.5 w-3.5 transition-opacity group-hover/subspace:opacity-0"
+                                  style={{ color: subspace.iconColor ?? '#6472EB' }}
+                                />
+                                {subspace.collapsed ? (
+                                  <ChevronRightIcon className="absolute inset-0 h-3.5 w-3.5 text-gray-400 opacity-0 transition-opacity group-hover/subspace:opacity-100" />
+                                ) : (
+                                  <ChevronDownIcon className="absolute inset-0 h-3.5 w-3.5 text-gray-400 opacity-0 transition-opacity group-hover/subspace:opacity-100" />
+                                )}
+                              </span>
                               <span className="truncate">{subspace.name}</span>
                             </NavLink>
-
-                            <div className="absolute right-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/subspace:opacity-100">
-                              <button
-                                type="button"
-                                onClick={() => openEditSpace(subspace)}
-                                className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                                title="Editar subespacio"
-                              >
-                                <PencilSquareIcon className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setDeletingSpace(subspace)}
-                                className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-600"
-                                title="Borrar subespacio"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </button>
-                            </div>
                           </div>
 
                           {!subspace.collapsed && (
                             <div className="mt-0.5 pl-4">
-                              {subspacePages.map(page => (
-                                <div key={page.id} className="group/page relative mb-0.5 flex items-center">
+                              {subspacePages.map(page => {
+                                const PageIcon = getPageIcon(page)
+
+                                return (
+                                  <div key={page.id} className="group/page relative mb-0.5 flex items-center">
                                   <NavLink
                                     to={`/p/${page.id}`}
+                                    onContextMenu={event => {
+                                      event.preventDefault()
+                                      setPageMenu({
+                                        page,
+                                        x: event.clientX,
+                                        y: event.clientY,
+                                      })
+                                    }}
                                     className={({ isActive }) => {
                                       return `flex min-w-0 flex-1 items-center gap-2 rounded-md px-3 py-1.5 pr-8 text-[13px] transition-colors ${
                                         isActive ? 'nav-active' : 'hover:bg-gray-100'
@@ -441,50 +486,57 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                                       }
                                     }}
                                   >
-                                    <DocumentTextIcon className="h-4 w-4 shrink-0" />
-                                    <span className="truncate">{page.title}</span>
+                                    <PageIcon className="h-4 w-4 shrink-0" />
+                                    {editingPage?.id === page.id ? (
+                                      <input
+                                        autoFocus
+                                        value={pageDraftTitle}
+                                        onClick={event => event.preventDefault()}
+                                        onFocus={event => event.currentTarget.select()}
+                                        onChange={event => setPageDraftTitle(event.target.value)}
+                                        onBlur={savePageEdit}
+                                        onKeyDown={event => {
+                                          if (event.key === 'Enter') {
+                                            event.preventDefault()
+                                            savePageEdit()
+                                          }
+                                          if (event.key === 'Escape') {
+                                            event.preventDefault()
+                                            setEditingPage(null)
+                                          }
+                                        }}
+                                        className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
+                                      />
+                                    ) : (
+                                      <span className="truncate">{page.title}</span>
+                                    )}
                                   </NavLink>
 
-                                  <Popover>
-                                    <PopoverTrigger
-                                      className="absolute right-1 flex h-6 w-6 items-center justify-center rounded text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-700 group-hover/page:opacity-100"
-                                      title="Opciones"
-                                      onClick={event => event.preventDefault()}
-                                    >
-                                      <EllipsisHorizontalIcon className="h-4 w-4" />
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-36 gap-1 p-1.5" align="start" sideOffset={4}>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeletePage(page.id)}
-                                        className="flex h-8 w-full items-center justify-center rounded-md text-red-600 transition-colors hover:bg-red-50"
-                                        title="Borrar hoja"
-                                      >
-                                        <TrashIcon className="h-4 w-4" />
-                                      </button>
-                                    </PopoverContent>
-                                  </Popover>
                                 </div>
-                              ))}
+                                )
+                              })}
 
-                              <button
-                                type="button"
-                                onClick={() => handleCreatePage('blank', subspace.id)}
-                                className="mt-0.5 flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-[13px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-                              >
-                                <PlusIcon className="h-4 w-4" />
-                                Nueva hoja
-                              </button>
                             </div>
                           )}
                         </div>
                       )
                     })}
 
-                    {spacePages.map(page => (
-                      <div key={page.id} className="group/page relative mb-0.5 flex items-center">
+                    {spacePages.map(page => {
+                      const PageIcon = getPageIcon(page)
+
+                      return (
+                        <div key={page.id} className="group/page relative mb-0.5 flex items-center">
                         <NavLink
                           to={`/p/${page.id}`}
+                          onContextMenu={event => {
+                            event.preventDefault()
+                            setPageMenu({
+                              page,
+                              x: event.clientX,
+                              y: event.clientY,
+                            })
+                          }}
                           className={({ isActive }) => {
                             return `flex min-w-0 flex-1 items-center gap-2 rounded-md px-3 py-1.5 pr-8 text-[13px] transition-colors ${
                               isActive ? 'nav-active' : 'hover:bg-gray-100'
@@ -496,31 +548,35 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                             }
                           }}
                         >
-                          <DocumentTextIcon className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{page.title}</span>
+                          <PageIcon className="h-4 w-4 shrink-0" />
+                          {editingPage?.id === page.id ? (
+                            <input
+                              autoFocus
+                              value={pageDraftTitle}
+                              onClick={event => event.preventDefault()}
+                              onFocus={event => event.currentTarget.select()}
+                              onChange={event => setPageDraftTitle(event.target.value)}
+                              onBlur={savePageEdit}
+                              onKeyDown={event => {
+                                if (event.key === 'Enter') {
+                                  event.preventDefault()
+                                  savePageEdit()
+                                }
+                                if (event.key === 'Escape') {
+                                  event.preventDefault()
+                                  setEditingPage(null)
+                                }
+                              }}
+                              className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
+                            />
+                          ) : (
+                            <span className="truncate">{page.title}</span>
+                          )}
                         </NavLink>
 
-                        <Popover>
-                          <PopoverTrigger
-                            className="absolute right-1 flex h-6 w-6 items-center justify-center rounded text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-700 group-hover/page:opacity-100"
-                            title="Opciones"
-                            onClick={event => event.preventDefault()}
-                          >
-                            <EllipsisHorizontalIcon className="h-4 w-4" />
-                          </PopoverTrigger>
-                          <PopoverContent className="w-36 gap-1 p-1.5" align="start" sideOffset={4}>
-                            <button
-                              type="button"
-                              onClick={() => handleDeletePage(page.id)}
-                              className="flex h-8 w-full items-center justify-center rounded-md text-red-600 transition-colors hover:bg-red-50"
-                              title="Borrar hoja"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </PopoverContent>
-                        </Popover>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -534,10 +590,21 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             >
               Hojas
             </p>
-            {generalPages.map(page => (
-              <div key={page.id} className="group/page relative mb-0.5 flex items-center">
+            {generalPages.map(page => {
+              const PageIcon = getPageIcon(page)
+
+              return (
+                <div key={page.id} className="group/page relative mb-0.5 flex items-center">
                 <NavLink
                   to={`/p/${page.id}`}
+                  onContextMenu={event => {
+                    event.preventDefault()
+                    setPageMenu({
+                      page,
+                      x: event.clientX,
+                      y: event.clientY,
+                    })
+                  }}
                   className={({ isActive }) => {
                     return `flex min-w-0 flex-1 items-center gap-2 rounded-md px-3 py-1.5 pr-8 text-[13px] transition-colors ${
                       isActive ? 'nav-active' : 'hover:bg-gray-100'
@@ -549,42 +616,254 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                     }
                   }}
                 >
-                  <DocumentTextIcon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{page.title}</span>
+                  <PageIcon className="h-4 w-4 shrink-0" />
+                  {editingPage?.id === page.id ? (
+                    <input
+                      autoFocus
+                      value={pageDraftTitle}
+                      onClick={event => event.preventDefault()}
+                      onFocus={event => event.currentTarget.select()}
+                      onChange={event => setPageDraftTitle(event.target.value)}
+                      onBlur={savePageEdit}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault()
+                          savePageEdit()
+                        }
+                        if (event.key === 'Escape') {
+                          event.preventDefault()
+                          setEditingPage(null)
+                        }
+                      }}
+                      className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
+                    />
+                  ) : (
+                    <span className="truncate">{page.title}</span>
+                  )}
                 </NavLink>
 
-                <Popover>
-                  <PopoverTrigger
-                    className="absolute right-1 flex h-6 w-6 items-center justify-center rounded text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-700 group-hover/page:opacity-100"
-                    title="Opciones"
-                    onClick={event => event.preventDefault()}
-                  >
-                    <EllipsisHorizontalIcon className="h-4 w-4" />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-36 gap-1 p-1.5" align="start" sideOffset={4}>
-                    <button
-                      type="button"
-                      onClick={() => handleDeletePage(page.id)}
-                      className="flex h-8 w-full items-center justify-center rounded-md text-red-600 transition-colors hover:bg-red-50"
-                      title="Borrar hoja"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </PopoverContent>
-                </Popover>
               </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => handleCreatePage('blank')}
-              className="flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Nueva hoja
-            </button>
+              )
+            })}
+            <Popover>
+              <PopoverTrigger className="flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700">
+                <PlusIcon className="h-4 w-4" />
+                Nueva hoja
+              </PopoverTrigger>
+              <PopoverContent className="w-36 gap-1 p-1.5" align="start" sideOffset={4}>
+                <button
+                  type="button"
+                  onClick={() => handleCreatePage('text')}
+                  className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <DocumentTextIcon className="h-4 w-4" />
+                  Texto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCreatePage('board')}
+                  className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <PaintBrushIcon className="h-4 w-4" />
+                  Pizarra
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCreatePage('database')}
+                  className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <CircleStackIcon className="h-4 w-4" />
+                  Diagrama BD
+                </button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </nav>
+
+      {spaceMenu && (
+        <div
+          className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
+          style={{
+            left: Math.min(spaceMenu.x, window.innerWidth - 188),
+            top: Math.min(spaceMenu.y, window.innerHeight - 202),
+          }}
+          onClick={event => event.stopPropagation()}
+          onContextMenu={event => event.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              openCreateSpace(spaceMenu.space.id)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <FolderIcon className="h-4 w-4" />
+            Agregar subespacio
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('text', spaceMenu.space.id)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <DocumentTextIcon className="h-4 w-4" />
+            Agregar texto
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('board', spaceMenu.space.id)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PaintBrushIcon className="h-4 w-4" />
+            Agregar pizarra
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('database', spaceMenu.space.id)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <CircleStackIcon className="h-4 w-4" />
+            Agregar diagrama BD
+          </button>
+          <div className="my-1 h-px bg-gray-100" />
+          <button
+            type="button"
+            onClick={() => {
+              openEditSpace(spaceMenu.space)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PencilSquareIcon className="h-4 w-4" />
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setDeletingSpace(spaceMenu.space)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-red-600 transition-colors hover:bg-red-50"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Borrar
+          </button>
+        </div>
+      )}
+
+      {subspaceMenu && (
+        <div
+          className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
+          style={{
+            left: Math.min(subspaceMenu.x, window.innerWidth - 188),
+            top: Math.min(subspaceMenu.y, window.innerHeight - 170),
+          }}
+          onClick={event => event.stopPropagation()}
+          onContextMenu={event => event.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('text', subspaceMenu.space.id)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <DocumentTextIcon className="h-4 w-4" />
+            Agregar texto
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('board', subspaceMenu.space.id)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PaintBrushIcon className="h-4 w-4" />
+            Agregar pizarra
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('database', subspaceMenu.space.id)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <CircleStackIcon className="h-4 w-4" />
+            Agregar diagrama BD
+          </button>
+          <div className="my-1 h-px bg-gray-100" />
+          <button
+            type="button"
+            onClick={() => {
+              openEditSpace(subspaceMenu.space)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PencilSquareIcon className="h-4 w-4" />
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setDeletingSpace(subspaceMenu.space)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-red-600 transition-colors hover:bg-red-50"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Borrar
+          </button>
+        </div>
+      )}
+
+      {pageMenu && (
+        <div
+          className="fixed z-[95] w-40 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
+          style={{
+            left: Math.min(pageMenu.x, window.innerWidth - 172),
+            top: Math.min(pageMenu.y, window.innerHeight - 88),
+          }}
+          onClick={event => event.stopPropagation()}
+          onContextMenu={event => event.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              openEditPage(pageMenu.page)
+              setPageMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PencilSquareIcon className="h-4 w-4" />
+            Editar nombre
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleDeletePage(pageMenu.page.id)
+              setPageMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-red-600 transition-colors hover:bg-red-50"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Borrar
+          </button>
+        </div>
+      )}
 
       {isCreateSpaceOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/20 px-4">

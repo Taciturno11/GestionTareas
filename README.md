@@ -10,6 +10,7 @@ Frontend de una aplicacion web para gestion de tareas.
 - Documentacion de decisiones: [docs/adr](./docs/adr/README.md).
 - Contexto general del estado actual: [docs/contexto-general.md](./docs/contexto-general.md).
 - Reglas generales de diseno UI: [docs/diseno-ui.md](./docs/diseno-ui.md).
+- Hojas de texto y pizarra: [docs/hojas-texto-pizarra.md](./docs/hojas-texto-pizarra.md).
 - Contexto para agentes IA: [AGENTS.md](./AGENTS.md).
 
 ## Stack
@@ -20,6 +21,9 @@ Frontend de una aplicacion web para gestion de tareas.
 - Tailwind CSS
 - React Router
 - shadcn/Base UI para componentes base
+- Tiptap para hojas de texto enriquecido
+- tldraw para hojas tipo pizarra
+- React Flow para diagramas BD
 
 ## Estructura
 

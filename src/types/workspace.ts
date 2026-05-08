@@ -1,4 +1,4 @@
-export type WorkspacePageType = 'blank' | 'tasks'
+export type WorkspacePageType = 'blank' | 'text' | 'board' | 'database' | 'tasks'
 
 export interface Workspace {
   id: string

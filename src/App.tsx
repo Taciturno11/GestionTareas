@@ -38,6 +38,7 @@ export default function App() {
           <Route path="/archivo"    element={<PlaceholderPage title="Archivo" />} />
           <Route path="/ajustes"    element={<AjustesPage />} />
           <Route path="/p/:pageId"   element={<PageView />} />
+          <Route path="/e/:spaceId"  element={<SubspaceView />} />
           <Route path="/s/:spaceId"  element={<SubspaceView />} />
         </Route>
 

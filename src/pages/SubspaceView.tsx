@@ -31,7 +31,7 @@ export default function SubspaceView() {
     return () => window.removeEventListener(WORKSPACE_DATA_CHANGE_EVENT, syncSpace)
   }, [spaceId])
 
-  const subspacePages = useMemo(() => (
+  const spacePages = useMemo(() => (
     spaceId ? pages.filter(page => page.spaceId === spaceId) : []
   ), [pages, spaceId])
 
@@ -41,7 +41,7 @@ export default function SubspaceView() {
     return (
       <PageContainer size="wide">
         <h1 className="text-[24px] font-bold text-gray-900">Subespacio no encontrado</h1>
-        <p className="mt-2 text-[13px] text-gray-500">Este subespacio no existe o fue eliminado.</p>
+        <p className="mt-2 text-[13px] text-gray-500">Este espacio no existe o fue eliminado.</p>
       </PageContainer>
     )
   }
@@ -58,14 +58,14 @@ export default function SubspaceView() {
       <input
         value={space.name}
         onChange={event => handleChange({ name: event.target.value })}
-        placeholder="Subespacio sin titulo"
+        placeholder="Espacio sin titulo"
         className="cursor-text-dark mb-5 w-full border-none bg-transparent text-[34px] font-bold tracking-tight text-gray-900 caret-gray-900 outline-none placeholder:text-gray-300"
       />
 
       <textarea
         value={space.description ?? ''}
         onChange={event => handleChange({ description: event.target.value })}
-        placeholder="Agrega una descripcion para este subespacio..."
+        placeholder="Agrega una descripcion..."
         className="cursor-text-dark min-h-[180px] w-full resize-none rounded-xl border border-transparent bg-transparent px-0 py-1 text-[15px] leading-7 text-gray-700 caret-gray-900 outline-none placeholder:text-gray-400 focus:border-transparent focus:ring-0"
       />
 
@@ -74,9 +74,9 @@ export default function SubspaceView() {
           Hojas
         </h2>
 
-        {subspacePages.length ? (
+        {spacePages.length ? (
           <div className="space-y-1">
-            {subspacePages.map(page => (
+            {spacePages.map(page => (
               <Link
                 key={page.id}
                 to={`/p/${page.id}`}
@@ -88,7 +88,7 @@ export default function SubspaceView() {
             ))}
           </div>
         ) : (
-          <p className="text-[13px] text-gray-400">Aun no hay hojas dentro de este subespacio.</p>
+          <p className="text-[13px] text-gray-400">Aun no hay hojas dentro de este espacio.</p>
         )}
       </section>
     </PageContainer>

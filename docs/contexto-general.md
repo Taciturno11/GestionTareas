@@ -22,6 +22,13 @@ El backend todavia no esta definido. Por ahora la aplicacion usa mock data local
 - dnd-kit para drag and drop del Kanban
 - Recharts para graficos en inicio
 - date-fns y react-day-picker para fechas
+- Tiptap para hojas de texto enriquecido
+- tldraw para hojas tipo pizarra
+- React Flow (`@xyflow/react`) para diagramas BD
+
+Documentacion operativa relacionada:
+
+- `docs/hojas-texto-pizarra.md`: reglas para hojas de texto y pizarra.
 
 ## Estructura relevante
 
@@ -60,6 +67,7 @@ Las rutas principales estan en `src/App.tsx`.
 - `/archivo`: placeholder.
 - `/ajustes`: configuracion de opciones de tareas.
 - `/p/:pageId`: hoja creada dentro de workspace.
+- `/e/:spaceId`: vista propia de espacio.
 - `/s/:spaceId`: vista propia de subespacio.
 
 Las rutas privadas se renderizan dentro de `AppLayout`, que incluye `Sidebar`, `Header` y el area principal con `Outlet`.
@@ -109,6 +117,9 @@ Archivos:
 - `src/data/workspaces.ts`
 - `src/pages/PageView.tsx`
 - `src/pages/BlankPage.tsx`
+- `src/pages/TextPage.tsx`
+- `src/pages/BoardPage.tsx`
+- `src/pages/DatabaseDiagramPage.tsx`
 
 Persistencia temporal:
 
@@ -119,7 +130,10 @@ Persistencia temporal:
 Tipos iniciales:
 
 - `WorkspaceSpace`: grupo interno dentro de un workspace.
-- `blank`: hoja en blanco con titulo y contenido.
+- `text`: hoja de texto enriquecido con Tiptap.
+- `board`: hoja tipo pizarra con tldraw.
+- `database`: hoja para diagrama BD/entidad-relacion con React Flow.
+- `blank`: compatibilidad con hojas antiguas; se renderiza como texto.
 - `tasks`: hoja de tareas base.
 
 Comportamiento actual:
@@ -132,21 +146,28 @@ Comportamiento actual:
 - crear subespacio crea tambien una hoja inicial dentro de ese subespacio.
 - cada espacio se puede expandir/colapsar.
 - cada subespacio se puede expandir/colapsar.
+- el sidebar no usa chevron separado para espacios/subespacios; el icono cambia a chevron en hover para ahorrar espacio.
+- los espacios usan menu contextual con anticlick para agregar, editar y borrar.
 - al presionar el nombre de un subespacio se abre su vista propia.
-- cada espacio tiene accion directa para editar y borrar.
-- cada subespacio tiene accion directa para editar y borrar.
+- los subespacios usan menu contextual con anticlick para agregar, editar y borrar.
 - editar espacio permite cambiar nombre e icono en una sola linea.
 - los iconos de espacios usan una lista cerrada ampliada basada en Heroicons, similar a selector simple tipo Notion.
 - espacios y subespacios guardan color de icono mediante `iconColor`.
 - borrar espacio muestra confirmacion antes de eliminar sus subespacios y hojas.
-- cada hoja tiene `...` con accion de borrar.
+- las hojas tambien tienen menu contextual con anticlick para editar nombre inline o borrar.
 - `Hoja` desde el menu `+` del espacio crea una hoja dentro del espacio.
-- `+ Nueva hoja` dentro de un subespacio crea una hoja dentro de ese subespacio.
+- las hojas de un subespacio se crean desde el menu contextual de anticlick del subespacio.
 - la seccion `Hojas` muestra las hojas generales.
 - `Nueva hoja` en la seccion `Hojas` crea una hoja general y queda visible ahi, no dentro de `Espacios`.
+- al crear hoja se puede escoger entre `Texto`, `Pizarra` y `Diagrama BD`.
 - `/p/:pageId` renderiza la hoja.
+- `/e/:spaceId` renderiza el espacio con descripcion editable y enlaces a sus hojas.
 - `/s/:spaceId` renderiza el subespacio con descripcion editable y enlaces a sus hojas.
-- `BlankPage` permite editar titulo y contenido.
+- al borrar la hoja abierta, la app navega al subespacio o espacio que la contenia.
+- `TextPage` permite editar titulo y contenido enriquecido.
+- `BoardPage` dedica todo el espacio disponible a tldraw; el nombre de la pizarra se edita inline desde el sidebar.
+- `DatabaseDiagramPage` permite crear tablas, campos y relaciones entre tablas.
+- La documentacion operativa de estos tipos vive en `docs/hojas-texto-pizarra.md`.
 
 Pendiente:
 
@@ -446,6 +467,8 @@ Decisiones actuales:
 - `0011`: subespacios de un nivel dentro del sidebar.
 - `0012`: vista propia para subespacios.
 - `0013`: iconos con color en espacios.
+- `0014`: hojas de texto y pizarra.
+- `0015`: diagramas BD con React Flow.
 
 ## Deuda tecnica conocida
 
@@ -461,6 +484,8 @@ Decisiones actuales:
 - Hay logica repetida de formato visual: project pills, date ranges, colores de prioridad y lectura de tareas.
 - No existe manejo global de errores o boundary para fallos de componentes complejos como drag and drop.
 - El bundle sigue grande; Vite recomienda revisar code splitting.
+- Tiptap y tldraw aumentan el bundle; conviene lazy loading para rutas `/p/:pageId`.
+- React Flow aumenta el bundle; conviene lazy loading para hojas especializadas.
 
 ## Convenciones actuales para seguir trabajando
 

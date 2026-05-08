@@ -39,7 +39,7 @@ export const defaultWorkspacePages: WorkspacePage[] = [
     workspaceId: 'job-1',
     spaceId: 'space-general-job-1',
     title: 'Roadmap',
-    type: 'blank',
+    type: 'text',
     content: '',
     createdAt: '2026-05-05T00:00:00.000Z',
     updatedAt: '2026-05-05T00:00:00.000Z',
@@ -149,13 +149,19 @@ export function saveActiveWorkspaceId(workspaceId: string) {
 
 export function createWorkspacePage(workspaceId: string, type: WorkspacePageType, spaceId = getDefaultSpaceId(workspaceId)) {
   const now = new Date().toISOString()
-  const title = type === 'tasks' ? 'Nueva hoja de tareas' : 'Nueva pagina'
+  const normalizedType = type === 'blank' ? 'text' : type
+  const titleByType: Record<Exclude<WorkspacePageType, 'blank'>, string> = {
+    text: 'Nueva hoja de texto',
+    board: 'Nueva pizarra',
+    database: 'Nuevo diagrama BD',
+    tasks: 'Nueva hoja de tareas',
+  }
   const page: WorkspacePage = {
     id: createId('page'),
     workspaceId,
     spaceId,
-    title,
-    type,
+    title: titleByType[normalizedType],
+    type: normalizedType,
     content: '',
     createdAt: now,
     updatedAt: now,
