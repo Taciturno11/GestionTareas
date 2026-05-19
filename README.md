@@ -1,6 +1,6 @@
 # Gestion de tareas
 
-Frontend de una aplicacion web para gestion de tareas.
+Aplicacion web full-stack para gestion de tareas, espacios, hojas, calendario y archivo.
 
 ## Contexto rapido
 
@@ -15,6 +15,7 @@ Frontend de una aplicacion web para gestion de tareas.
 - Backend MVC modular: [docs/backend.md](./docs/backend.md).
 - Modelo entidad-relacion: [docs/database-er.md](./docs/database-er.md).
 - Resumen de implementacion full-stack: [docs/resumen-implementacion-2026-05-19.md](./docs/resumen-implementacion-2026-05-19.md).
+- Guia para clonar y ejecutar: [docs/guia-clonar-y-ejecutar.md](./docs/guia-clonar-y-ejecutar.md).
 - Contexto para agentes IA: [AGENTS.md](./AGENTS.md).
 
 ## Stack
@@ -28,18 +29,70 @@ Frontend de una aplicacion web para gestion de tareas.
 - Tiptap para hojas de texto enriquecido
 - tldraw para hojas tipo pizarra
 - React Flow para diagramas BD
+- Node.js + Express para backend
+- Prisma + PostgreSQL para base de datos
+
+## Inicio rapido
+
+Clonar:
+
+```bash
+git clone https://github.com/Taciturno11/GestionTareas.git
+cd GestionTareas
+```
+
+Instalar frontend:
+
+```bash
+npm install
+```
+
+Instalar backend:
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run prisma:generate
+npm run prisma:push
+```
+
+Levantar backend:
+
+```bash
+cd backend
+npm run dev
+```
+
+Levantar frontend en otra terminal:
+
+```bash
+npm run dev
+```
+
+Guia completa:
+
+- [docs/guia-clonar-y-ejecutar.md](./docs/guia-clonar-y-ejecutar.md)
 
 ## Estructura
 
 ```text
 src/
+  api/          Clientes HTTP del frontend
   assets/       Recursos visuales
   components/   Layout, navegacion y componentes reutilizables
   components/ui Componentes base de UI
   data/         Mock data local
+  hooks/        Hooks compartidos
   lib/          Utilidades compartidas
   pages/        Vistas principales
+  services/     Servicios frontend
   types/        Tipos compartidos
+  utils/        Utilidades puras
+backend/
+  prisma/       Schema Prisma
+  src/          API Express MVC modular
+docs/           Documentacion y ADRs
 ```
 
 ## Scripts
