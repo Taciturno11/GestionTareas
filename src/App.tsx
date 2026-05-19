@@ -1,14 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import AppLayout from './components/AppLayout/AppLayout'
-import AjustesPage from './pages/AjustesPage'
-import CalendarPage from './pages/CalendarPage'
-import DashboardPage from './pages/DashboardPage'
-import InicioPage from './pages/InicioPage'
-import LoginPage from './pages/LoginPage'
-import PageView from './pages/PageView'
-import SubspaceView from './pages/SubspaceView'
+import { Suspense, lazy } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
-// Páginas placeholder para rutas futuras
+import AppLayout from './components/AppLayout/AppLayout'
+import RouteFallback from './components/RouteFallback/RouteFallback'
+
+const AjustesPage = lazy(() => import('./pages/AjustesPage'))
+const ArchivePage = lazy(() => import('./pages/ArchivePage'))
+const CalendarPage = lazy(() => import('./pages/CalendarPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const InicioPage = lazy(() => import('./pages/InicioPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const PageView = lazy(() => import('./pages/PageView'))
+const SubspaceView = lazy(() => import('./pages/SubspaceView'))
+
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="px-10 pt-12">
@@ -16,7 +20,7 @@ function PlaceholderPage({ title }: { title: string }) {
         {title}
       </h1>
       <p className="mt-2 text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-        Esta sección está en construcción.
+        Esta seccion esta en construccion.
       </p>
     </div>
   )
@@ -25,26 +29,25 @@ function PlaceholderPage({ title }: { title: string }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Ruta pública */}
-        <Route path="/login" element={<LoginPage />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Rutas privadas: envueltas en AppLayout */}
-        <Route element={<AppLayout />}>
-          <Route path="/"           element={<InicioPage />} />
-          <Route path="/tareas"     element={<DashboardPage />} />
-          <Route path="/proyectos"  element={<PlaceholderPage title="Proyectos" />} />
-          <Route path="/calendario" element={<CalendarPage />} />
-          <Route path="/archivo"    element={<PlaceholderPage title="Archivo" />} />
-          <Route path="/ajustes"    element={<AjustesPage />} />
-          <Route path="/p/:pageId"   element={<PageView />} />
-          <Route path="/e/:spaceId"  element={<SubspaceView />} />
-          <Route path="/s/:spaceId"  element={<SubspaceView />} />
-        </Route>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<InicioPage />} />
+            <Route path="/tareas" element={<DashboardPage />} />
+            <Route path="/proyectos" element={<PlaceholderPage title="Proyectos" />} />
+            <Route path="/calendario" element={<CalendarPage />} />
+            <Route path="/archivo" element={<ArchivePage />} />
+            <Route path="/ajustes" element={<AjustesPage />} />
+            <Route path="/p/:pageId" element={<PageView />} />
+            <Route path="/e/:spaceId" element={<SubspaceView />} />
+            <Route path="/s/:spaceId" element={<SubspaceView />} />
+          </Route>
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

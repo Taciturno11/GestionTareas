@@ -8,7 +8,7 @@ Este documento resume el estado actual del proyecto, lo que ya existe, las decis
 
 Construir una SPA frontend para gestion de tareas que pueda evolucionar hacia vistas de inicio, tareas, proyectos, calendario, archivo y ajustes.
 
-El backend todavia no esta definido. Por ahora la aplicacion usa mock data local y persistencia temporal en `localStorage`.
+El backend ya tiene una base inicial en `backend/` con Express, TypeScript, Prisma y PostgreSQL. El frontend todavia usa mock data local y persistencia temporal en `localStorage` hasta conectar las vistas con la API.
 
 ## Stack actual
 
@@ -25,10 +25,12 @@ El backend todavia no esta definido. Por ahora la aplicacion usa mock data local
 - Tiptap para hojas de texto enriquecido
 - tldraw para hojas tipo pizarra
 - React Flow (`@xyflow/react`) para diagramas BD
+- Backend MVC modular con Express, TypeScript, Prisma y PostgreSQL
 
 Documentacion operativa relacionada:
 
 - `docs/hojas-texto-pizarra.md`: reglas para hojas de texto y pizarra.
+- `docs/database-er.md`: modelo entidad-relacion de PostgreSQL/Prisma.
 
 ## Estructura relevante
 
@@ -38,6 +40,7 @@ src/
   main.tsx
   index.css
   assets/
+  api/
   components/
     AppLayout/
     Header/
@@ -46,13 +49,19 @@ src/
     TaskDetailPanel/
     ui/
   data/
+  hooks/
   lib/
   pages/
+  services/
   types/
+  utils/
 docs/
   adr/
   diseno-ui.md
   contexto-general.md
+backend/
+  prisma/
+  src/
 ```
 
 ## Rutas actuales
@@ -64,7 +73,7 @@ Las rutas principales estan en `src/App.tsx`.
 - `/tareas`: vista principal de tareas.
 - `/proyectos`: placeholder.
 - `/calendario`: vista mensual de calendario.
-- `/archivo`: placeholder.
+- `/archivo`: espacios archivados.
 - `/ajustes`: configuracion de opciones de tareas.
 - `/p/:pageId`: hoja creada dentro de workspace.
 - `/e/:spaceId`: vista propia de espacio.
@@ -105,7 +114,9 @@ El sidebar tambien incluye:
 - titulo fijo `Gestion de Tareas` arriba.
 - seccion `Espacios` para agrupar hojas.
 - seccion `Hojas` para crear hojas generales.
+- seccion `Archivado` como acceso unico a `/archivo`.
 - acciones para crear espacios y hojas.
+- `/archivo` permite desarchivar espacios.
 
 El sidebar puede colapsarse desde el header. El estado `collapsed` vive en `AppLayout`.
 
@@ -153,6 +164,10 @@ Comportamiento actual:
 - editar espacio permite cambiar nombre e icono en una sola linea.
 - los iconos de espacios usan una lista cerrada ampliada basada en Heroicons, similar a selector simple tipo Notion.
 - espacios y subespacios guardan color de icono mediante `iconColor`.
+- los espacios principales pueden archivarse con `archived` y `archivedAt`.
+- archivar un espacio oculta todos sus subespacios y hojas sin borrarlos.
+- los espacios archivados se restauran desde `/archivo`.
+- el sidebar muestra una entrada unica `Archivado`; los espacios archivados se listan dentro de `/archivo`.
 - borrar espacio muestra confirmacion antes de eliminar sus subespacios y hojas.
 - las hojas tambien tienen menu contextual con anticlick para editar nombre inline o borrar.
 - `Hoja` desde el menu `+` del espacio crea una hoja dentro del espacio.
@@ -469,6 +484,7 @@ Decisiones actuales:
 - `0013`: iconos con color en espacios.
 - `0014`: hojas de texto y pizarra.
 - `0015`: diagramas BD con React Flow.
+- `0016`: archivado de espacios.
 
 ## Deuda tecnica conocida
 
@@ -486,10 +502,14 @@ Decisiones actuales:
 - El bundle sigue grande; Vite recomienda revisar code splitting.
 - Tiptap y tldraw aumentan el bundle; conviene lazy loading para rutas `/p/:pageId`.
 - React Flow aumenta el bundle; conviene lazy loading para hojas especializadas.
+- Las rutas principales y hojas especializadas ya usan lazy loading para reducir el bundle inicial; tldraw sigue generando un chunk grande, pero solo carga al abrir pizarras.
 
 ## Convenciones actuales para seguir trabajando
 
 - Usar `PageContainer` en paginas principales.
+- Usar `src/api/` para llamadas HTTP al backend; evitar `fetch` directo en paginas.
+- Usar `src/hooks/` como capa de migracion entre paginas y datos.
+- Usar `src/utils/` para helpers puros compartidos como fechas y transformaciones de tareas.
 - Mantener componentes reutilizables en `src/components/` o `src/components/ui/`.
 - Mantener vistas principales en `src/pages/`.
 - Si una decision tecnica cambia o se formaliza, crear ADR nuevo.

@@ -52,6 +52,7 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - Para hojas de texto enriquecido, usar Tiptap; no volver a textarea plano salvo compatibilidad puntual.
 - Para pizarras, usar tldraw; no crear canvas propio mientras tldraw cubra el caso.
 - Para diagramas BD, usar React Flow (`@xyflow/react`); no construir motor de nodos/conexiones propio.
+- Archivar espacios debe ser reversible; borrar espacios sigue siendo destructivo y requiere confirmacion.
 - Si se cambia el modelo de `WorkspacePage.content` o `WorkspacePage.type`, crear o actualizar ADR/documentacion.
 - Antes de agregar extensiones pesadas de Tiptap/tldraw, revisar impacto en bundle y considerar lazy loading.
 

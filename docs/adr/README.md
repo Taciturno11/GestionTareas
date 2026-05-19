@@ -19,6 +19,9 @@ Este directorio guarda los Architecture Decision Records del proyecto.
 - [0013 - Iconos con color en espacios](./0013-iconos-con-color-en-espacios.md)
 - [0014 - Hojas de texto y pizarra](./0014-hojas-texto-y-pizarra.md)
 - [0015 - Diagramas BD con React Flow](./0015-diagramas-bd-con-react-flow.md)
+- [0016 - Archivado de espacios](./0016-archivado-de-espacios.md)
+- [0017 - Backend MVC modular con Express, Prisma y PostgreSQL](./0017-backend-mvc-modular-con-express-prisma-y-postgresql.md)
+- [0018 - Estructura frontend escalable para API, hooks y utils](./0018-estructura-frontend-escalable-para-api-hooks-y-utils.md)
 
 ## Convencion
 

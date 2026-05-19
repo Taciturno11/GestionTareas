@@ -40,26 +40,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { TaskSelect } from '@/components/ui/task-select'
 import TaskDetailPanel, { type TaskDetailPanelTask } from '@/components/TaskDetailPanel/TaskDetailPanel'
 import { loadTaskSettings } from '@/data/taskSettings'
-import { format, parseISO, isValid } from 'date-fns'
+import { formatTaskDateRange } from '@/utils/date.utils'
+import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-
-const formatShortDate = (dateStr: string) => {
-  if (!dateStr || dateStr === '—') return '—'
-  const date = parseISO(dateStr)
-  if (!isValid(date)) return dateStr
-  return format(date, 'd MMM', { locale: es })
-}
-
-const formatTaskDateRange = (startDate: string, endDate: string) => {
-  const hasStart = Boolean(startDate && startDate !== '—')
-  const hasEnd = Boolean(endDate && endDate !== '—')
-
-  if (!hasStart && !hasEnd) return ''
-  if (hasStart && (!hasEnd || startDate === endDate)) return formatShortDate(startDate)
-  if (!hasStart && hasEnd) return formatShortDate(endDate)
-
-  return `${formatShortDate(startDate)} → ${formatShortDate(endDate)}`
-}
 
 /* ─────────────────────── Types ─────────────────────── */
 type TaskPriority = string

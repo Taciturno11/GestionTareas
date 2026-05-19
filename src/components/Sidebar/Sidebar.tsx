@@ -1,6 +1,7 @@
 import {
   BellIcon,
   AcademicCapIcon,
+  ArchiveBoxIcon,
   BookOpenIcon,
   BriefcaseIcon,
   CalendarDaysIcon,
@@ -176,8 +177,9 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   const activeWorkspace = workspaces.find(workspace => workspace.id === activeWorkspaceId) ?? workspaces[0]
   const activePages = pages.filter(page => page.workspaceId === activeWorkspace?.id)
   const activeSpaces = spaces.filter(space => space.workspaceId === activeWorkspace?.id)
-  const rootSpaces = activeSpaces.filter(space => !space.parentId)
-  const generalSpaceId = rootSpaces.find(space => space.name === 'General')?.id
+  const rootSpaces = activeSpaces.filter(space => !space.parentId && !space.archived)
+  const archivedSpaces = activeSpaces.filter(space => !space.parentId && space.archived)
+  const generalSpaceId = activeSpaces.find(space => !space.parentId && space.name === 'General' && !space.archived)?.id
   const generalPages = generalSpaceId ? activePages.filter(page => page.spaceId === generalSpaceId) : []
 
   function handleCreatePage(type: WorkspacePageType, spaceId?: string) {
@@ -232,6 +234,25 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     setSpaces(loadWorkspaceSpaces())
     setPages(loadWorkspacePages())
     if (spacePages.some(page => pathname === `/p/${page.id}`)) navigate('/')
+  }
+
+  function handleArchiveSpace(space: WorkspaceSpace) {
+    const childSpaceIds = spaces.filter(child => child.parentId === space.id).map(child => child.id)
+    const archivedSpaceIds = new Set([space.id, ...childSpaceIds])
+    const archivedPages = pages.filter(page => archivedSpaceIds.has(page.spaceId))
+    const shouldLeaveCurrentRoute =
+      pathname === `/e/${space.id}` ||
+      childSpaceIds.some(childId => pathname === `/s/${childId}`) ||
+      archivedPages.some(page => pathname === `/p/${page.id}`)
+
+    updateWorkspaceSpace(space.id, {
+      archived: true,
+      archivedAt: new Date().toISOString(),
+    })
+    setSpaces(loadWorkspaceSpaces())
+    setSpaceMenu(null)
+
+    if (shouldLeaveCurrentRoute) navigate('/archivo')
   }
 
   function handleToggleSpace(space: WorkspaceSpace) {
@@ -678,6 +699,36 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               </PopoverContent>
             </Popover>
           </div>
+
+          <div className="mt-5">
+            <p
+              className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-widest"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Archivado
+            </p>
+            <NavLink
+              to="/archivo"
+              className={({ isActive }) => {
+                return `mb-0.5 flex w-full min-w-0 items-center gap-2.5 rounded-md px-3 py-1.5 text-left text-[13px] transition-colors ${
+                  isActive ? 'nav-active' : 'hover:bg-gray-100'
+                }`
+              }}
+              style={({ isActive }) => {
+                return {
+                  color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                }
+              }}
+            >
+              <ArchiveBoxIcon className="h-4 w-4 shrink-0 text-gray-400" />
+              <span className="truncate">Archivado</span>
+              {archivedSpaces.length > 0 && (
+                <span className="ml-auto rounded-full bg-gray-100 px-1.5 text-[11px] text-gray-400">
+                  {archivedSpaces.length}
+                </span>
+              )}
+            </NavLink>
+          </div>
         </div>
       </nav>
 
@@ -747,6 +798,16 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             <PencilSquareIcon className="h-4 w-4" />
             Editar
           </button>
+          {spaceMenu.space.name !== 'General' && (
+            <button
+              type="button"
+              onClick={() => handleArchiveSpace(spaceMenu.space)}
+              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              <ArchiveBoxIcon className="h-4 w-4" />
+              Archivar
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {

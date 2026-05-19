@@ -14,6 +14,8 @@ export interface WorkspaceSpace {
   icon?: string
   iconColor?: string
   description?: string
+  archived?: boolean
+  archivedAt?: string
   collapsed: boolean
   createdAt: string
   updatedAt: string

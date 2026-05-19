@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from '../Header/Header'
 import Sidebar from '../Sidebar/Sidebar'
+import { getAuthToken } from '@/services/auth-token'
+import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
 
 /**
  * AppLayout envuelve todas las páginas autenticadas.
@@ -11,6 +13,14 @@ import Sidebar from '../Sidebar/Sidebar'
  */
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    if (!getAuthToken()) return
+
+    syncBackendWorkspaceDataToLocalStorage().catch(error => {
+      console.warn('No se pudo sincronizar con backend local.', error)
+    })
+  }, [])
 
   return (
     <div

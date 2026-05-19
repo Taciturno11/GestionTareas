@@ -26,6 +26,7 @@ import { useMemo, useState } from 'react'
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { loadTaskSettings } from '@/data/taskSettings'
+import { formatTaskDateRange as formatSharedTaskDateRange } from '@/utils/date.utils'
 
 interface CalendarTask {
   id: number
@@ -75,16 +76,7 @@ function taskTouchesDate(task: CalendarTask, date: Date) {
 }
 
 function formatTaskDateRange(task: CalendarTask) {
-  const startDate = parseTaskDate(task.startDate)
-  const endDate = parseTaskDate(task.endDate)
-
-  if (!startDate && !endDate) return 'Sin fecha'
-  if (startDate && (!endDate || isSameDay(startDate, endDate))) {
-    return format(startDate, 'd MMM', { locale: es })
-  }
-  if (!startDate && endDate) return format(endDate, 'd MMM', { locale: es })
-
-  return `${format(startDate!, 'd MMM', { locale: es })} -> ${format(endDate!, 'd MMM', { locale: es })}`
+  return formatSharedTaskDateRange(task.startDate, task.endDate, '->') || 'Sin fecha'
 }
 
 function getTaskSortDate(task: CalendarTask) {

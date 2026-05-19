@@ -11,6 +11,10 @@ Frontend de una aplicacion web para gestion de tareas.
 - Contexto general del estado actual: [docs/contexto-general.md](./docs/contexto-general.md).
 - Reglas generales de diseno UI: [docs/diseno-ui.md](./docs/diseno-ui.md).
 - Hojas de texto y pizarra: [docs/hojas-texto-pizarra.md](./docs/hojas-texto-pizarra.md).
+- Arquitectura frontend: [docs/frontend-arquitectura.md](./docs/frontend-arquitectura.md).
+- Backend MVC modular: [docs/backend.md](./docs/backend.md).
+- Modelo entidad-relacion: [docs/database-er.md](./docs/database-er.md).
+- Resumen de implementacion full-stack: [docs/resumen-implementacion-2026-05-19.md](./docs/resumen-implementacion-2026-05-19.md).
 - Contexto para agentes IA: [AGENTS.md](./AGENTS.md).
 
 ## Stack
@@ -43,6 +47,22 @@ src/
 - `npm run dev`: servidor local
 - `npm run build`: build de produccion
 - `npm run lint`: revision estatica
+
+## Backend
+
+El backend vive en `backend/` y usa arquitectura MVC modular con Express, TypeScript, Prisma y PostgreSQL.
+
+Documentacion especifica:
+
+- [backend/README.md](./backend/README.md)
+- [docs/backend.md](./docs/backend.md)
+
+Scripts principales:
+
+- `cd backend && npm run dev`: API local
+- `cd backend && npm run build`: compilar TypeScript
+- `cd backend && npm run prisma:migrate`: ejecutar migraciones Prisma
+- `cd backend && npm run prisma:studio`: abrir Prisma Studio
 
 ## Convenciones
 

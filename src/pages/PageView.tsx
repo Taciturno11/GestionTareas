@@ -1,12 +1,14 @@
 import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 
+import RouteFallback from '@/components/RouteFallback/RouteFallback'
 import { findWorkspacePage, updateWorkspacePage, WORKSPACE_DATA_CHANGE_EVENT } from '@/data/workspaces'
 import type { WorkspacePage } from '@/types/workspace'
-import BoardPage from './BoardPage'
-import DatabaseDiagramPage from './DatabaseDiagramPage'
-import TextPage from './TextPage'
+
+const BoardPage = lazy(() => import('./BoardPage'))
+const DatabaseDiagramPage = lazy(() => import('./DatabaseDiagramPage'))
+const TextPage = lazy(() => import('./TextPage'))
 
 export default function PageView() {
   const { pageId } = useParams()
@@ -42,15 +44,27 @@ export default function PageView() {
   }
 
   if (page.type === 'blank' || page.type === 'text') {
-    return <TextPage page={page} onChange={handleChange} />
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <TextPage page={page} onChange={handleChange} />
+      </Suspense>
+    )
   }
 
   if (page.type === 'board') {
-    return <BoardPage page={page} onChange={handleChange} />
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <BoardPage page={page} onChange={handleChange} />
+      </Suspense>
+    )
   }
 
   if (page.type === 'database') {
-    return <DatabaseDiagramPage page={page} onChange={handleChange} />
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <DatabaseDiagramPage page={page} onChange={handleChange} />
+      </Suspense>
+    )
   }
 
   return (

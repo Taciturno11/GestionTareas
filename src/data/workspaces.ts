@@ -1,4 +1,6 @@
 import type { Workspace, WorkspacePage, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
+import { pagesApi } from '@/api/pages.api'
+import { spacesApi } from '@/api/spaces.api'
 
 const WORKSPACES_KEY = 'gt_workspaces'
 const WORKSPACE_SPACES_KEY = 'gt_workspace_spaces'
@@ -68,6 +70,12 @@ function emitWorkspaceDataChange() {
   window.dispatchEvent(new CustomEvent(WORKSPACE_DATA_CHANGE_EVENT))
 }
 
+function mirrorToBackend(operation: Promise<unknown>) {
+  operation.catch(error => {
+    console.warn('No se pudo sincronizar workspace con backend.', error)
+  })
+}
+
 function readJson<T>(key: string, fallback: T): T {
   const saved = localStorage.getItem(key)
   if (!saved) return fallback
@@ -110,6 +118,8 @@ export function loadWorkspaceSpaces() {
         parentId: space.parentId || undefined,
         iconColor: space.iconColor || '#6472EB',
         description: space.description ?? '',
+        archived: Boolean(space.archived),
+        archivedAt: space.archivedAt,
       }))
     : defaultWorkspaceSpaces
 }
@@ -168,6 +178,7 @@ export function createWorkspacePage(workspaceId: string, type: WorkspacePageType
   }
 
   saveWorkspacePages([...loadWorkspacePages(), page])
+  mirrorToBackend(pagesApi.create(page))
   return page
 }
 
@@ -180,10 +191,13 @@ export function updateWorkspacePage(pageId: string, patch: Partial<Omit<Workspac
   )
 
   saveWorkspacePages(nextPages)
+  const updatedPage = nextPages.find(page => page.id === pageId)
+  if (updatedPage) mirrorToBackend(pagesApi.update(pageId, patch))
 }
 
 export function deleteWorkspacePage(pageId: string) {
   saveWorkspacePages(loadWorkspacePages().filter(page => page.id !== pageId))
+  mirrorToBackend(pagesApi.remove(pageId))
 }
 
 export function createWorkspaceSpace(
@@ -207,6 +221,7 @@ export function createWorkspaceSpace(
   }
 
   saveWorkspaceSpaces([...loadWorkspaceSpaces(), space])
+  mirrorToBackend(spacesApi.create(space))
   return space
 }
 
@@ -216,6 +231,7 @@ export function updateWorkspaceSpace(spaceId: string, patch: Partial<Omit<Worksp
       ? { ...space, ...patch, updatedAt: new Date().toISOString() }
       : space
   ))
+  mirrorToBackend(spacesApi.update(spaceId, patch))
 }
 
 export function deleteWorkspaceSpace(spaceId: string) {
@@ -227,6 +243,7 @@ export function deleteWorkspaceSpace(spaceId: string) {
 
   saveWorkspacePages(loadWorkspacePages().filter(page => !deletedSpaceIds.has(page.spaceId)))
   saveWorkspaceSpaces(spaces.filter(space => !deletedSpaceIds.has(space.id)))
+  mirrorToBackend(spacesApi.remove(spaceId))
 }
 
 export function findWorkspacePage(pageId: string) {

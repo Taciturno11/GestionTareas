@@ -1,8 +1,9 @@
-import { PencilSquareIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, PencilSquareIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 
 import PageContainer from '@/components/PageContainer/PageContainer'
 import { loadTaskSettings, saveTaskSettings } from '@/data/taskSettings'
+import { downloadLocalBackup } from '@/lib/localBackup'
 import type { TaskSettings } from '@/types/taskSettings'
 
 type SettingsTab = 'projects' | 'assignees' | 'labels' | 'priorities' | 'statuses'
@@ -355,6 +356,7 @@ export default function AjustesPage() {
   const [adding, setAdding] = useState(false)
   const [editingItem, setEditingItem] = useState<CardItem | null>(null)
   const [settings, setSettings] = useState<TaskSettings>(() => loadTaskSettings())
+  const [backupStatus, setBackupStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
 
   useEffect(() => {
     saveTaskSettings(settings)
@@ -497,14 +499,47 @@ export default function AjustesPage() {
     }))
   }
 
+  async function exportBackup() {
+    setBackupStatus('exporting')
+
+    try {
+      await downloadLocalBackup()
+      setBackupStatus('done')
+      window.setTimeout(() => setBackupStatus('idle'), 3000)
+    } catch (error) {
+      console.error(error)
+      setBackupStatus('error')
+    }
+  }
+
   const compactList = tab === 'labels' || tab === 'priorities' || tab === 'statuses'
 
   return (
     <PageContainer size="wide">
       <div className="max-w-[1080px]">
-        <div className="mb-8">
-          <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Ajustes</h1>
-          <p className="mt-1 text-[13px] text-gray-500">Configura las opciones de tus tareas.</p>
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Ajustes</h1>
+            <p className="mt-1 text-[13px] text-gray-500">Configura las opciones de tus tareas.</p>
+          </div>
+
+          <div className="flex flex-col items-start gap-1.5 lg:items-end">
+            <button
+              type="button"
+              onClick={exportBackup}
+              disabled={backupStatus === 'exporting'}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              {backupStatus === 'exporting' ? 'Exportando...' : 'Exportar mis datos'}
+            </button>
+            {backupStatus === 'done' && (
+              <span className="text-[12px] font-medium text-emerald-600">Backup descargado.</span>
+            )}
+            {backupStatus === 'error' && (
+              <span className="text-[12px] font-medium text-red-600">No se pudo exportar.</span>
+            )}
+          </div>
         </div>
 
         <div className="mb-6 flex flex-wrap gap-1.5">

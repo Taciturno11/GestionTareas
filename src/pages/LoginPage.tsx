@@ -1,5 +1,10 @@
 import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline'
 import { type FormEvent, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { authApi } from '@/api/auth.api'
+import { saveAuthToken } from '@/services/auth-token'
+import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
 import coverImage from '../assets/portada_gestion_HD.webp'
 
 function CurvedDivider() {
@@ -33,18 +38,34 @@ function CurvedDivider() {
 }
 
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setError('')
 
     if (!email.trim() || !password.trim()) {
-      alert('Completa tu correo y tu contrasena para continuar.')
+      setError('Completa tu correo y tu contrasena para continuar.')
       return
     }
 
-    alert('Formulario listo para conectar con el backend.')
+    setIsSubmitting(true)
+
+    try {
+      const result = await authApi.login({ email: email.trim(), password })
+      saveAuthToken(result.token)
+      await syncBackendWorkspaceDataToLocalStorage()
+      navigate('/', { replace: true })
+    } catch (loginError) {
+      console.error(loginError)
+      setError('No se pudo iniciar sesion. Revisa correo, contrasena o backend local.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -158,10 +179,17 @@ export default function LoginPage() {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="mt-2 h-[56px] w-full rounded-[16px] bg-teal-600 text-[1.05rem] font-semibold text-white shadow-lg shadow-teal-700/15 transition hover:bg-teal-700"
               >
-                Iniciar sesion
+                {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
               </button>
+
+              {error && (
+                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                  {error}
+                </p>
+              )}
             </form>
 
             <div className="mt-14 mr-15 text-center text-sm text-slate-400">
