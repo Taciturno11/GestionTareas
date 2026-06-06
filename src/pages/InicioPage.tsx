@@ -147,7 +147,8 @@ export default function InicioPage() {
               {recentTasks.map((task, i) => {
                 const dot    = STATUS_DOT[task.status]  ?? '#9CA3AF'
                 const prio   = PRIORITY_LABEL[task.priority] ?? PRIORITY_LABEL.low
-                const avatar = AVATAR[task.assignee] ?? { bg: '#F3F4F6', text: '#374151' }
+                const assignee = task.assignee ?? 'MN'
+                const avatar = AVATAR[assignee] ?? { bg: '#F3F4F6', text: '#374151' }
                 return (
                   <div
                     key={task.id}
@@ -160,10 +161,10 @@ export default function InicioPage() {
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0" style={{ background: prio.bg, color: prio.text }}>{prio.label}</span>
                     <span className="flex items-center gap-0.5 text-[10px] text-gray-400 shrink-0">
                       <CalendarIcon className="h-2.5 w-2.5" />
-                      {task.endDate.slice(5).replace('-', '/')}
+                      {(task.endDate ?? '').slice(5).replace('-', '/')}
                     </span>
                     <div className="h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0" style={{ background: avatar.bg, color: avatar.text }}>
-                      {task.assignee}
+                      {assignee}
                     </div>
                   </div>
                 )

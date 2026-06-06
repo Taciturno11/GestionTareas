@@ -10,7 +10,26 @@ erDiagram
     string id PK
     string email UK
     string name
+    string role
     string passwordHash
+    boolean twoFactorEnabled
+    string twoFactorMethod
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  LOGIN_OTP_CHALLENGE {
+    string id PK
+    string userId FK
+    string email
+    string codeHash
+    datetime expiresAt
+    datetime consumedAt
+    int attemptsCount
+    int resendCount
+    datetime lastSentAt
+    string ipAddress
+    string userAgent
     datetime createdAt
     datetime updatedAt
   }
@@ -65,6 +84,7 @@ erDiagram
     string description
     string status
     string priority
+    string projectId
     string tag
     string assigneeId FK
     datetime startDate
@@ -90,6 +110,7 @@ erDiagram
 
   USER ||--o{ WORKSPACE_MEMBER : belongs_to
   WORKSPACE ||--o{ WORKSPACE_MEMBER : has_members
+  USER ||--o{ LOGIN_OTP_CHALLENGE : receives
 
   WORKSPACE ||--o{ SPACE : has_spaces
   SPACE ||--o{ SPACE : has_subspaces
@@ -115,9 +136,27 @@ Guarda:
 
 - email unico.
 - nombre.
+- rol.
 - hash de password.
+- flag opcional de 2FA.
+- metodo de 2FA cuando aplica.
 
 No guarda password en texto plano.
+
+### `LoginOtpChallenge`
+
+Desafio temporal para login con verificacion por correo.
+
+Guarda:
+
+- email y usuario asociados.
+- hash del codigo OTP.
+- expiracion.
+- cantidad de intentos.
+- cantidad de reenvios.
+- datos basicos de contexto como IP y user agent.
+
+No guarda el OTP en texto plano.
 
 ### `Workspace`
 
@@ -215,6 +254,7 @@ Campos funcionales:
 - descripcion.
 - estado.
 - prioridad.
+- proyecto configurable (`projectId`) tomado de `TaskSettings.projects`.
 - etiqueta.
 - fechas.
 - color.

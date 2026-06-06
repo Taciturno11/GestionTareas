@@ -124,3 +124,4 @@ Scripts principales:
 - Registrar decisiones arquitectonicas nuevas como ADR incremental en `docs/adr/`.
 - No reescribir el sentido historico de ADR aprobados; crear uno nuevo si cambia una decision.
 - Antes de cerrar cambios visuales, revisar la seccion completa y las variantes del componente segun `docs/diseno-ui.md`.
+- Inputs, textareas y editores deben usar `cursor-text-dark` junto con `caret-gray-900` si el I-beam nativo se ve blanco o poco visible.

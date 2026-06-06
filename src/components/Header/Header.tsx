@@ -2,7 +2,9 @@ import { ChevronRightIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/ou
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import type { AuthUser } from '@/api/auth.api'
 import { findWorkspacePage, WORKSPACE_DATA_CHANGE_EVENT } from '@/data/workspaces'
+import UserMenu from './UserMenu'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Inicio',
@@ -16,9 +18,11 @@ const PAGE_TITLES: Record<string, string> = {
 interface HeaderProps {
   collapsed: boolean
   onToggleSidebar: () => void
+  user: AuthUser | null
+  isUserLoading?: boolean
 }
 
-export default function Header({ collapsed, onToggleSidebar }: HeaderProps) {
+export default function Header({ collapsed, onToggleSidebar, user, isUserLoading = false }: HeaderProps) {
   const { pathname } = useLocation()
   const [, setWorkspaceDataVersion] = useState(0)
   const dynamicPageId = pathname.startsWith('/p/') ? pathname.replace('/p/', '') : null
@@ -64,7 +68,7 @@ export default function Header({ collapsed, onToggleSidebar }: HeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3" style={{ color: 'var(--color-text-muted)' }}>
+      <div className="flex min-w-0 items-center gap-3" style={{ color: 'var(--color-text-muted)' }}>
         <span className="text-[12px]">Editado hace 2 min</span>
         <button
           className="rounded-md px-3 py-1 text-[13px] font-medium transition-colors hover:bg-gray-100"
@@ -75,6 +79,8 @@ export default function Header({ collapsed, onToggleSidebar }: HeaderProps) {
         <button className="rounded-md p-1.5 transition-colors hover:bg-gray-100">
           <EllipsisHorizontalIcon className="h-4 w-4" />
         </button>
+        <div className="h-4 w-px bg-gray-200" />
+        <UserMenu user={user} isLoading={isUserLoading} />
       </div>
     </header>
   )

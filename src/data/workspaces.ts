@@ -1,6 +1,7 @@
 import type { Workspace, WorkspacePage, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
 import { pagesApi } from '@/api/pages.api'
 import { spacesApi } from '@/api/spaces.api'
+import { getAuthToken } from '@/services/auth-token'
 
 const WORKSPACES_KEY = 'gt_workspaces'
 const WORKSPACE_SPACES_KEY = 'gt_workspace_spaces'
@@ -71,6 +72,8 @@ function emitWorkspaceDataChange() {
 }
 
 function mirrorToBackend(operation: Promise<unknown>) {
+  if (!getAuthToken()) return
+
   operation.catch(error => {
     console.warn('No se pudo sincronizar workspace con backend.', error)
   })

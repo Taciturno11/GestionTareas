@@ -14,7 +14,7 @@ import {
   SwatchIcon,
 } from '@heroicons/react/24/outline'
 import { Squares2X2Icon, TableCellsIcon, ListBulletIcon } from '@heroicons/react/24/outline'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
   closestCorners,
@@ -39,8 +39,12 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { TaskSelect } from '@/components/ui/task-select'
 import TaskDetailPanel, { type TaskDetailPanelTask } from '@/components/TaskDetailPanel/TaskDetailPanel'
-import { loadTaskSettings } from '@/data/taskSettings'
+import { defaultTaskSettings } from '@/data/taskSettings'
+import { useTaskSettings } from '@/hooks/useTaskSettings'
+import { useTasks } from '@/hooks/useTasks'
+import { useWorkspaces } from '@/hooks/useWorkspaces'
 import { formatTaskDateRange } from '@/utils/date.utils'
+import type { Task } from '@/types/task'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -49,7 +53,7 @@ type TaskPriority = string
 type ViewMode = 'board' | 'table'
 
 interface BoardTask {
-  id: number
+  id: string
   title: string
   colId: string
   priority: TaskPriority
@@ -76,11 +80,11 @@ interface BoardColumn {
 /* ─────────────────────── Data ─────────────────────── */
 
 const TASKS: BoardTask[] = [
-  { id: 1, title: 'Revisar propuesta de diseño',     colId: 'progreso',   priority: 'Alta',  tag: 'Diseño',     startDate: '2026-07-15', endDate: '2026-07-22', assignee: 'AG', workspaceId: 'job-1' },
-  { id: 2, title: 'Reunión con equipo de producto',  colId: 'pendiente',  priority: 'Media', tag: 'Reunión',    startDate: '2026-07-18', endDate: '2026-07-23', assignee: 'LT', workspaceId: 'job-1' },
-  { id: 3, title: 'Documentar API de autenticación', colId: 'completado', priority: 'Alta',  tag: 'Desarrollo', startDate: '2026-07-10', endDate: '2026-07-20', assignee: 'ML', workspaceId: 'job-1' },
-  { id: 4, title: 'Actualizar dependencias npm',     colId: 'pendiente',  priority: 'Baja',  tag: 'Desarrollo', startDate: '2026-07-05', endDate: '2026-07-25', assignee: 'CR', workspaceId: 'job-2' },
-  { id: 5, title: 'Redactar informe Q2',             colId: 'progreso',   priority: 'Alta',  tag: 'Finanzas',   startDate: '2026-07-18', endDate: '2026-07-24', assignee: 'SD', workspaceId: 'job-2' },
+  { id: '1', title: 'Revisar propuesta de diseño',     colId: 'progreso',   priority: 'Alta',  tag: 'Diseño',     startDate: '2026-07-15', endDate: '2026-07-22', assignee: 'AG', workspaceId: 'job-1' },
+  { id: '2', title: 'Reunión con equipo de producto',  colId: 'pendiente',  priority: 'Media', tag: 'Reunión',    startDate: '2026-07-18', endDate: '2026-07-23', assignee: 'LT', workspaceId: 'job-1' },
+  { id: '3', title: 'Documentar API de autenticación', colId: 'completado', priority: 'Alta',  tag: 'Desarrollo', startDate: '2026-07-10', endDate: '2026-07-20', assignee: 'ML', workspaceId: 'job-1' },
+  { id: '4', title: 'Actualizar dependencias npm',     colId: 'pendiente',  priority: 'Baja',  tag: 'Desarrollo', startDate: '2026-07-05', endDate: '2026-07-25', assignee: 'CR', workspaceId: 'job-2' },
+  { id: '5', title: 'Redactar informe Q2',             colId: 'progreso',   priority: 'Alta',  tag: 'Finanzas',   startDate: '2026-07-18', endDate: '2026-07-24', assignee: 'SD', workspaceId: 'job-2' },
 ]
 
 // Tag colors — pastel pills exactamente como Notion
@@ -107,6 +111,40 @@ const TASK_COLORS = [
   '#F5F3FF',
   '#F1F5F9',
 ]
+
+function fromApiTasks(tasks: Task[]): BoardTask[] {
+  return tasks.map(task => ({
+    id: task.id,
+    title: task.title,
+    colId: task.status,
+    priority: task.priority,
+    tag: task.tag,
+    startDate: task.startDate ?? '—',
+    endDate: task.endDate ?? '—',
+    assignee: task.assigneeId ?? task.assignee ?? 'MN',
+    workspaceId: task.projectId ?? task.workspaceId,
+    color: task.color ?? undefined,
+    notes: task.notes ?? '',
+  }))
+}
+
+function toApiTask(task: unknown) {
+  const localTask = task as BoardTask
+  return {
+    id: localTask.id,
+    title: localTask.title,
+    description: '',
+    status: localTask.colId,
+    priority: localTask.priority,
+    projectId: localTask.workspaceId,
+    tag: localTask.tag,
+    assigneeId: null,
+    startDate: localTask.startDate,
+    endDate: localTask.endDate,
+    color: localTask.color ?? null,
+    notes: localTask.notes ?? '',
+  }
+}
 
 function ProjectPill({
   projectId,
@@ -237,8 +275,8 @@ function KanbanTaskCard({
   projectLabels: Record<string, string>
   projectColors: Record<string, string>
   onOpen: (task: BoardTask) => void
-  onDelete: (taskId: number) => void
-  onColorChange: (taskId: number, color: string) => void
+  onDelete: (taskId: string) => void
+  onColorChange: (taskId: string, color: string) => void
 }) {
   const {
     attributes,
@@ -372,8 +410,8 @@ function KanbanColumn({
   addingToCol: string | null
   newTaskTitle: string
   onOpenTask: (task: BoardTask) => void
-  onDeleteTask: (taskId: number) => void
-  onColorTask: (taskId: number, color: string) => void
+  onDeleteTask: (taskId: string) => void
+  onColorTask: (taskId: string, color: string) => void
   onStartAdd: (colId: string) => void
   onNewTaskTitleChange: (title: string) => void
   onAddTask: (colId: string) => void
@@ -480,24 +518,22 @@ function KanbanColumn({
 export default function DashboardPage() {
   const location = useLocation()
   const currentWorkspace = new URLSearchParams(location.search).get('w')
+  const { activeWorkspaceId } = useWorkspaces()
+  const { settings: taskSettings } = useTaskSettings(activeWorkspaceId)
+  const { tasks, setTasks } = useTasks<BoardTask[]>(TASKS, {
+    workspaceId: activeWorkspaceId,
+    fromApi: fromApiTasks,
+    toApi: toApiTask,
+  })
 
-  const [taskSettings, setTaskSettings] = useState(() => loadTaskSettings())
   const [view, setView]                   = useState<ViewMode>('board')
   const [projectFilter, setProjectFilter] = useState('all')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [tasks, setTasks]                 = useState<BoardTask[]>(() => {
-    const saved = localStorage.getItem('gt_tasks')
-    if (saved) {
-      try { return JSON.parse(saved) } catch { return TASKS }
-    }
-    return TASKS
-  })
-  
-  useEffect(() => {
-    localStorage.setItem('gt_tasks', JSON.stringify(tasks))
-  }, [tasks])
-
-  const [cols, setCols]                   = useState<BoardColumn[]>(() => loadTaskSettings().statuses)
+  const [extraCols, setExtraCols] = useState<BoardColumn[]>([])
+  const cols: BoardColumn[] = [
+    ...(taskSettings.statuses.length ? taskSettings.statuses : defaultTaskSettings.statuses),
+    ...extraCols,
+  ]
   const [addingToCol, setAddingToCol]     = useState<string | null>(null)
   const [newTaskTitle, setNewTaskTitle]   = useState('')
 
@@ -505,8 +541,8 @@ export default function DashboardPage() {
   const [isPanelClosing, setIsPanelClosing] = useState(false)
   const [newTaskData, setNewTaskData]     = useState<Partial<BoardTask>>({})
 
-  const [editingCell, setEditingCell] = useState<{ taskId: number, field: EditableTaskField } | null>(null)
-  const [activeTaskId, setActiveTaskId] = useState<number | null>(null)
+  const [editingCell, setEditingCell] = useState<{ taskId: string, field: EditableTaskField } | null>(null)
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [activeDropColId, setActiveDropColId] = useState<string | null>(null)
   const suppressTaskClickRef = useRef(false)
   const dragSnapshotRef = useRef<BoardTask[] | null>(null)
@@ -537,18 +573,7 @@ export default function DashboardPage() {
     taskSettings.projects.map(project => [project.id, project.color ?? '#64748B'])
   )
 
-  useEffect(() => {
-    const handleSettingsChange = () => {
-      const nextSettings = loadTaskSettings()
-      setTaskSettings(nextSettings)
-      setCols(nextSettings.statuses)
-    }
-
-    window.addEventListener('gt-task-settings-change', handleSettingsChange)
-    return () => window.removeEventListener('gt-task-settings-change', handleSettingsChange)
-  }, [])
-
-  const updateTaskField = <K extends EditableTaskField>(taskId: number, field: K, value: BoardTask[K]) => {
+  const updateTaskField = <K extends EditableTaskField>(taskId: string, field: K, value: BoardTask[K]) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t))
   }
 
@@ -563,7 +588,7 @@ export default function DashboardPage() {
   const handleDragStart = (event: DragStartEvent) => {
     suppressTaskClickRef.current = true
     dragSnapshotRef.current = tasks
-    setActiveTaskId(Number(event.active.id))
+    setActiveTaskId(String(event.active.id))
   }
 
   const updateActiveDropColId = (colId: string | null) => {
@@ -579,8 +604,8 @@ export default function DashboardPage() {
       return
     }
 
-    const activeId = Number(active.id)
-    const overTask = tasks.find(task => task.id === Number(over.id))
+    const activeId = String(active.id)
+    const overTask = tasks.find(task => task.id === String(over.id))
     const overColId = overTask?.colId ?? cols.find(col => col.id === String(over.id))?.id
     const activeTask = tasks.find(task => task.id === activeId)
 
@@ -595,7 +620,7 @@ export default function DashboardPage() {
     if (!over) {
       if (dragSnapshotRef.current) setTasks(dragSnapshotRef.current)
     } else {
-      const activeId = Number(active.id)
+      const activeId = String(active.id)
       const overId = over.id
 
       setTasks(prev => {
@@ -603,7 +628,7 @@ export default function DashboardPage() {
         if (activeIndex === -1) return prev
 
         const activeTask = prev[activeIndex]
-        const overTask = prev.find(task => task.id === Number(overId))
+        const overTask = prev.find(task => task.id === String(overId))
         const overColId = overTask?.colId ?? cols.find(col => col.id === String(overId))?.id
 
         if (!overColId) return prev
@@ -700,7 +725,7 @@ export default function DashboardPage() {
     } else {
       setTasks(prev => [...prev, {
         ...newTaskData,
-        id: Date.now(),
+        id: crypto.randomUUID(),
         title: newTaskData.title!.trim(),
         startDate: newTaskData.startDate || '—',
         endDate: newTaskData.endDate || '—',
@@ -725,7 +750,7 @@ export default function DashboardPage() {
   const addTask = (colId: string) => {
     if (!newTaskTitle.trim()) { setAddingToCol(null); return }
     setTasks(prev => [...prev, {
-      id: Date.now(), title: newTaskTitle.trim(), colId,
+      id: crypto.randomUUID(), title: newTaskTitle.trim(), colId,
       priority: 'Media', tag: 'General', startDate: '—', endDate: '—', assignee: 'MN',
       workspaceId: defaultProjectId,
       color: '#FFFFFF',
@@ -736,7 +761,7 @@ export default function DashboardPage() {
   }
 
   const createTableTask = () => {
-    const id = Date.now()
+    const id = crypto.randomUUID()
     const task: BoardTask = {
       id,
       title: '',
@@ -760,7 +785,7 @@ export default function DashboardPage() {
 
   const handleNewTaskClick = () => {
     if (view === 'board') {
-      const id = Date.now()
+      const id = crypto.randomUUID()
       const task: BoardTask = {
         id,
         title: '',
@@ -786,11 +811,11 @@ export default function DashboardPage() {
     createTableTask()
   }
 
-  const deleteTask = (taskId: number) => {
+  const deleteTask = (taskId: string) => {
     setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const updateTaskColor = (taskId: number, color: string) => {
+  const updateTaskColor = (taskId: string, color: string) => {
     setTasks(prev => prev.map(task =>
       task.id === taskId ? { ...task, color } : task
     ))
@@ -971,7 +996,7 @@ export default function DashboardPage() {
                 onClick={() => {
                   const label = prompt('Nombre del nuevo estado:')
                   if (!label) return
-                  setCols(prev => [...prev, {
+                  setExtraCols(prev => [...prev, {
                     id: label.toLowerCase().replace(/\s+/g, '_'),
                     label,
                     dot: '#8B5CF6',

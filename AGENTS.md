@@ -9,7 +9,7 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 ## Estado actual
 
 - Proyecto frontend SPA.
-- Backend no definido todavia.
+- Backend inicial ya existe en `backend/` con Express, Prisma y PostgreSQL.
 - Datos actuales viven como mock data local.
 - Routing ya existe con `react-router-dom`.
 - UI usa Tailwind CSS, componentes `components/ui`, Base UI/shadcn y algunos iconos de Heroicons/Lucide.

@@ -4,6 +4,7 @@ import Header from '../Header/Header'
 import Sidebar from '../Sidebar/Sidebar'
 import { getAuthToken } from '@/services/auth-token'
 import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 /**
  * AppLayout envuelve todas las páginas autenticadas.
@@ -13,6 +14,7 @@ import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
  */
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  const { user, isLoading: isUserLoading } = useCurrentUser()
 
   useEffect(() => {
     if (!getAuthToken()) return
@@ -33,6 +35,8 @@ export default function AppLayout() {
         <Header
           collapsed={collapsed}
           onToggleSidebar={() => setCollapsed(prev => !prev)}
+          user={user}
+          isUserLoading={isUserLoading}
         />
 
         {/* Área de contenido: flex-1 + overflow-hidden para que

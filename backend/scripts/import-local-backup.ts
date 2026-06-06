@@ -52,6 +52,7 @@ interface LocalTask {
   colId?: string
   status?: string
   priority?: string
+  projectId?: string
   tag?: string
   assignee?: string
   workspaceId?: string
@@ -171,10 +172,12 @@ async function main() {
     create: {
       email: 'martin.local@gestion-tareas.dev',
       name: 'Martin Nauca Gamboa',
+      role: 'admin_unitek',
       passwordHash,
     },
     update: {
       name: 'Martin Nauca Gamboa',
+      role: 'admin_unitek',
     },
   })
 
@@ -307,7 +310,8 @@ async function main() {
     }
 
     for (const task of tasks) {
-      const workspaceId = task.workspaceId ?? activeWorkspaceId
+      const workspaceId = activeWorkspaceId
+      const projectId = task.projectId ?? task.workspaceId ?? null
 
       await tx.task.upsert({
         where: { id: String(task.id) },
@@ -318,6 +322,7 @@ async function main() {
           description: task.description ?? '',
           status: task.colId ?? task.status ?? 'pendiente',
           priority: task.priority ?? 'Media',
+          projectId,
           tag: task.tag ?? 'General',
           startDate: toDate(task.startDate),
           endDate: toDate(task.endDate),
@@ -333,6 +338,7 @@ async function main() {
           description: task.description ?? '',
           status: task.colId ?? task.status ?? 'pendiente',
           priority: task.priority ?? 'Media',
+          projectId,
           tag: task.tag ?? 'General',
           startDate: toDate(task.startDate),
           endDate: toDate(task.endDate),

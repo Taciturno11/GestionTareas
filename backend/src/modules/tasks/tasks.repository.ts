@@ -19,12 +19,14 @@ export function findById(id: string) {
 export function create(createdById: string, data: CreateTaskDto) {
   return prisma.task.create({
     data: {
+      id: data.id,
       workspaceId: data.workspaceId,
       pageId: data.pageId ?? null,
       title: data.title,
       description: data.description,
       status: data.status,
       priority: data.priority,
+      projectId: data.projectId ?? null,
       tag: data.tag,
       assigneeId: data.assigneeId ?? null,
       startDate: toDate(data.startDate),

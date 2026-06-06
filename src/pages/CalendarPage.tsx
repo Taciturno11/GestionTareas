@@ -25,11 +25,14 @@ import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { loadTaskSettings } from '@/data/taskSettings'
+import { useTaskSettings } from '@/hooks/useTaskSettings'
+import { useTasks } from '@/hooks/useTasks'
+import { useWorkspaces } from '@/hooks/useWorkspaces'
+import type { Task } from '@/types/task'
 import { formatTaskDateRange as formatSharedTaskDateRange } from '@/utils/date.utils'
 
 interface CalendarTask {
-  id: number
+  id: string
   title: string
   colId: string
   priority: string
@@ -41,23 +44,9 @@ interface CalendarTask {
   color?: string
 }
 
-const TASKS_KEY = 'gt_tasks'
-
 function parseTaskDate(value: string) {
   const date = parseISO(value)
   return isValid(date) ? date : null
-}
-
-function loadCalendarTasks(): CalendarTask[] {
-  const saved = localStorage.getItem(TASKS_KEY)
-  if (!saved) return []
-
-  try {
-    const parsed = JSON.parse(saved)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
 }
 
 function taskTouchesDate(task: CalendarTask, date: Date) {
@@ -81,6 +70,21 @@ function formatTaskDateRange(task: CalendarTask) {
 
 function getTaskSortDate(task: CalendarTask) {
   return parseTaskDate(task.startDate) ?? parseTaskDate(task.endDate) ?? new Date(0)
+}
+
+function fromApiTasks(tasks: Task[]): CalendarTask[] {
+  return tasks.map(task => ({
+    id: task.id,
+    title: task.title,
+    colId: task.status,
+    priority: task.priority,
+    tag: task.tag,
+    startDate: task.startDate ?? '',
+    endDate: task.endDate ?? '',
+    assignee: task.assigneeId ?? task.assignee ?? '',
+    workspaceId: task.projectId ?? task.workspaceId,
+    color: task.color ?? undefined,
+  }))
 }
 
 function ProjectPill({
@@ -110,8 +114,12 @@ function ProjectPill({
 }
 
 export default function CalendarPage() {
-  const [settings, setSettings] = useState(() => loadTaskSettings())
-  const [tasks, setTasks] = useState<CalendarTask[]>(() => loadCalendarTasks())
+  const { activeWorkspaceId } = useWorkspaces()
+  const { settings } = useTaskSettings(activeWorkspaceId)
+  const { tasks } = useTasks<CalendarTask[]>([], {
+    workspaceId: activeWorkspaceId,
+    fromApi: fromApiTasks,
+  })
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [projectFilter, setProjectFilter] = useState('all')
@@ -154,8 +162,8 @@ export default function CalendarPage() {
     : projectLabels[projectFilter] ?? projectFilter
 
   function refreshData() {
-    setSettings(loadTaskSettings())
-    setTasks(loadCalendarTasks())
+    window.dispatchEvent(new CustomEvent('gt-tasks-change'))
+    window.dispatchEvent(new CustomEvent('gt-task-settings-change'))
   }
 
   return (

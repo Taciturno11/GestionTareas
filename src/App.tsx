@@ -1,8 +1,9 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import AppLayout from './components/AppLayout/AppLayout'
 import RouteFallback from './components/RouteFallback/RouteFallback'
+import { getAuthToken } from './services/auth-token'
 
 const AjustesPage = lazy(() => import('./pages/AjustesPage'))
 const ArchivePage = lazy(() => import('./pages/ArchivePage'))
@@ -26,14 +27,29 @@ function PlaceholderPage({ title }: { title: string }) {
   )
 }
 
+function RequireAuth() {
+  const location = useLocation()
+
+  if (!getAuthToken()) {
+    return <Navigate to="/login" replace state={{ from: location }} />
+  }
+
+  return <AppLayout />
+}
+
+function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
+  if (getAuthToken()) return <Navigate to="/" replace />
+  return children
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
 
-          <Route element={<AppLayout />}>
+          <Route element={<RequireAuth />}>
             <Route path="/" element={<InicioPage />} />
             <Route path="/tareas" element={<DashboardPage />} />
             <Route path="/proyectos" element={<PlaceholderPage title="Proyectos" />} />

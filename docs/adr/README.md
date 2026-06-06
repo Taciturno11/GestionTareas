@@ -22,6 +22,8 @@ Este directorio guarda los Architecture Decision Records del proyecto.
 - [0016 - Archivado de espacios](./0016-archivado-de-espacios.md)
 - [0017 - Backend MVC modular con Express, Prisma y PostgreSQL](./0017-backend-mvc-modular-con-express-prisma-y-postgresql.md)
 - [0018 - Estructura frontend escalable para API, hooks y utils](./0018-estructura-frontend-escalable-para-api-hooks-y-utils.md)
+- [0019 - ProjectId en tareas para proyectos configurables](./0019-projectid-en-tareas-para-proyectos-configurables.md)
+- [0020 - 2FA opcional por correo en autenticacion](./0020-2fa-opcional-por-correo-en-autenticacion.md)
 
 ## Convencion
 

@@ -21,15 +21,40 @@ enum PageType {
 }
 
 model User {
-  id           String            @id @default(cuid())
-  email        String            @unique
-  name         String
-  passwordHash String
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  memberships  WorkspaceMember[]
-  tasksCreated Task[]            @relation("TaskCreatedBy")
-  tasksAssigned Task[]           @relation("TaskAssignedTo")
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  name               String
+  role               String              @default("cliente")
+  passwordHash       String
+  twoFactorEnabled   Boolean             @default(false)
+  twoFactorMethod    String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  memberships        WorkspaceMember[]
+  tasksCreated       Task[]              @relation("TaskCreatedBy")
+  tasksAssigned      Task[]              @relation("TaskAssignedTo")
+  loginOtpChallenges LoginOtpChallenge[]
+}
+
+model LoginOtpChallenge {
+  id            String   @id @default(cuid())
+  userId        String
+  email         String
+  codeHash      String
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  attemptsCount Int      @default(0)
+  resendCount   Int      @default(0)
+  lastSentAt    DateTime
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([email, createdAt])
+  @@index([expiresAt])
 }
 
 model Workspace {
@@ -106,6 +131,7 @@ model Task {
   status      String
   priority    String
   tag         String
+  projectId   String?
   assigneeId  String?
   startDate   DateTime?
   endDate     DateTime?

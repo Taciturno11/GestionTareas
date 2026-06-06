@@ -436,6 +436,12 @@ Usada por Mis tareas y Ajustes:
 
 Esto es temporal hasta definir backend/API.
 
+La migracion hacia API ya empezo para tareas y ajustes:
+
+- `useTaskSettings(activeWorkspaceId)` lee/escribe `/api/task-settings` si hay token y conserva fallback local.
+- `useTasks(..., { workspaceId })` lee/escribe `/api/tasks` si hay token y conserva fallback local.
+- El proyecto configurable de una tarea se guarda en backend como `Task.projectId`; el `workspaceId` de backend queda reservado para el workspace real.
+
 ## Componentes UI relevantes
 
 En `src/components/ui/` existen:
@@ -485,6 +491,9 @@ Decisiones actuales:
 - `0014`: hojas de texto y pizarra.
 - `0015`: diagramas BD con React Flow.
 - `0016`: archivado de espacios.
+- `0017`: backend MVC modular con Express, Prisma y PostgreSQL.
+- `0018`: estructura frontend escalable para API, hooks y utils.
+- `0019`: `projectId` en tareas para proyectos configurables.
 
 ## Deuda tecnica conocida
 

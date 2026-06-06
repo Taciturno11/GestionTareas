@@ -2,12 +2,14 @@ import type { Task } from '@/types/task'
 import { http } from './http'
 
 export interface CreateTaskRequest {
+  id?: string
   workspaceId: string
   pageId?: string | null
   title: string
   description?: string
   status: string
   priority: string
+  projectId?: string | null
   tag?: string
   assigneeId?: string | null
   startDate?: string | null

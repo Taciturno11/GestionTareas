@@ -17,6 +17,7 @@ La base esta pensada para un uso inicial pequeno, alrededor de 10 a 20 personas,
 - PostgreSQL
 - Zod
 - JWT
+- Nodemailer
 
 ## Arquitectura
 
@@ -104,6 +105,18 @@ PORT=4000
 CORS_ORIGIN="http://localhost:5173"
 JWT_SECRET="change-me-in-development"
 JWT_EXPIRES_IN="7d"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER="unitek.signage@gmail.com"
+SMTP_PASS=""
+SMTP_FROM_EMAIL="unitek.signage@gmail.com"
+SMTP_FROM_NAME="Unitek Signage"
+AUTH_OTP_TTL_MINUTES=10
+AUTH_OTP_LENGTH=6
+AUTH_OTP_MAX_ATTEMPTS=5
+AUTH_OTP_RESEND_COOLDOWN_SECONDS=60
+AUTH_OTP_PEPPER=""
 ```
 
 Notas:
@@ -113,6 +126,8 @@ Notas:
 - `CORS_ORIGIN`: URL del frontend Vite.
 - `JWT_SECRET`: secreto para firmar tokens. En produccion debe ser largo y privado.
 - `JWT_EXPIRES_IN`: duracion del token.
+- `SMTP_*`: configuracion del correo para 2FA por email.
+- `AUTH_OTP_*`: reglas de vencimiento, intentos y cooldown del OTP.
 
 ## Comandos
 
@@ -199,7 +214,10 @@ Auth:
 ```text
 POST /api/auth/register
 POST /api/auth/login
+POST /api/auth/login/verify-otp
+POST /api/auth/login/resend-otp
 GET  /api/auth/me
+PATCH /api/auth/me/2fa
 ```
 
 Users:
@@ -270,6 +288,12 @@ El token se obtiene con:
 
 ```text
 POST /api/auth/login
+```
+
+Si el usuario tiene `twoFactorEnabled=true`, ese endpoint primero responde un challenge OTP y el JWT solo se obtiene despues con:
+
+```text
+POST /api/auth/login/verify-otp
 ```
 
 o:
@@ -368,4 +392,5 @@ Pendiente:
 - conectar frontend con API.
 - migrar tareas de `localStorage` a backend.
 - agregar refresh token o cookies seguras si se requiere mayor seguridad.
+- agregar pruebas para OTP, expiracion y bloqueo por intentos.
 - agregar tests de services y endpoints criticos.

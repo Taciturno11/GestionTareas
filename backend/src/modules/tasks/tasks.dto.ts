@@ -8,12 +8,14 @@ export const listTasksQuerySchema = z.object({
 })
 
 export const createTaskSchema = z.object({
+  id: z.string().min(1).optional(),
   workspaceId: z.string().min(1),
   pageId: z.string().min(1).nullable().optional(),
   title: z.string().min(1).max(240),
   description: z.string().default(''),
   status: z.string().min(1),
   priority: z.string().min(1),
+  projectId: z.string().min(1).nullable().optional(),
   tag: z.string().default('General'),
   assigneeId: z.string().min(1).nullable().optional(),
   startDate: optionalDateSchema,
