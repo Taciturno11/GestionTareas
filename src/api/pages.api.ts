@@ -1,5 +1,6 @@
-import type { WorkspacePage, WorkspacePageType } from '@/types/workspace'
+import type { WorkspacePageType } from '@/types/workspace'
 import { http } from './http'
+import { normalizePage } from './workspace.mappers'
 
 export interface CreatePageRequest {
   id?: string
@@ -17,33 +18,13 @@ export interface UpdatePageRequest {
   content?: string
 }
 
-type ApiWorkspacePage = Omit<WorkspacePage, 'type'> & {
-  type: string
-}
-
-function normalizePageType(type: string): WorkspacePageType {
-  const normalized = type.toLowerCase()
-  if (normalized === 'blank') return 'blank'
-  if (normalized === 'board') return 'board'
-  if (normalized === 'database') return 'database'
-  if (normalized === 'tasks') return 'tasks'
-  return 'text'
-}
-
-function normalizePage(page: ApiWorkspacePage): WorkspacePage {
-  return {
-    ...page,
-    type: normalizePageType(page.type),
-  }
-}
-
 export const pagesApi = {
   list: async (workspaceId: string, spaceId?: string) => {
-    const pages = await http<ApiWorkspacePage[]>('/pages', { query: { workspaceId, spaceId } })
+    const pages = await http<unknown[]>('/pages', { query: { workspaceId, spaceId } })
     return pages.map(normalizePage)
   },
-  get: async (id: string) => normalizePage(await http<ApiWorkspacePage>(`/pages/${id}`)),
-  create: async (body: CreatePageRequest) => normalizePage(await http<ApiWorkspacePage>('/pages', { method: 'POST', body })),
-  update: async (id: string, body: UpdatePageRequest) => normalizePage(await http<ApiWorkspacePage>(`/pages/${id}`, { method: 'PATCH', body })),
+  get: async (id: string) => normalizePage(await http<unknown>(`/pages/${id}`)),
+  create: async (body: CreatePageRequest) => normalizePage(await http<unknown>('/pages', { method: 'POST', body })),
+  update: async (id: string, body: UpdatePageRequest) => normalizePage(await http<unknown>(`/pages/${id}`, { method: 'PATCH', body })),
   remove: (id: string) => http<void>(`/pages/${id}`, { method: 'DELETE' }),
 }

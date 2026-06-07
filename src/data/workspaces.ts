@@ -132,6 +132,28 @@ export function saveWorkspaceSpaces(spaces: WorkspaceSpace[]) {
   emitWorkspaceDataChange()
 }
 
+export function saveWorkspaceDataSnapshot({
+  workspaces,
+  spaces,
+  pages,
+  activeWorkspaceId,
+}: {
+  workspaces: Workspace[]
+  spaces: WorkspaceSpace[]
+  pages: WorkspacePage[]
+  activeWorkspaceId?: string
+}) {
+  localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces))
+  localStorage.setItem(WORKSPACE_SPACES_KEY, JSON.stringify(spaces))
+  localStorage.setItem(WORKSPACE_PAGES_KEY, JSON.stringify(pages))
+
+  if (activeWorkspaceId) {
+    localStorage.setItem(ACTIVE_WORKSPACE_KEY, activeWorkspaceId)
+  }
+
+  emitWorkspaceDataChange()
+}
+
 export function getDefaultSpaceId(workspaceId: string) {
   const spaces = loadWorkspaceSpaces()
   const existingSpace = spaces.find(space => space.workspaceId === workspaceId && space.name === 'General')

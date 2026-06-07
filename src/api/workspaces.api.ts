@@ -1,5 +1,5 @@
-import type { Workspace } from '@/types/workspace'
 import { http } from './http'
+import { normalizeWorkspace } from './workspace.mappers'
 
 export interface CreateWorkspaceRequest {
   id?: string
@@ -10,9 +10,12 @@ export interface CreateWorkspaceRequest {
 export type UpdateWorkspaceRequest = Partial<CreateWorkspaceRequest>
 
 export const workspacesApi = {
-  list: () => http<Workspace[]>('/workspaces'),
-  get: (id: string) => http<Workspace>(`/workspaces/${id}`),
-  create: (body: CreateWorkspaceRequest) => http<Workspace>('/workspaces', { method: 'POST', body }),
-  update: (id: string, body: UpdateWorkspaceRequest) => http<Workspace>(`/workspaces/${id}`, { method: 'PATCH', body }),
+  list: async () => {
+    const workspaces = await http<unknown[]>('/workspaces')
+    return workspaces.map(normalizeWorkspace)
+  },
+  get: async (id: string) => normalizeWorkspace(await http<unknown>(`/workspaces/${id}`)),
+  create: async (body: CreateWorkspaceRequest) => normalizeWorkspace(await http<unknown>('/workspaces', { method: 'POST', body })),
+  update: async (id: string, body: UpdateWorkspaceRequest) => normalizeWorkspace(await http<unknown>(`/workspaces/${id}`, { method: 'PATCH', body })),
   remove: (id: string) => http<void>(`/workspaces/${id}`, { method: 'DELETE' }),
 }

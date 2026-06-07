@@ -1,16 +1,20 @@
 import { pagesApi } from '@/api/pages.api'
 import { spacesApi } from '@/api/spaces.api'
 import { workspacesApi } from '@/api/workspaces.api'
+import { loadActiveWorkspaceId, saveWorkspaceDataSnapshot } from '@/data/workspaces'
 import type { Workspace, WorkspacePage, WorkspaceSpace } from '@/types/workspace'
-
-const WORKSPACES_KEY = 'gt_workspaces'
-const WORKSPACE_SPACES_KEY = 'gt_workspace_spaces'
-const WORKSPACE_PAGES_KEY = 'gt_workspace_pages'
-const ACTIVE_WORKSPACE_KEY = 'gt_active_workspace'
 
 export const BACKEND_SYNC_EVENT = 'gt-backend-sync'
 
-export async function syncBackendWorkspaceDataToLocalStorage() {
+export interface BackendWorkspaceData {
+  workspaces: Workspace[]
+  spaces: WorkspaceSpace[]
+  pages: WorkspacePage[]
+}
+
+let pendingWorkspaceSync: Promise<BackendWorkspaceData> | null = null
+
+async function fetchBackendWorkspaceData(): Promise<BackendWorkspaceData> {
   const workspaces = await workspacesApi.list()
   const spaces: WorkspaceSpace[] = []
   const pages: WorkspacePage[] = []
@@ -25,20 +29,26 @@ export async function syncBackendWorkspaceDataToLocalStorage() {
     pages.push(...workspacePages)
   }
 
-  localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces satisfies Workspace[]))
-  localStorage.setItem(WORKSPACE_SPACES_KEY, JSON.stringify(spaces))
-  localStorage.setItem(WORKSPACE_PAGES_KEY, JSON.stringify(pages))
+  return { workspaces, spaces, pages }
+}
 
-  if (workspaces.length && !localStorage.getItem(ACTIVE_WORKSPACE_KEY)) {
-    localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaces[0].id)
-  }
+export async function syncBackendWorkspaceDataToLocalStorage() {
+  pendingWorkspaceSync ??= fetchBackendWorkspaceData().finally(() => {
+    pendingWorkspaceSync = null
+  })
 
+  const data = await pendingWorkspaceSync
+  const currentActiveWorkspaceId = loadActiveWorkspaceId()
+  const activeWorkspaceExists = data.workspaces.some(workspace => workspace.id === currentActiveWorkspaceId)
+  const nextActiveWorkspaceId = activeWorkspaceExists
+    ? currentActiveWorkspaceId
+    : data.workspaces[0]?.id
+
+  saveWorkspaceDataSnapshot({
+    ...data,
+    activeWorkspaceId: nextActiveWorkspaceId,
+  })
   window.dispatchEvent(new CustomEvent(BACKEND_SYNC_EVENT))
-  window.dispatchEvent(new CustomEvent('gt-workspace-data-change'))
 
-  return {
-    workspaces,
-    spaces,
-    pages,
-  }
+  return data
 }

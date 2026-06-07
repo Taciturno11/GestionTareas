@@ -8,7 +8,11 @@ import {
   saveActiveWorkspaceId,
   WORKSPACE_DATA_CHANGE_EVENT,
 } from '@/data/workspaces'
+import { getAuthToken } from '@/services/auth-token'
+import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
 import type { Workspace, WorkspacePage, WorkspaceSpace } from '@/types/workspace'
+
+let hasRequestedBackendWorkspaceData = false
 
 export function useWorkspaces() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => loadWorkspaces())
@@ -26,6 +30,30 @@ export function useWorkspaces() {
 
     window.addEventListener(WORKSPACE_DATA_CHANGE_EVENT, syncWorkspaceData)
     return () => window.removeEventListener(WORKSPACE_DATA_CHANGE_EVENT, syncWorkspaceData)
+  }, [])
+
+  useEffect(() => {
+    if (!getAuthToken() || hasRequestedBackendWorkspaceData) return
+
+    let cancelled = false
+    hasRequestedBackendWorkspaceData = true
+
+    syncBackendWorkspaceDataToLocalStorage()
+      .then(data => {
+        if (cancelled) return
+        setWorkspaces(data.workspaces)
+        setSpaces(data.spaces)
+        setPages(data.pages)
+        setActiveWorkspaceIdState(loadActiveWorkspaceId())
+      })
+      .catch(error => {
+        hasRequestedBackendWorkspaceData = false
+        console.warn('No se pudo cargar workspaces desde API. Se usara localStorage.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   function setActiveWorkspaceId(workspaceId: string) {

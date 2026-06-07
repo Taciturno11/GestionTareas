@@ -1,5 +1,5 @@
-import type { WorkspaceSpace } from '@/types/workspace'
 import { http } from './http'
+import { normalizeSpace } from './workspace.mappers'
 
 export interface CreateSpaceRequest {
   id?: string
@@ -24,10 +24,13 @@ export interface UpdateSpaceRequest {
 }
 
 export const spacesApi = {
-  list: (workspaceId: string) => http<WorkspaceSpace[]>('/spaces', { query: { workspaceId } }),
-  create: (body: CreateSpaceRequest) => http<WorkspaceSpace>('/spaces', { method: 'POST', body }),
-  update: (id: string, body: UpdateSpaceRequest) => http<WorkspaceSpace>(`/spaces/${id}`, { method: 'PATCH', body }),
-  archive: (id: string) => http<WorkspaceSpace>(`/spaces/${id}/archive`, { method: 'POST' }),
-  restore: (id: string) => http<WorkspaceSpace>(`/spaces/${id}/restore`, { method: 'POST' }),
+  list: async (workspaceId: string) => {
+    const spaces = await http<unknown[]>('/spaces', { query: { workspaceId } })
+    return spaces.map(normalizeSpace)
+  },
+  create: async (body: CreateSpaceRequest) => normalizeSpace(await http<unknown>('/spaces', { method: 'POST', body })),
+  update: async (id: string, body: UpdateSpaceRequest) => normalizeSpace(await http<unknown>(`/spaces/${id}`, { method: 'PATCH', body })),
+  archive: async (id: string) => normalizeSpace(await http<unknown>(`/spaces/${id}/archive`, { method: 'POST' })),
+  restore: async (id: string) => normalizeSpace(await http<unknown>(`/spaces/${id}/restore`, { method: 'POST' })),
   remove: (id: string) => http<void>(`/spaces/${id}`, { method: 'DELETE' }),
 }
