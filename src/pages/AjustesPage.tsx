@@ -7,6 +7,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 
 import { authApi, type AuthUser } from '@/api/auth.api'
 import PageContainer from '@/components/PageContainer/PageContainer'
@@ -14,19 +15,33 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
 import { downloadLocalBackup } from '@/lib/localBackup'
+import SettingsSidebar, { type SettingsNavGroup } from '@/pages/settings/SettingsSidebar'
 
 type SettingsTab = 'projects' | 'assignees' | 'labels' | 'priorities' | 'statuses'
+type SettingsSection = 'seguridad' | 'usuarios' | 'roles' | 'proyectos' | 'responsables' | 'etiquetas' | 'prioridades' | 'estados' | 'exportar'
 
 const COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#22c55e', '#f59e0b', '#f87171', '#ec4899', '#a855f7', '#14b8a6', '#94a3b8']
 const SOFT_COLORS = ['#EEF2FF', '#E0F2FE', '#D1FAE5', '#DCFCE7', '#FEF3C7', '#FEE2E2', '#FCE7F3', '#F5F3FF', '#CCFBF1', '#F1F5F9']
 
-const TABS: Array<{ id: SettingsTab; label: string; role: string }> = [
-  { id: 'projects', label: 'Proyectos', role: 'proyecto' },
-  { id: 'assignees', label: 'Responsables', role: 'miembro' },
-  { id: 'labels', label: 'Etiquetas', role: 'etiqueta' },
-  { id: 'priorities', label: 'Prioridades', role: 'prioridad' },
-  { id: 'statuses', label: 'Estados', role: 'estado' },
-]
+const SECTION_TO_TAB: Partial<Record<SettingsSection, SettingsTab>> = {
+  proyectos: 'projects',
+  responsables: 'assignees',
+  etiquetas: 'labels',
+  prioridades: 'priorities',
+  estados: 'statuses',
+}
+
+const SECTION_TITLES: Record<SettingsSection, string> = {
+  seguridad: 'Seguridad',
+  usuarios: 'Usuarios',
+  roles: 'Roles y permisos',
+  proyectos: 'Proyectos',
+  responsables: 'Responsables',
+  etiquetas: 'Etiquetas',
+  prioridades: 'Prioridades',
+  estados: 'Estados',
+  exportar: 'Exportar datos',
+}
 
 function slug(value: string) {
   return value
@@ -367,7 +382,6 @@ function roleLabel(role: AuthUser['role']) {
 }
 
 export default function AjustesPage() {
-  const [tab, setTab] = useState<SettingsTab>('assignees')
   const [adding, setAdding] = useState(false)
   const [editingItem, setEditingItem] = useState<CardItem | null>(null)
   const [securityUser, setSecurityUser] = useState<AuthUser | null>(null)
@@ -377,10 +391,20 @@ export default function AjustesPage() {
   const { settings, setSettings } = useTaskSettings(activeWorkspaceId)
   const { user, isLoading: isUserLoading, refreshUser } = useCurrentUser()
   const [backupStatus, setBackupStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
+  const location = useLocation()
+  const sectionPath = location.pathname.split('/')[2] as SettingsSection | undefined
+  const validSections = Object.keys(SECTION_TITLES) as SettingsSection[]
+  const section = sectionPath && validSections.includes(sectionPath) ? sectionPath : undefined
+  const tab = section ? SECTION_TO_TAB[section] : undefined
 
   useEffect(() => {
     if (user) setSecurityUser(user)
   }, [user])
+
+  useEffect(() => {
+    setAdding(false)
+    setEditingItem(null)
+  }, [section])
 
   const items: Record<SettingsTab, CardItem[]> = {
     projects: settings.projects.map(project => ({
@@ -421,6 +445,7 @@ export default function AjustesPage() {
   }
 
   function addItem(name: string, color: string) {
+    if (!tab) return
     const resolvedColor = colorForNewItem(tab, name, color)
 
     setSettings(prev => {
@@ -480,6 +505,7 @@ export default function AjustesPage() {
   }
 
   function updateItem(id: string, name: string, color: string) {
+    if (!tab) return
     const resolvedColor = colorForNewItem(tab, name, color)
 
     setSettings(prev => ({
@@ -509,6 +535,7 @@ export default function AjustesPage() {
   }
 
   function deleteItem(id: string) {
+    if (!tab) return
     setSettings(prev => ({
       ...prev,
       projects: tab === 'projects' ? prev.projects.filter(item => item.id !== id) : prev.projects,
@@ -554,198 +581,251 @@ export default function AjustesPage() {
   const compactList = tab === 'labels' || tab === 'priorities' || tab === 'statuses'
   const activeUser = securityUser ?? user
   const twoFactorEnabled = Boolean(activeUser?.twoFactorEnabled)
+  const navGroups: SettingsNavGroup[] = [
+    {
+      title: 'Cuenta',
+      items: [{ label: 'Seguridad', to: '/ajustes/seguridad' }],
+    },
+    {
+      title: 'Administracion',
+      items: [
+        { label: 'Usuarios', to: '/ajustes/usuarios' },
+        { label: 'Roles y permisos', to: '/ajustes/roles' },
+      ],
+    },
+    {
+      title: 'Tareas',
+      items: [
+        { label: 'Proyectos', to: '/ajustes/proyectos', count: items.projects.length },
+        { label: 'Responsables', to: '/ajustes/responsables', count: items.assignees.length },
+        { label: 'Etiquetas', to: '/ajustes/etiquetas', count: items.labels.length },
+        { label: 'Prioridades', to: '/ajustes/prioridades', count: items.priorities.length },
+        { label: 'Estados', to: '/ajustes/estados', count: items.statuses.length },
+      ],
+    },
+    {
+      title: 'Datos',
+      items: [{ label: 'Exportar datos', to: '/ajustes/exportar' }],
+    },
+  ]
+
+  if (!section) return <Navigate to="/ajustes/seguridad" replace />
 
   return (
-    <PageContainer size="wide">
-      <div className="max-w-[1080px]">
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <PageContainer size="wide" align="start">
+      <div className="max-w-[1500px]">
+        <div className="mb-8">
           <div>
             <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Ajustes</h1>
-            <p className="mt-1 text-[13px] text-gray-500">Administra la seguridad de tu cuenta y las opciones de tus tareas.</p>
-          </div>
-
-          <div className="flex flex-col items-start gap-1.5 lg:items-end">
-            <button
-              type="button"
-              onClick={exportBackup}
-              disabled={backupStatus === 'exporting'}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              {backupStatus === 'exporting' ? 'Exportando...' : 'Exportar mis datos'}
-            </button>
-            {backupStatus === 'done' && (
-              <span className="text-[12px] font-medium text-emerald-600">Backup descargado.</span>
-            )}
-            {backupStatus === 'error' && (
-              <span className="text-[12px] font-medium text-red-600">No se pudo exportar.</span>
-            )}
+            <p className="mt-1 text-[13px] text-gray-500">
+              Administra la seguridad de tu cuenta, usuarios futuros y las opciones de tus tareas.
+            </p>
           </div>
         </div>
 
-        <section className="mb-8 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-[620px]">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${twoFactorEnabled ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                  {twoFactorEnabled ? <ShieldCheckIcon className="h-6 w-6" /> : <ShieldExclamationIcon className="h-6 w-6" />}
-                </div>
-                <div>
-                  <h2 className="text-[20px] font-semibold text-slate-950">Seguridad</h2>
-                  <p className="mt-1 text-[13px] text-slate-500">
-                    Activa un segundo paso por correo para proteger el acceso a tu cuenta.
-                  </p>
-                </div>
-              </div>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <SettingsSidebar groups={navGroups} />
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Correo</p>
-                  <p className="mt-2 text-[15px] font-semibold text-slate-900">
-                    {activeUser?.email ?? (isUserLoading ? 'Cargando...' : 'No disponible')}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Rol</p>
-                  <p className="mt-2 text-[15px] font-semibold text-slate-900">
-                    {activeUser ? roleLabel(activeUser.role) : (isUserLoading ? 'Cargando...' : 'No disponible')}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${twoFactorEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {twoFactorEnabled ? '2FA por correo activo' : '2FA desactivado'}
-                </span>
-                {activeUser?.twoFactorMethod && (
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-medium text-slate-500">
-                    Metodo: {activeUser.twoFactorMethod}
-                  </span>
-                )}
-              </div>
+          <main className="min-w-0 flex-1">
+            <div className="mb-5">
+              <h2 className="text-[22px] font-bold tracking-tight text-slate-950">{SECTION_TITLES[section]}</h2>
             </div>
 
-            <div className="w-full max-w-[340px] rounded-[24px] border border-slate-200 bg-[#f8fafc] p-5">
-              <p className="text-[14px] font-semibold text-slate-900">Verificacion en dos pasos</p>
-              <p className="mt-2 text-[13px] leading-6 text-slate-500">
-                Cuando este activa, primero validaras tu correo y contrasena. Luego recibiras un codigo temporal por email antes de obtener el JWT.
-              </p>
+            {section === 'seguridad' && (
+              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="max-w-[620px]">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${twoFactorEnabled ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {twoFactorEnabled ? <ShieldCheckIcon className="h-6 w-6" /> : <ShieldExclamationIcon className="h-6 w-6" />}
+                      </div>
+                      <div>
+                        <h3 className="text-[20px] font-semibold text-slate-950">Seguridad</h3>
+                        <p className="mt-1 text-[13px] text-slate-500">
+                          Activa un segundo paso por correo para proteger el acceso a tu cuenta.
+                        </p>
+                      </div>
+                    </div>
 
-              <button
-                type="button"
-                onClick={() => handleToggleTwoFactor(!twoFactorEnabled)}
-                disabled={isUpdatingTwoFactor || !activeUser}
-                className={`mt-5 h-11 w-full rounded-[14px] px-4 text-[14px] font-semibold text-white transition ${
-                  twoFactorEnabled
-                    ? 'bg-slate-700 hover:bg-slate-800'
-                    : 'bg-teal-600 hover:bg-teal-700'
-                } disabled:cursor-not-allowed disabled:opacity-60`}
-              >
-                {isUpdatingTwoFactor
-                  ? 'Guardando...'
-                  : twoFactorEnabled
-                    ? 'Desactivar 2FA'
-                    : 'Activar 2FA por correo'}
-              </button>
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Correo</p>
+                        <p className="mt-2 text-[15px] font-semibold text-slate-900">
+                          {activeUser?.email ?? (isUserLoading ? 'Cargando...' : 'No disponible')}
+                        </p>
+                      </div>
 
-              <p className="mt-3 text-[12px] text-slate-500">
-                Usa la cuenta SMTP configurada en el backend para entregar los codigos.
-              </p>
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Rol</p>
+                        <p className="mt-2 text-[15px] font-semibold text-slate-900">
+                          {activeUser ? roleLabel(activeUser.role) : (isUserLoading ? 'Cargando...' : 'No disponible')}
+                        </p>
+                      </div>
+                    </div>
 
-              {securityFeedback && (
-                <p className={`mt-4 rounded-xl px-3 py-2 text-[12px] font-medium ${
-                  securityFeedback.includes('No se pudo')
-                    ? 'bg-red-50 text-red-600'
-                    : 'bg-emerald-50 text-emerald-700'
-                }`}
-                >
-                  {securityFeedback}
+                    <div className="mt-5 flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${twoFactorEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {twoFactorEnabled ? '2FA por correo activo' : '2FA desactivado'}
+                      </span>
+                      {activeUser?.twoFactorMethod && (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-medium text-slate-500">
+                          Metodo: {activeUser.twoFactorMethod}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="w-full max-w-[340px] rounded-[24px] border border-slate-200 bg-[#f8fafc] p-5">
+                    <p className="text-[14px] font-semibold text-slate-900">Verificacion en dos pasos</p>
+                    <p className="mt-2 text-[13px] leading-6 text-slate-500">
+                      Cuando este activa, primero validaras tu correo y contrasena. Luego recibiras un codigo temporal por email antes de obtener el JWT.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleTwoFactor(!twoFactorEnabled)}
+                      disabled={isUpdatingTwoFactor || !activeUser}
+                      className={`mt-5 h-11 w-full rounded-[14px] px-4 text-[14px] font-semibold text-white transition ${
+                        twoFactorEnabled
+                          ? 'bg-slate-700 hover:bg-slate-800'
+                          : 'bg-teal-600 hover:bg-teal-700'
+                      } disabled:cursor-not-allowed disabled:opacity-60`}
+                    >
+                      {isUpdatingTwoFactor
+                        ? 'Guardando...'
+                        : twoFactorEnabled
+                          ? 'Desactivar 2FA'
+                          : 'Activar 2FA por correo'}
+                    </button>
+
+                    <p className="mt-3 text-[12px] text-slate-500">
+                      Usa la cuenta SMTP configurada en el backend para entregar los codigos.
+                    </p>
+
+                    {securityFeedback && (
+                      <p className={`mt-4 rounded-xl px-3 py-2 text-[12px] font-medium ${
+                        securityFeedback.includes('No se pudo')
+                          ? 'bg-red-50 text-red-600'
+                          : 'bg-emerald-50 text-emerald-700'
+                      }`}
+                      >
+                        {securityFeedback}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {section === 'usuarios' && (
+              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="max-w-[620px] text-[14px] leading-6 text-slate-500">
+                  Aqui podras crear y administrar los usuarios que tendran acceso a tu aplicacion.
                 </p>
-              )}
-            </div>
-          </div>
-        </section>
+                <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_1fr_160px_auto]">
+                  <input disabled value="Nombre" className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400" />
+                  <input disabled value="correo@empresa.com" className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400" />
+                  <input disabled value="Rol" className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400" />
+                  <button disabled type="button" className="h-10 rounded-lg bg-slate-300 px-4 text-[13px] font-semibold text-white">
+                    Crear usuario
+                  </button>
+                </div>
+              </section>
+            )}
 
-        <div className="mb-6 flex flex-wrap gap-1.5">
-          {TABS.map(item => {
-            const isActive = tab === item.id
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setTab(item.id)
-                  setAdding(false)
-                  setEditingItem(null)
-                }}
-                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] transition-colors ${
-                  isActive
-                  ? 'border-[#6472EB] bg-[#6472EB] font-semibold text-white'
-                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700'
-                }`}
-              >
-                {item.label}
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[11px] ${
-                    isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-400'
-                  }`}
+            {section === 'roles' && (
+              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="max-w-[620px] text-[14px] leading-6 text-slate-500">
+                  Aqui podras definir permisos por rol en una proxima fase.
+                </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {['Administrador', 'Cliente'].map(role => (
+                    <div key={role} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-[14px] font-semibold text-slate-900">{role}</p>
+                      <p className="mt-1 text-[12px] text-slate-500">Permisos configurables proximamente.</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {section === 'exportar' && (
+              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="max-w-[620px] text-[14px] leading-6 text-slate-500">
+                  Descarga una copia local de tus workspaces, espacios, paginas, tareas, ajustes y datos de pizarra disponibles en el navegador.
+                </p>
+                <button
+                  type="button"
+                  onClick={exportBackup}
+                  disabled={backupStatus === 'exporting'}
+                  className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-[13px] font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {items[item.id].length}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  {backupStatus === 'exporting' ? 'Exportando...' : 'Exportar mis datos'}
+                </button>
+                {backupStatus === 'done' && (
+                  <span className="ml-3 text-[12px] font-medium text-emerald-600">Backup descargado.</span>
+                )}
+                {backupStatus === 'error' && (
+                  <span className="ml-3 text-[12px] font-medium text-red-600">No se pudo exportar.</span>
+                )}
+              </section>
+            )}
 
-        {adding && (
-          <AddForm
-            key={`add-${tab}`}
-            tab={tab}
-            submitLabel="Agregar"
-            onSubmit={(name, color) => {
-              addItem(name, color)
-              setAdding(false)
-            }}
-            onCancel={() => setAdding(false)}
-          />
-        )}
+            {tab && (
+              <section>
+                {adding && (
+                  <AddForm
+                    key={`add-${tab}`}
+                    tab={tab}
+                    submitLabel="Agregar"
+                    onSubmit={(name, color) => {
+                      addItem(name, color)
+                      setAdding(false)
+                    }}
+                    onCancel={() => setAdding(false)}
+                  />
+                )}
 
-        {editingItem && (
-          <AddForm
-            key={`edit-${tab}-${editingItem.id}`}
-            tab={tab}
-            initialName={editingItem.name}
-            initialColor={editingItem.color}
-            submitLabel="Guardar"
-            onSubmit={(name, color) => {
-              updateItem(editingItem.id, name, color)
-              setEditingItem(null)
-            }}
-            onCancel={() => setEditingItem(null)}
-          />
-        )}
+                {editingItem && (
+                  <AddForm
+                    key={`edit-${tab}-${editingItem.id}`}
+                    tab={tab}
+                    initialName={editingItem.name}
+                    initialColor={editingItem.color}
+                    submitLabel="Guardar"
+                    onSubmit={(name, color) => {
+                      updateItem(editingItem.id, name, color)
+                      setEditingItem(null)
+                    }}
+                    onCancel={() => setEditingItem(null)}
+                  />
+                )}
 
-        <div className={compactList ? 'flex flex-wrap items-center gap-2' : 'grid grid-cols-3 gap-3'}>
-          {items[tab].map(item => (
-            <SettingsCard
-              key={item.id}
-              item={item}
-              tab={tab}
-              onEdit={selectedItem => {
-                setAdding(false)
-                setEditingItem(selectedItem)
-              }}
-              onDelete={deleteItem}
-            />
-          ))}
-          <AddButton
-            compact={compactList}
-            onClick={() => {
-              setEditingItem(null)
-              setAdding(true)
-            }}
-          />
+                <div className={compactList ? 'flex flex-wrap items-center gap-2' : 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3'}>
+                  {items[tab].map(item => (
+                    <SettingsCard
+                      key={item.id}
+                      item={item}
+                      tab={tab}
+                      onEdit={selectedItem => {
+                        setAdding(false)
+                        setEditingItem(selectedItem)
+                      }}
+                      onDelete={deleteItem}
+                    />
+                  ))}
+                  <AddButton
+                    compact={compactList}
+                    onClick={() => {
+                      setEditingItem(null)
+                      setAdding(true)
+                    }}
+                  />
+                </div>
+              </section>
+            )}
+          </main>
         </div>
       </div>
     </PageContainer>
