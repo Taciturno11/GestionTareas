@@ -6,11 +6,17 @@ const prisma = new PrismaClient()
 
 interface LocalBackup {
   localStorage?: Record<string, string | null>
-  indexedDB?: Array<{
-    name: string
-    version?: number
-    stores?: Record<string, { records?: unknown[] }>
-  }>
+  indexedDB?: LocalIndexedDbDump[]
+  raw?: {
+    localStorage?: Record<string, string | null>
+    indexedDB?: LocalIndexedDbDump[]
+  }
+}
+
+interface LocalIndexedDbDump {
+  name: string
+  version?: number
+  stores?: Record<string, { records?: unknown[] } | unknown[]>
 }
 
 interface LocalWorkspace {
@@ -81,8 +87,24 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
+function getBackupStorage(backup: LocalBackup) {
+  return backup.localStorage ?? backup.raw?.localStorage ?? {}
+}
+
+function getBackupIndexedDbs(backup: LocalBackup) {
+  return (backup.indexedDB ?? backup.raw?.indexedDB ?? []).map(database => ({
+    ...database,
+    stores: Object.fromEntries(
+      Object.entries(database.stores ?? {}).map(([storeName, store]) => [
+        storeName,
+        Array.isArray(store) ? { records: store } : store,
+      ]),
+    ),
+  }))
+}
+
 function toDate(value: string | undefined | null) {
-  if (!value || value === '—') return null
+  if (!value || value === '—' || value === '\u00e2\u20ac\u201d') return null
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
 }
@@ -104,7 +126,7 @@ function getBoardBackupContent(page: LocalPage, backup: LocalBackup) {
   if (page.type !== 'board') return page.content ?? ''
 
   const databaseName = `TLDRAW_DOCUMENT_v2workspace-page-${page.id}`
-  const dump = backup.indexedDB?.find(database => database.name === databaseName)
+  const dump = getBackupIndexedDbs(backup).find(database => database.name === databaseName)
   if (!dump) return page.content ?? ''
 
   return JSON.stringify({
@@ -156,7 +178,7 @@ async function main() {
   if (!backupPath) throw new Error('Usage: npm run import:backup -- <backup-json-path>')
 
   const backup = parseJson<LocalBackup>(await readFile(backupPath, 'utf8'), {})
-  const storage = backup.localStorage ?? {}
+  const storage = getBackupStorage(backup)
 
   const settings = parseJson<LocalTaskSettings>(storage.gt_task_settings, {})
   const spaces = parseJson<LocalSpace[]>(storage.gt_workspace_spaces, [])
