@@ -45,9 +45,12 @@ function invalidCredentialsError() {
 }
 
 function toAuthSuccess(user: PublicAuthUser): AuthSuccessResponse {
+  const publicUser = { ...user } as PublicAuthUser & { passwordHash?: string }
+  delete publicUser.passwordHash
+
   return {
-    user,
-    token: signToken(user),
+    user: publicUser,
+    token: signToken(publicUser),
   }
 }
 

@@ -36,7 +36,8 @@ function isTaskArray(value: unknown): value is Task[] {
 }
 
 function cleanDate(value: string | null | undefined) {
-  return value && value !== '—' && value !== 'â€”' ? value : null
+  const corruptedDash = '\u00e2\u20ac\u201d'
+  return value && value !== '—' && value !== corruptedDash ? value : null
 }
 
 type LocalTaskLike = Partial<Task> & {
