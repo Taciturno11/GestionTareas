@@ -3,14 +3,13 @@ import {
   PencilSquareIcon,
   PlusIcon,
   ShieldCheckIcon,
-  ShieldExclamationIcon,
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
-import { authApi, type AuthUser } from '@/api/auth.api'
+import type { AuthUser } from '@/api/auth.api'
 import PageContainer from '@/components/PageContainer/PageContainer'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
@@ -427,35 +426,23 @@ function AddButton({ compact, onClick }: { compact: boolean; onClick: () => void
 }
 
 function roleLabel(role: AuthUser['role']) {
-  if (role === 'admin_unitek') return 'Admin Unitek'
-  if (role === 'cliente') return 'Cliente'
+  if (role === 'admin') return 'Administrador'
+  if (role === 'usuario') return 'Usuario'
   return role
 }
 
 export default function AjustesPage() {
-  const [adding, setAdding] = useState(false)
-  const [editingItem, setEditingItem] = useState<CardItem | null>(null)
-  const [securityUser, setSecurityUser] = useState<AuthUser | null>(null)
-  const [securityFeedback, setSecurityFeedback] = useState('')
-  const [isUpdatingTwoFactor, setIsUpdatingTwoFactor] = useState(false)
+  const [addingSection, setAddingSection] = useState<SettingsSection | null>(null)
+  const [editingItem, setEditingItem] = useState<{ section: SettingsSection; item: CardItem } | null>(null)
   const { activeWorkspaceId } = useWorkspaces()
   const { settings, setSettings } = useTaskSettings(activeWorkspaceId)
-  const { user, isLoading: isUserLoading, refreshUser } = useCurrentUser()
+  const { user, isLoading: isUserLoading } = useCurrentUser()
   const [backupStatus, setBackupStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
   const location = useLocation()
   const sectionPath = location.pathname.split('/')[2] as SettingsSection | undefined
   const validSections = Object.keys(SECTION_TITLES) as SettingsSection[]
   const section = sectionPath && validSections.includes(sectionPath) ? sectionPath : undefined
   const tab = section ? SECTION_TO_TAB[section] : undefined
-
-  useEffect(() => {
-    if (user) setSecurityUser(user)
-  }, [user])
-
-  useEffect(() => {
-    setAdding(false)
-    setEditingItem(null)
-  }, [section])
 
   const items: Record<SettingsTab, CardItem[]> = {
     projects: settings.projects.map(project => ({
@@ -610,28 +597,8 @@ export default function AjustesPage() {
     }
   }
 
-  async function handleToggleTwoFactor(enabled: boolean) {
-    setSecurityFeedback('')
-    setIsUpdatingTwoFactor(true)
-
-    try {
-      const response = await authApi.updateTwoFactor({ enabled })
-      setSecurityUser(response.user)
-      setSecurityFeedback(enabled
-        ? 'La verificacion por correo ya esta activa.'
-        : 'La verificacion por correo fue desactivada.')
-      refreshUser()
-    } catch (error) {
-      console.error(error)
-      setSecurityFeedback('No se pudo actualizar la seguridad de la cuenta.')
-    } finally {
-      setIsUpdatingTwoFactor(false)
-    }
-  }
-
   const compactList = tab === 'labels' || tab === 'priorities' || tab === 'statuses'
-  const activeUser = securityUser ?? user
-  const twoFactorEnabled = Boolean(activeUser?.twoFactorEnabled)
+  const activeUser = user
   const navGroups: SettingsNavGroup[] = [
     {
       title: 'Cuenta',
@@ -669,7 +636,7 @@ export default function AjustesPage() {
           <div>
             <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Ajustes</h1>
             <p className="mt-1 text-[13px] text-gray-500">
-              Administra la seguridad de tu cuenta, usuarios futuros y las opciones de tus tareas.
+              Administra tu cuenta, usuarios futuros y las opciones de tus tareas.
             </p>
           </div>
         </div>
@@ -687,13 +654,13 @@ export default function AjustesPage() {
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-[620px]">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${twoFactorEnabled ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                        {twoFactorEnabled ? <ShieldCheckIcon className="h-6 w-6" /> : <ShieldExclamationIcon className="h-6 w-6" />}
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                        <ShieldCheckIcon className="h-6 w-6" />
                       </div>
                       <div>
                         <h3 className="text-[20px] font-semibold text-slate-950">Seguridad</h3>
                         <p className="mt-1 text-[13px] text-slate-500">
-                          Activa un segundo paso por correo para proteger el acceso a tu cuenta.
+                          Revisa la informacion basica de tu cuenta y sesion actual.
                         </p>
                       </div>
                     </div>
@@ -715,54 +682,17 @@ export default function AjustesPage() {
                     </div>
 
                     <div className="mt-5 flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${twoFactorEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {twoFactorEnabled ? '2FA por correo activo' : '2FA desactivado'}
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
+                        Sesion activa
                       </span>
-                      {activeUser?.twoFactorMethod && (
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-medium text-slate-500">
-                          Metodo: {activeUser.twoFactorMethod}
-                        </span>
-                      )}
                     </div>
                   </div>
 
                   <div className="w-full max-w-[340px] rounded-[24px] border border-slate-200 bg-[#f8fafc] p-5">
-                    <p className="text-[14px] font-semibold text-slate-900">Verificacion en dos pasos</p>
+                    <p className="text-[14px] font-semibold text-slate-900">Acceso con credenciales</p>
                     <p className="mt-2 text-[13px] leading-6 text-slate-500">
-                      Cuando este activa, primero validaras tu correo y contrasena. Luego recibiras un codigo temporal por email antes de obtener el JWT.
+                      El acceso actual usa correo, contrasena y una sesion protegida con JWT.
                     </p>
-
-                    <button
-                      type="button"
-                      onClick={() => handleToggleTwoFactor(!twoFactorEnabled)}
-                      disabled={isUpdatingTwoFactor || !activeUser}
-                      className={`mt-5 h-11 w-full rounded-[14px] px-4 text-[14px] font-semibold text-white transition ${
-                        twoFactorEnabled
-                          ? 'bg-slate-700 hover:bg-slate-800'
-                          : 'bg-teal-600 hover:bg-teal-700'
-                      } disabled:cursor-not-allowed disabled:opacity-60`}
-                    >
-                      {isUpdatingTwoFactor
-                        ? 'Guardando...'
-                        : twoFactorEnabled
-                          ? 'Desactivar 2FA'
-                          : 'Activar 2FA por correo'}
-                    </button>
-
-                    <p className="mt-3 text-[12px] text-slate-500">
-                      Usa la cuenta SMTP configurada en el backend para entregar los codigos.
-                    </p>
-
-                    {securityFeedback && (
-                      <p className={`mt-4 rounded-xl px-3 py-2 text-[12px] font-medium ${
-                        securityFeedback.includes('No se pudo')
-                          ? 'bg-red-50 text-red-600'
-                          : 'bg-emerald-50 text-emerald-700'
-                      }`}
-                      >
-                        {securityFeedback}
-                      </p>
-                    )}
                   </div>
                 </div>
               </section>
@@ -790,7 +720,7 @@ export default function AjustesPage() {
                   Aqui podras definir permisos por rol en una proxima fase.
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {['Administrador', 'Cliente'].map(role => (
+                  {['Administrador', 'Usuario'].map(role => (
                     <div key={role} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-[14px] font-semibold text-slate-900">{role}</p>
                       <p className="mt-1 text-[12px] text-slate-500">Permisos configurables proximamente.</p>
@@ -825,28 +755,28 @@ export default function AjustesPage() {
 
             {tab && (
               <section>
-                {adding && (
+                {addingSection === section && (
                   <AddForm
                     key={`add-${tab}`}
                     tab={tab}
                     submitLabel="Agregar"
                     onSubmit={(name, color) => {
                       addItem(name, color)
-                      setAdding(false)
+                      setAddingSection(null)
                     }}
-                    onCancel={() => setAdding(false)}
+                    onCancel={() => setAddingSection(null)}
                   />
                 )}
 
-                {editingItem && (
+                {editingItem?.section === section && (
                   <AddForm
-                    key={`edit-${tab}-${editingItem.id}`}
+                    key={`edit-${tab}-${editingItem.item.id}`}
                     tab={tab}
-                    initialName={editingItem.name}
-                    initialColor={editingItem.color}
+                    initialName={editingItem.item.name}
+                    initialColor={editingItem.item.color}
                     submitLabel="Guardar"
                     onSubmit={(name, color) => {
-                      updateItem(editingItem.id, name, color)
+                      updateItem(editingItem.item.id, name, color)
                       setEditingItem(null)
                     }}
                     onCancel={() => setEditingItem(null)}
@@ -860,8 +790,8 @@ export default function AjustesPage() {
                       item={item}
                       tab={tab}
                       onEdit={selectedItem => {
-                        setAdding(false)
-                        setEditingItem(selectedItem)
+                        setAddingSection(null)
+                        setEditingItem({ section, item: selectedItem })
                       }}
                       onDelete={deleteItem}
                     />
@@ -870,7 +800,7 @@ export default function AjustesPage() {
                     compact={compactList}
                     onClick={() => {
                       setEditingItem(null)
-                      setAdding(true)
+                      setAddingSection(section)
                     }}
                   />
                 </div>
