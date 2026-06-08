@@ -6,8 +6,6 @@ const selectPublicUser = {
   email: true,
   name: true,
   role: true,
-  twoFactorEnabled: true,
-  twoFactorMethod: true,
   createdAt: true,
   updatedAt: true,
 }

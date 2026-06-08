@@ -194,12 +194,12 @@ async function main() {
     create: {
       email: 'martin.local@gestion-tareas.dev',
       name: 'Martin Nauca Gamboa',
-      role: 'admin_unitek',
+      role: 'admin',
       passwordHash,
     },
     update: {
       name: 'Martin Nauca Gamboa',
-      role: 'admin_unitek',
+      role: 'admin',
     },
   })
 
