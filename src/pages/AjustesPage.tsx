@@ -6,10 +6,12 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
+import { adminUsersApi, type AdminUser, type AdminUserRole } from '@/api/admin-users.api'
 import type { AuthUser } from '@/api/auth.api'
+import { ApiError } from '@/api/http'
 import PageContainer from '@/components/PageContainer/PageContainer'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
@@ -431,6 +433,277 @@ function roleLabel(role: AuthUser['role']) {
   return role
 }
 
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('es', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value))
+}
+
+function CreateUserModal({
+  onSubmit,
+  onCancel,
+  isSubmitting,
+  error,
+}: {
+  onSubmit: (input: { name: string; email: string; password: string; role: AdminUserRole }) => void
+  onCancel: () => void
+  isSubmitting: boolean
+  error: string
+}) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('12345678')
+  const [role, setRole] = useState<AdminUserRole>('usuario')
+
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/20 px-4"
+      onMouseDown={event => {
+        if (event.target === event.currentTarget) onCancel()
+      }}
+    >
+      <form
+        className="w-full max-w-[520px] rounded-xl border border-gray-200 bg-white p-5 shadow-xl"
+        onSubmit={event => {
+          event.preventDefault()
+          onSubmit({ name, email, password, role })
+        }}
+      >
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-[15px] font-semibold text-gray-900">Nuevo usuario</h3>
+            <p className="mt-1 text-[12px] text-gray-500">
+              Crea una cuenta con un workspace propio e independiente.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            title="Cerrar"
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4 rounded-xl border border-gray-200 bg-slate-50 p-4">
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Nombre
+            </label>
+            <input
+              autoFocus
+              value={name}
+              onChange={event => setName(event.target.value)}
+              placeholder="Nombre completo"
+              className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Email
+            </label>
+            <input
+              value={email}
+              onChange={event => setEmail(event.target.value)}
+              placeholder="usuario@gestion-tareas.dev"
+              className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Contrasena temporal
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={event => setPassword(event.target.value)}
+              className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Rol
+            </label>
+            <select
+              value={role}
+              onChange={event => setRole(event.target.value as AdminUserRole)}
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 outline-none transition-colors focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+            >
+              <option value="usuario">Usuario</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+
+        {error && (
+          <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-[12px] font-medium text-red-600">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-10 rounded-lg bg-[#6472EB] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#5360D8] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? 'Creando...' : 'Crear usuario'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+function UsersSettingsSection({ currentUser }: { currentUser: AuthUser | null }) {
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const isAdmin = currentUser?.role === 'admin'
+
+  useEffect(() => {
+    if (!isAdmin) return
+
+    let cancelled = false
+
+    void Promise.resolve().then(() => {
+      if (cancelled) return
+
+      setIsLoading(true)
+      setError('')
+      adminUsersApi.list()
+        .then(result => {
+          if (!cancelled) setUsers(result)
+        })
+        .catch(loadError => {
+          if (cancelled) return
+          const message = loadError instanceof ApiError && loadError.status === 403
+            ? 'No tienes permisos para ver usuarios.'
+            : 'No se pudo cargar la lista de usuarios.'
+          setError(message)
+        })
+        .finally(() => {
+          if (!cancelled) setIsLoading(false)
+        })
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAdmin])
+
+  if (!isAdmin) {
+    return (
+      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <p className="max-w-[620px] text-[14px] leading-6 text-slate-500">
+          No tienes permisos para administrar usuarios.
+        </p>
+      </section>
+    )
+  }
+
+  function createUser(input: { name: string; email: string; password: string; role: AdminUserRole }) {
+    setIsSubmitting(true)
+    setError('')
+
+    adminUsersApi.create(input)
+      .then(createdUser => {
+        setUsers(prev => [...prev, createdUser])
+        setIsCreateOpen(false)
+      })
+      .catch(createError => {
+        const message = createError instanceof ApiError
+          ? createError.message
+          : 'No se pudo crear el usuario.'
+        setError(message)
+      })
+      .finally(() => setIsSubmitting(false))
+  }
+
+  return (
+    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <p className="max-w-[620px] text-[14px] leading-6 text-slate-500">
+          Administra las cuentas que pueden ingresar a la aplicacion. Cada usuario nuevo recibe un workspace propio.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setError('')
+            setIsCreateOpen(true)
+          }}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#6472EB] px-4 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5360D8]"
+        >
+          <PlusIcon className="h-4 w-4" />
+          Nuevo usuario
+        </button>
+      </div>
+
+      {error && !isCreateOpen && (
+        <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-[12px] font-medium text-red-600">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+        <div className="grid grid-cols-[1.2fr_1.4fr_130px_130px] gap-3 bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <span>Nombre</span>
+          <span>Email</span>
+          <span>Rol</span>
+          <span>Creado</span>
+        </div>
+
+        {isLoading ? (
+          <p className="px-4 py-5 text-[13px] text-slate-400">Cargando usuarios...</p>
+        ) : users.length ? (
+          <div className="divide-y divide-slate-100">
+            {users.map(item => (
+              <div
+                key={item.id}
+                className="grid grid-cols-[1.2fr_1.4fr_130px_130px] gap-3 px-4 py-3 text-[13px] text-slate-600"
+              >
+                <span className="min-w-0 truncate font-semibold text-slate-900">{item.name}</span>
+                <span className="min-w-0 truncate">{item.email}</span>
+                <span>{roleLabel(item.role)}</span>
+                <span>{formatDate(item.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="px-4 py-5 text-[13px] text-slate-400">No hay usuarios creados.</p>
+        )}
+      </div>
+
+      {isCreateOpen && (
+        <CreateUserModal
+          isSubmitting={isSubmitting}
+          error={error}
+          onSubmit={createUser}
+          onCancel={() => {
+            setError('')
+            setIsCreateOpen(false)
+          }}
+        />
+      )}
+    </section>
+  )
+}
+
 export default function AjustesPage() {
   const [addingSection, setAddingSection] = useState<SettingsSection | null>(null)
   const [editingItem, setEditingItem] = useState<{ section: SettingsSection; item: CardItem } | null>(null)
@@ -699,19 +972,7 @@ export default function AjustesPage() {
             )}
 
             {section === 'usuarios' && (
-              <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-                <p className="max-w-[620px] text-[14px] leading-6 text-slate-500">
-                  Aqui podras crear y administrar los usuarios que tendran acceso a tu aplicacion.
-                </p>
-                <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_1fr_160px_auto]">
-                  <input disabled value="Nombre" className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400" />
-                  <input disabled value="correo@empresa.com" className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400" />
-                  <input disabled value="Rol" className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400" />
-                  <button disabled type="button" className="h-10 rounded-lg bg-slate-300 px-4 text-[13px] font-semibold text-white">
-                    Crear usuario
-                  </button>
-                </div>
-              </section>
+              <UsersSettingsSection currentUser={activeUser} />
             )}
 
             {section === 'roles' && (

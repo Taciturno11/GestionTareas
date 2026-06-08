@@ -5,6 +5,7 @@ import morgan from 'morgan'
 
 import { env } from './config/env.js'
 import { errorMiddleware } from './middlewares/error.middleware.js'
+import adminUsersRoutes from './modules/admin-users/admin-users.routes.js'
 import authRoutes from './modules/auth/auth.routes.js'
 import pagesRoutes from './modules/pages/pages.routes.js'
 import spacesRoutes from './modules/spaces/spaces.routes.js'
@@ -31,6 +32,7 @@ export function createApp() {
   })
 
   app.use(`${API_PREFIX}/auth`, authRoutes)
+  app.use(`${API_PREFIX}/admin`, adminUsersRoutes)
   app.use(`${API_PREFIX}/users`, usersRoutes)
   app.use(`${API_PREFIX}/workspaces`, workspacesRoutes)
   app.use(`${API_PREFIX}/spaces`, spacesRoutes)
