@@ -5,6 +5,7 @@ import {
   ShieldCheckIcon,
   ShieldExclamationIcon,
   TrashIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
@@ -289,11 +290,21 @@ function AddForm({
 }) {
   const [input, setInput] = useState(initialName)
   const [color, setColor] = useState(initialColor)
+  const isEditing = submitLabel === 'Guardar'
   const placeholder = tab === 'assignees'
     ? 'Nombre del responsable'
     : tab === 'projects'
       ? 'Nombre del proyecto'
       : 'Nombre'
+  const itemLabel = tab === 'assignees'
+    ? 'responsable'
+    : tab === 'projects'
+      ? 'proyecto'
+      : tab === 'labels'
+        ? 'etiqueta'
+        : tab === 'priorities'
+          ? 'prioridad'
+          : 'estado'
 
   function submit() {
     const value = input.trim()
@@ -303,30 +314,82 @@ function AddForm({
   }
 
   return (
-    <div className="mb-5 max-w-[760px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="shrink-0">
-          <AddPreview tab={tab} input={input} color={color} />
-        </div>
-        <input
-          autoFocus
-          value={input}
-          onChange={event => setInput(event.target.value)}
-          onKeyDown={event => {
-            if (event.key === 'Enter') submit()
-            if (event.key === 'Escape') onCancel()
-          }}
-          placeholder={placeholder}
-          className="h-10 min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-400"
-        />
-        <div className="flex shrink-0 items-center gap-2">
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/20 px-4"
+      onMouseDown={event => {
+        if (event.target === event.currentTarget) onCancel()
+      }}
+    >
+      <form
+        className="w-full max-w-[520px] rounded-xl border border-gray-200 bg-white p-5 shadow-xl"
+        onSubmit={event => {
+          event.preventDefault()
+          submit()
+        }}
+      >
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-[15px] font-semibold text-gray-900">
+              {isEditing ? `Editar ${itemLabel}` : `Agregar ${itemLabel}`}
+            </h3>
+            <p className="mt-1 text-[12px] text-gray-500">
+              Define el nombre y color que se usara en las tareas.
+            </p>
+          </div>
           <button
             type="button"
-            onClick={submit}
-            className="h-10 rounded-lg bg-[#6472EB] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#5360D8]"
+            onClick={onCancel}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            title="Cerrar"
           >
-            {submitLabel}
+            <XMarkIcon className="h-4 w-4" />
           </button>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="shrink-0">
+              <AddPreview tab={tab} input={input} color={color} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Nombre
+              </label>
+              <input
+                autoFocus
+                value={input}
+                onChange={event => setInput(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === 'Escape') onCancel()
+                }}
+                placeholder={placeholder}
+                className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+              />
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Color</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {COLORS.map(itemColor => (
+                <button
+                  key={itemColor}
+                  type="button"
+                  onClick={() => setColor(itemColor)}
+                  className="h-6 w-6 rounded-full transition-transform hover:scale-105"
+                  style={{
+                    background: itemColor,
+                    outline: color === itemColor ? '1px solid #1c1917' : '1px solid rgba(17, 24, 39, 0.12)',
+                    outlineOffset: 2,
+                  }}
+                  title="Elegir color"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}
@@ -334,26 +397,14 @@ function AddForm({
           >
             Cancelar
           </button>
+          <button
+            type="submit"
+            className="h-10 rounded-lg bg-[#6472EB] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#5360D8]"
+          >
+            {submitLabel}
+          </button>
         </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[12px] font-medium text-gray-500">Color</span>
-          {COLORS.map(itemColor => (
-            <button
-              key={itemColor}
-              type="button"
-              onClick={() => setColor(itemColor)}
-              className="h-[18px] w-[18px] rounded-full"
-              style={{
-                background: itemColor,
-                outline: color === itemColor ? '1px solid #1c1917' : '1px solid transparent',
-                outlineOffset: 1,
-              }}
-              title="Elegir color"
-            />
-          ))}
-      </div>
+      </form>
     </div>
   )
 }
