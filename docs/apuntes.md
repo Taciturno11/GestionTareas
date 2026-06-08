@@ -1,12 +1,13 @@
-Diferencia entre Cliente/Usuario/Rol
+Roles base de GESTION_TAREAS
 
-Cliente:
-Pollos Norte S.A.C.
+Administrador:
+- rol tecnico: admin
+- administra la aplicacion y los datos principales.
 
-Usuarios:
-gerente@pollosnorte.com
-marketing@pollosnorte.com
-sede.centro@pollosnorte.com
+Usuario:
+- rol tecnico: usuario
+- usa la aplicacion dentro de los workspaces a los que pertenece.
 
-Rol:
-usuario_cliente
+Workspace:
+- los permisos internos siguen viviendo en WorkspaceMember.
+- valores actuales: OWNER y MEMBER.

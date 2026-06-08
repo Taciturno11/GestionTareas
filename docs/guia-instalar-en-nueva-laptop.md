@@ -100,8 +100,6 @@ JWT_SECRET="CAMBIAR_POR_UN_SECRETO_LOCAL_LARGO"
 JWT_EXPIRES_IN="7d"
 ```
 
-Si se habilita 2FA por correo en una fase posterior, configurar SMTP localmente sin subir esos valores al repo.
-
 ## G. Crear `.env` del frontend si aplica
 
 En la raiz del proyecto se puede crear `.env.local`:

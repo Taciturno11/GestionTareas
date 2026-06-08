@@ -1,30 +1,19 @@
-# 0020 - 2FA opcional por correo en autenticacion
+# 0020 - Decision historica de verificacion por correo
 
 ## Estado
 
-Aceptado.
+Reemplazado por ADR 0021.
 
 ## Contexto
 
-El backend ya usa JWT con login por correo y contrasena. Se necesita reforzar el acceso sin romper el flujo actual ni obligar a todos los usuarios del MVP a usar un segundo paso desde el primer dia.
+En una etapa anterior se evaluo agregar un segundo paso por correo dentro del modulo `auth`. Esa decision venia mezclada con contexto de otro proyecto y ya no representa la direccion actual de GESTION_TAREAS.
 
-## Decision
+## Decision actual
 
-Se agrega verificacion en dos pasos opcional por usuario dentro del modulo `auth` existente.
-
-Reglas:
-
-- El login base sigue validando correo y contrasena.
-- Si `User.twoFactorEnabled` es `false`, el backend responde como hoy con `{ user, token }`.
-- Si `User.twoFactorEnabled` es `true`, el backend genera un OTP temporal por correo y no entrega JWT hasta validar ese codigo.
-- El metodo inicial soportado es `email`.
-- Los OTP se almacenan hasheados, con expiracion, limite de intentos y un challenge reutilizable para reenvio controlado.
-- El usuario define su seguridad personal mediante `twoFactorEnabled`.
-- El rol del usuario se modela de forma independiente con valores iniciales `admin_unitek` y `cliente`.
+La decision queda reemplazada. GESTION_TAREAS mantiene autenticacion simple con correo, contrasena y JWT.
 
 ## Consecuencias
 
-- El frontend puede migrar a un flujo de login de dos pasos sin perder compatibilidad con la respuesta final existente.
-- Se agregan variables SMTP obligatorias para usar 2FA por correo.
-- El modelo `User` gana estado de seguridad y rol.
-- Se introduce la tabla `LoginOtpChallenge` para persistir verificaciones temporales.
+- La implementacion activa se documenta en ADR 0021.
+- Los nombres de roles se normalizan para este proyecto personal.
+- El modelo de datos elimina el flujo de verificacion por correo.

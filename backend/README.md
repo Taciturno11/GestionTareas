@@ -17,7 +17,6 @@ La base esta pensada para un uso inicial pequeno, alrededor de 10 a 20 personas,
 - PostgreSQL
 - Zod
 - JWT
-- Nodemailer
 
 ## Arquitectura
 
@@ -104,18 +103,6 @@ DATABASE_URL="postgresql://USUARIO:PASSWORD@localhost:5432/gestion_tareas?schema
 PORT=4000
 JWT_SECRET="CAMBIAR_POR_UN_SECRETO_LOCAL_LARGO"
 JWT_EXPIRES_IN="7d"
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=""
-SMTP_PASS=""
-SMTP_FROM_EMAIL=""
-SMTP_FROM_NAME="GESTION_TAREAS"
-AUTH_OTP_TTL_MINUTES=10
-AUTH_OTP_LENGTH=6
-AUTH_OTP_MAX_ATTEMPTS=5
-AUTH_OTP_RESEND_COOLDOWN_SECONDS=60
-AUTH_OTP_PEPPER=""
 ```
 
 Notas:
@@ -124,8 +111,6 @@ Notas:
 - `PORT`: puerto de API.
 - `JWT_SECRET`: secreto para firmar tokens. En produccion debe ser largo y privado.
 - `JWT_EXPIRES_IN`: duracion del token.
-- `SMTP_*`: configuracion del correo para 2FA por email.
-- `AUTH_OTP_*`: reglas de vencimiento, intentos y cooldown del OTP.
 
 ## Comandos
 
@@ -212,10 +197,7 @@ Auth:
 ```text
 POST /api/auth/register
 POST /api/auth/login
-POST /api/auth/login/verify-otp
-POST /api/auth/login/resend-otp
 GET  /api/auth/me
-PATCH /api/auth/me/2fa
 ```
 
 Users:
@@ -288,13 +270,7 @@ El token se obtiene con:
 POST /api/auth/login
 ```
 
-Si el usuario tiene `twoFactorEnabled=true`, ese endpoint primero responde un challenge OTP y el JWT solo se obtiene despues con:
-
-```text
-POST /api/auth/login/verify-otp
-```
-
-o:
+Tambien se obtiene al crear una cuenta con:
 
 ```text
 POST /api/auth/register
@@ -390,5 +366,4 @@ Pendiente:
 - conectar frontend con API.
 - migrar tareas de `localStorage` a backend.
 - agregar refresh token o cookies seguras si se requiere mayor seguridad.
-- agregar pruebas para OTP, expiracion y bloqueo por intentos.
 - agregar tests de services y endpoints criticos.

@@ -18,7 +18,7 @@ El proyecto actual combina frontend React con backend Express, Prisma y PostgreS
 
 ## Correcciones de estabilizacion
 
-- Se corrigio el error de lint detectado en el backend sin cambiar el flujo de login ni 2FA.
+- Se corrigio el error de lint detectado en el backend sin cambiar el login.
 - Se revisaron textos con encoding roto y se corrigieron casos visibles cuando correspondia.
 - Se validaron builds de frontend y backend durante las fases de estabilizacion.
 
@@ -27,7 +27,6 @@ El proyecto actual combina frontend React con backend Express, Prisma y PostgreS
 - Se reviso `backend/prisma/schema.prisma`.
 - Se confirmaron los modelos principales:
   - `User`
-  - `LoginOtpChallenge`
   - `Workspace`
   - `WorkspaceMember`
   - `Space`
@@ -154,7 +153,7 @@ Tarea rescatada:
 - `/ajustes` redirige a `/ajustes/seguridad`.
 - `Usuarios` y `Roles y permisos` quedaron como placeholders visuales, sin logica real de backend.
 - Se conservaron:
-  - seguridad y 2FA,
+  - seguridad de cuenta,
   - proyectos,
   - responsables,
   - etiquetas,
@@ -193,3 +192,12 @@ El proyecto queda listo para continuar desde otra laptop:
 4. Preparar despliegue en servidor con PostgreSQL limpio, `prisma migrate deploy`, PM2 y Nginx.
 5. Revisar `SubspaceView` y `TextPage` para decidir si deben usar layout alineado o de documento.
 6. Revisar bundle splitting para dependencias grandes como tldraw si se vuelve necesario.
+
+## Limpieza de contexto externo
+
+El 2026-06-08 se decidio que GESTION_TAREAS es un proyecto personal y no debe conservar nombres ni flujos heredados de otro contexto. Los roles tecnicos finales son:
+
+- `admin`
+- `usuario`
+
+El acceso queda como login simple con correo, contrasena y JWT.

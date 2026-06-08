@@ -17,7 +17,6 @@ Stack:
 - PostgreSQL
 - Zod
 - JWT
-- Nodemailer para OTP por correo
 
 ## Estructura
 
@@ -81,18 +80,6 @@ DATABASE_URL="postgresql://USUARIO:PASSWORD@localhost:5432/gestion_tareas?schema
 PORT=4000
 JWT_SECRET="CAMBIAR_POR_UN_SECRETO_LOCAL_LARGO"
 JWT_EXPIRES_IN="7d"
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=""
-SMTP_PASS=""
-SMTP_FROM_EMAIL=""
-SMTP_FROM_NAME="GESTION_TAREAS"
-AUTH_OTP_TTL_MINUTES=10
-AUTH_OTP_LENGTH=6
-AUTH_OTP_MAX_ATTEMPTS=5
-AUTH_OTP_RESEND_COOLDOWN_SECONDS=60
-AUTH_OTP_PEPPER=""
 ```
 
 ## Endpoints
@@ -109,8 +96,6 @@ Publicos:
 GET  /health
 POST /api/auth/register
 POST /api/auth/login
-POST /api/auth/login/verify-otp
-POST /api/auth/login/resend-otp
 ```
 
 Usuario local importado desde backup:
@@ -124,7 +109,6 @@ Privados:
 
 ```text
 GET  /api/auth/me
-PATCH /api/auth/me/2fa
 GET  /api/users/me
 GET  /api/workspaces
 GET  /api/spaces?workspaceId=
@@ -153,7 +137,6 @@ Orden recomendado:
 Estado actual:
 
 - Login frontend ya usa `/api/auth/login`.
-- Si el usuario activa 2FA, el login exige OTP por correo antes de devolver JWT.
 - Al iniciar sesion se guarda `gt_auth_token`.
 - Luego se sincronizan `workspaces`, `spaces` y `pages` desde PostgreSQL hacia `localStorage`.
 - Las escrituras locales de espacios y paginas se espejan al backend de forma progresiva.
