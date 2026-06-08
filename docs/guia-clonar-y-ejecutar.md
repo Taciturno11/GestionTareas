@@ -76,10 +76,9 @@ Copy-Item .env.example .env
 Editar `backend/.env`:
 
 ```env
-DATABASE_URL="postgresql://postgres:<tu_password>@localhost:5432/gestion_tareas?schema=public"
+DATABASE_URL="postgresql://USUARIO:PASSWORD@localhost:5432/gestion_tareas?schema=public"
 PORT=4000
-CORS_ORIGIN="http://localhost:5173,http://127.0.0.1:5173"
-JWT_SECRET="development-secret-local-gestion-tareas"
+JWT_SECRET="CAMBIAR_POR_UN_SECRETO_LOCAL_LARGO"
 JWT_EXPIRES_IN="7d"
 ```
 
@@ -91,7 +90,7 @@ Desde `backend/`:
 
 ```bash
 npm run prisma:generate
-npm run prisma:push
+npm run prisma:migrate:deploy
 ```
 
 Esto crea tablas segun:

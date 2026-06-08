@@ -380,7 +380,7 @@ npm run dev
 npm run build
 npm start
 npm run prisma:generate
-npm run prisma:push
+npm run prisma:migrate:deploy
 npm run prisma:migrate
 npm run prisma:studio
 ```
@@ -413,7 +413,6 @@ Variables:
 ```env
 DATABASE_URL=
 PORT=4000
-CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
 JWT_SECRET=
 JWT_EXPIRES_IN=7d
 ```

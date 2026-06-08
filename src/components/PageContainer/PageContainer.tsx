@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-type PageContainerSize = 'default' | 'wide' | 'narrow'
+type PageContainerSize = 'default' | 'wide' | 'narrow' | 'fluid'
 type PageContainerAlign = 'center' | 'start'
 
 interface PageContainerProps {
@@ -14,6 +14,7 @@ const SIZE_CLASSES: Record<PageContainerSize, string> = {
   default: 'max-w-[1200px]',
   wide: 'max-w-[1400px]',
   narrow: 'max-w-[900px]',
+  fluid: 'max-w-none',
 }
 
 const ALIGN_CLASSES: Record<PageContainerAlign, string> = {

@@ -54,7 +54,7 @@ export default function ArchivePage() {
   }
 
   return (
-    <PageContainer size="wide">
+    <PageContainer size="wide" align="start">
       <div className="mb-7">
         <h1 className="text-[28px] font-bold text-gray-900">Archivo</h1>
         <p className="mt-1 text-[13px] text-gray-500">

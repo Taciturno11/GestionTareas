@@ -1,12 +1,12 @@
-# Gestion de tareas
+# GESTION_TAREAS
 
-Aplicacion web full-stack para gestion de tareas, espacios, hojas, calendario y archivo.
+Aplicacion web full-stack de productividad tipo workspace para gestionar espacios, hojas, tareas, calendario, pizarras y diagramas.
 
 ## Contexto rapido
 
-- Producto: panel web para organizar tareas, proyectos, calendario y archivo.
-- Etapa: frontend en evolucion, con mock data local mientras se define backend.
-- Enfoque actual: SPA con React, Vite, TypeScript y Tailwind CSS.
+- Producto: app de productividad tipo workspace, inspirada en flujos de Notion, Kanban/Trello, calendario, pizarras y diagramas.
+- Etapa: frontend y backend locales validados con PostgreSQL, migraciones Prisma y dataset fusionado sanitizado.
+- Enfoque actual: SPA con React, Vite, TypeScript y Tailwind CSS, con backend Express/Prisma/PostgreSQL.
 - Documentacion de decisiones: [docs/adr](./docs/adr/README.md).
 - Contexto general del estado actual: [docs/contexto-general.md](./docs/contexto-general.md).
 - Reglas generales de diseno UI: [docs/diseno-ui.md](./docs/diseno-ui.md).
@@ -16,6 +16,8 @@ Aplicacion web full-stack para gestion de tareas, espacios, hojas, calendario y 
 - Modelo entidad-relacion: [docs/database-er.md](./docs/database-er.md).
 - Resumen de implementacion full-stack: [docs/resumen-implementacion-2026-05-19.md](./docs/resumen-implementacion-2026-05-19.md).
 - Guia para clonar y ejecutar: [docs/guia-clonar-y-ejecutar.md](./docs/guia-clonar-y-ejecutar.md).
+- Guia para instalar en otra laptop: [docs/guia-instalar-en-nueva-laptop.md](./docs/guia-instalar-en-nueva-laptop.md).
+- Bitacora de cambios recientes: [docs/bitacora-cambios-gestion-tareas.md](./docs/bitacora-cambios-gestion-tareas.md).
 - Contexto para agentes IA: [AGENTS.md](./AGENTS.md).
 
 ## Stack
@@ -54,7 +56,7 @@ cd backend
 npm install
 cp .env.example .env
 npm run prisma:generate
-npm run prisma:push
+npm run prisma:migrate:deploy
 ```
 
 Levantar backend:
@@ -73,6 +75,7 @@ npm run dev
 Guia completa:
 
 - [docs/guia-clonar-y-ejecutar.md](./docs/guia-clonar-y-ejecutar.md)
+- [docs/guia-instalar-en-nueva-laptop.md](./docs/guia-instalar-en-nueva-laptop.md)
 
 ## Estructura
 
@@ -120,7 +123,7 @@ Scripts principales:
 ## Convenciones
 
 - Mantener cambios pequenos y coherentes con la estructura actual.
-- Usar `src/data/` y `src/types/` para datos temporales hasta que exista API estable.
+- Usar servicios/hooks existentes para mantener compatibilidad entre API y cache local mientras termina la migracion.
 - Registrar decisiones arquitectonicas nuevas como ADR incremental en `docs/adr/`.
 - No reescribir el sentido historico de ADR aprobados; crear uno nuevo si cambia una decision.
 - Antes de cerrar cambios visuales, revisar la seccion completa y las variantes del componente segun `docs/diseno-ui.md`.

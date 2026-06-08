@@ -80,7 +80,7 @@ export default function InicioPage() {
      *     LEFT  (55%): tareas recientes (flex-1) + upcoming debajo
      *     RIGHT (45%): proyectos (flex-1) + actividad debajo
      */
-    <PageContainer size="wide">
+    <PageContainer size="fluid" align="start" className="!px-4 md:!px-6 2xl:!px-10">
 
       {/* ══════════════════════════════════════════
           ROW 1 — Title

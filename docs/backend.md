@@ -64,7 +64,7 @@ Desde `backend/`:
 npm install
 npm run prisma:generate
 npm run prisma:migrate
-npm run prisma:push
+npm run prisma:migrate:deploy
 npm run import:backup -- ../backups-locales/<archivo>.json
 npm run dev
 npm run build
@@ -77,18 +77,17 @@ Ver `backend/.env.example`.
 Minimo:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/gestion_tareas?schema=public"
+DATABASE_URL="postgresql://USUARIO:PASSWORD@localhost:5432/gestion_tareas?schema=public"
 PORT=4000
-CORS_ORIGIN="http://localhost:5173"
-JWT_SECRET="change-me-in-development"
+JWT_SECRET="CAMBIAR_POR_UN_SECRETO_LOCAL_LARGO"
 JWT_EXPIRES_IN="7d"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT=465
 SMTP_SECURE=true
-SMTP_USER="unitek.signage@gmail.com"
+SMTP_USER=""
 SMTP_PASS=""
-SMTP_FROM_EMAIL="unitek.signage@gmail.com"
-SMTP_FROM_NAME="Unitek Signage"
+SMTP_FROM_EMAIL=""
+SMTP_FROM_NAME="GESTION_TAREAS"
 AUTH_OTP_TTL_MINUTES=10
 AUTH_OTP_LENGTH=6
 AUTH_OTP_MAX_ATTEMPTS=5

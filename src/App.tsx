@@ -55,7 +55,7 @@ export default function App() {
             <Route path="/proyectos" element={<PlaceholderPage title="Proyectos" />} />
             <Route path="/calendario" element={<CalendarPage />} />
             <Route path="/archivo" element={<ArchivePage />} />
-            <Route path="/ajustes" element={<AjustesPage />} />
+            <Route path="/ajustes/*" element={<AjustesPage />} />
             <Route path="/p/:pageId" element={<PageView />} />
             <Route path="/e/:spaceId" element={<SubspaceView />} />
             <Route path="/s/:spaceId" element={<SubspaceView />} />

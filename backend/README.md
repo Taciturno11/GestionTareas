@@ -100,18 +100,17 @@ cp .env.example .env
 Variables:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/gestion_tareas?schema=public"
+DATABASE_URL="postgresql://USUARIO:PASSWORD@localhost:5432/gestion_tareas?schema=public"
 PORT=4000
-CORS_ORIGIN="http://localhost:5173"
-JWT_SECRET="change-me-in-development"
+JWT_SECRET="CAMBIAR_POR_UN_SECRETO_LOCAL_LARGO"
 JWT_EXPIRES_IN="7d"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT=465
 SMTP_SECURE=true
-SMTP_USER="unitek.signage@gmail.com"
+SMTP_USER=""
 SMTP_PASS=""
-SMTP_FROM_EMAIL="unitek.signage@gmail.com"
-SMTP_FROM_NAME="Unitek Signage"
+SMTP_FROM_EMAIL=""
+SMTP_FROM_NAME="GESTION_TAREAS"
 AUTH_OTP_TTL_MINUTES=10
 AUTH_OTP_LENGTH=6
 AUTH_OTP_MAX_ATTEMPTS=5
@@ -123,7 +122,6 @@ Notas:
 
 - `DATABASE_URL`: conexion a PostgreSQL.
 - `PORT`: puerto de API.
-- `CORS_ORIGIN`: URL del frontend Vite.
 - `JWT_SECRET`: secreto para firmar tokens. En produccion debe ser largo y privado.
 - `JWT_EXPIRES_IN`: duracion del token.
 - `SMTP_*`: configuracion del correo para 2FA por email.
@@ -152,7 +150,7 @@ npm run prisma:migrate
 Sincronizar schema directamente en desarrollo local:
 
 ```bash
-npm run prisma:push
+npm run prisma:migrate:deploy
 ```
 
 Levantar servidor de desarrollo:
@@ -383,7 +381,7 @@ Reglas:
 
 Base funcional creada y compilando.
 
-La base local puede sincronizarse con `npm run prisma:push`. Para despliegue en servidor conviene usar migraciones versionadas con `npm run prisma:migrate` durante desarrollo y `prisma migrate deploy` en produccion.
+La base local validada debe levantarse con migraciones versionadas. Para bases limpias y despliegue usar `npm run prisma:migrate:deploy`. Evitar `prisma db push` para restaurar entornos de trabajo compartidos.
 
 Pendiente:
 

@@ -16,19 +16,12 @@ import { API_PREFIX } from './shared/constants/routes.js'
 
 export function createApp() {
   const app = express()
-  const allowedOrigins = env.CORS_ORIGIN.split(',').map(origin => origin.trim())
 
   app.use(helmet())
   app.use(cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true)
-        return
-      }
-
-      callback(new Error('Not allowed by CORS'))
-    },
-    credentials: true,
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }))
   app.use(express.json({ limit: '2mb' }))
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'))
