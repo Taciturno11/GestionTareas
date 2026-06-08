@@ -56,7 +56,7 @@ El proyecto actual combina frontend React con backend Express, Prisma y PostgreS
 
 ## Dataset validado
 
-El dataset fusionado quedo validado con estos conteos:
+El dataset fusionado original quedo validado con estos conteos:
 
 - workspaces: 4
 - spaces: 17
@@ -64,12 +64,19 @@ El dataset fusionado quedo validado con estos conteos:
 - tasks: 12
 - settings: 4
 
-Tipos de pagina esperados:
+Tipos de pagina del backup fusionado original:
 
 - TEXT: 11
 - BOARD: 17
 - DATABASE: 2
 - BLANK: 3
+
+Estado local vigente decidido el 2026-06-08:
+
+- pages: 32
+- DATABASE: 1
+- `page-eb526578` - Nuevo diagrama BD no se restaura por decision manual.
+- No se debe tratar esa pagina como dato faltante en la base local actual.
 
 Paginas rescatadas relevantes:
 
@@ -109,13 +116,14 @@ Tarea rescatada:
 - Se respaldo la base local `gestion_tareas` antes de completar datos.
 - Se comparo la base local contra el backup fusionado.
 - Se insertaron solo los datos faltantes, sin reemplazar ni borrar datos existentes.
-- Se confirmaron conteos finales:
+- Se confirmaron conteos finales originales:
   - users: 1
   - workspaces: 4
   - spaces: 17
   - pages: 33
   - tasks: 12
   - settings: 4
+- El 2026-06-08 se decidio conservar la base local con 32 paginas y 1 pagina `DATABASE`, sin restaurar `page-eb526578`.
 - Se valido que `_prisma_migrations` estuviera coherente.
 - Se marco `20260607_initial_schema` como aplicada solo despues de confirmar que el schema real coincidia.
 - Se valido backend, frontend, login, navegacion, recarga y rutas principales.

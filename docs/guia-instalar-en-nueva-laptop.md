@@ -193,7 +193,7 @@ Validar:
 - sidebar principal visible,
 - workspaces: 4,
 - spaces: 17,
-- pages: 33,
+- pages: 32 en la base local vigente,
 - tasks: 12,
 - settings: 4,
 - `/ajustes`,
@@ -203,6 +203,8 @@ Validar:
 - una pagina de texto,
 - una pagina board,
 - una pagina database.
+
+Nota: el backup fusionado original contenia `page-eb526578`, pero no se restaura en la base local vigente por decision manual. El estado esperado actual es 32 paginas y 1 pagina `DATABASE`.
 
 ## N. Problemas comunes
 
