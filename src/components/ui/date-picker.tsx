@@ -1,14 +1,14 @@
-import { format, parseISO, isValid } from "date-fns"
+import { format, isValid, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import { Calendar as CalendarIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 interface DatePickerProps {
   value?: string
@@ -17,8 +17,7 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ value, onChange, placeholder = "Seleccionar fecha" }: DatePickerProps) {
-  // Manejar fechas guardadas como 'YYYY-MM-DD' o cadenas vacías/'—'
-  const parsedDate = value && value !== '—' ? parseISO(value) : undefined
+  const parsedDate = value ? parseISO(value) : undefined
   const date = isValid(parsedDate) ? parsedDate : undefined
 
   return (
@@ -35,13 +34,12 @@ export function DatePicker({ value, onChange, placeholder = "Seleccionar fecha" 
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
+          locale={es}
+          weekStartsOn={1}
+          defaultMonth={date ?? new Date()}
           selected={date}
-          onSelect={(d) => {
-            if (d) {
-              onChange(format(d, "yyyy-MM-dd"))
-            } else {
-              onChange('—')
-            }
+          onSelect={(selectedDate) => {
+            onChange(selectedDate ? format(selectedDate, "yyyy-MM-dd") : "")
           }}
           initialFocus
         />

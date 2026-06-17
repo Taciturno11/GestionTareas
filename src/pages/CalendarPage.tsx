@@ -280,7 +280,7 @@ export default function CalendarPage() {
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_320px] gap-0">
         <div className="min-w-0 overflow-auto px-10 py-6">
           <div className="grid grid-cols-7 border-l border-t border-gray-200 bg-white shadow-sm">
-            {['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].map(day => (
+            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
               <div
                 key={day}
                 className="border-b border-r border-gray-200 bg-gray-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400"
@@ -341,7 +341,7 @@ export default function CalendarPage() {
                     })}
                     {dayTasks.length > 3 && (
                       <div className="px-1 text-[11px] font-medium text-gray-400">
-                        +{dayTasks.length - 3} mas
+                        +{dayTasks.length - 3} más
                       </div>
                     )}
                   </div>
@@ -354,7 +354,7 @@ export default function CalendarPage() {
         <aside className="min-h-0 border-l border-gray-200 bg-white">
           <div className="border-b border-gray-100 px-5 py-4">
             <p className="text-[12px] font-semibold uppercase tracking-wide text-gray-400">
-              Dia seleccionado
+              Día seleccionado
             </p>
             <h3 className="mt-1 text-[18px] font-semibold capitalize text-gray-900">
               {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
@@ -367,7 +367,7 @@ export default function CalendarPage() {
                 <CalendarDaysIcon className="mx-auto h-6 w-6 text-gray-300" />
                 <p className="mt-2 text-[13px] font-medium text-gray-500">Sin tareas</p>
                 <p className="mt-1 text-[12px] text-gray-400">
-                  No hay tareas con fecha para este dia.
+                  No hay tareas con fecha para este día.
                 </p>
               </div>
             ) : (
