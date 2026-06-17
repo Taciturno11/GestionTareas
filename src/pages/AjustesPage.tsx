@@ -1,5 +1,7 @@
 import {
   ArrowDownTrayIcon,
+  EyeIcon,
+  EyeSlashIcon,
   PencilSquareIcon,
   PlusIcon,
   ShieldCheckIcon,
@@ -455,6 +457,7 @@ function CreateUserModal({
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('12345678')
+  const [showPassword, setShowPassword] = useState(false)
   const [role, setRole] = useState<AdminUserRole>('usuario')
 
   return (
@@ -518,12 +521,23 @@ function CreateUserModal({
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
               Contrasena temporal
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={event => setPassword(event.target.value)}
-              className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={event => setPassword(event.target.value)}
+                className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 pr-10 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(current => !current)}
+                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                title={showPassword ? 'Ocultar contrasena' : 'Ver contrasena'}
+                aria-label={showPassword ? 'Ocultar contrasena' : 'Ver contrasena'}
+              >
+                {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <div>
@@ -905,15 +919,6 @@ export default function AjustesPage() {
   return (
     <PageContainer size="wide" align="start">
       <div className="max-w-[1500px]">
-        <div className="mb-8">
-          <div>
-            <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Ajustes</h1>
-            <p className="mt-1 text-[13px] text-gray-500">
-              Administra tu cuenta, usuarios futuros y las opciones de tus tareas.
-            </p>
-          </div>
-        </div>
-
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           <SettingsSidebar groups={navGroups} />
 
