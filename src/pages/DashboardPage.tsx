@@ -405,7 +405,7 @@ function KanbanTaskCard({
       {...attributes}
       {...listeners}
       onClick={() => onOpen(task)}
-      className={`group/task relative touch-none select-none rounded-xl border border-gray-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-shadow duration-100 hover:border-gray-300 hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] ${
+      className={`group/task relative touch-none select-none rounded-xl border border-slate-300 bg-white p-4 shadow-[0_2px_6px_rgba(15,23,42,0.08)] transition-[border-color,box-shadow] duration-150 hover:border-slate-400 hover:shadow-[0_3px_8px_rgba(15,23,42,0.10)] ${
         isDragging
           ? 'opacity-0'
           : 'cursor-pointer'
