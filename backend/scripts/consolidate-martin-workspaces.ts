@@ -55,6 +55,19 @@ async function main() {
     throw new Error(`Se esperaban 4 workspaces historicos y se encontraron ${sources.length}`)
   }
 
+  const projectDefinitions = new Map<string, { name: string; color: string }>()
+  for (const name of SOURCE_NAMES) {
+    projectDefinitions.set(name.toLowerCase(), { name, color: '#6472EB' })
+  }
+  for (const source of sources) {
+    for (const project of source.projects) {
+      const key = project.name.toLowerCase()
+      if (!projectDefinitions.has(key) || source.name === 'Unitek') {
+        projectDefinitions.set(key, { name: project.name, color: project.color })
+      }
+    }
+  }
+
   const summary = {
     mode: shouldExecute ? 'execute' : 'dry-run',
     user: { id: martin.id, name: martin.name, email: martin.email },
@@ -69,7 +82,7 @@ async function main() {
       pages: totals.pages + workspace._count.pages,
       tasks: totals.tasks + workspace._count.tasks,
     }), { spaces: 0, pages: 0, tasks: 0 }),
-    destinationProjects: SOURCE_NAMES,
+    destinationProjects: [...projectDefinitions.values()].map(project => project.name),
   }
 
   console.log(JSON.stringify(summary, null, 2))
@@ -102,11 +115,15 @@ async function main() {
     })
 
     const destinationProjects = new Map<string, string>()
-    for (const name of SOURCE_NAMES) {
+    for (const definition of projectDefinitions.values()) {
       const project = await transaction.project.create({
-        data: { workspaceId: destination.id, name, color: '#6472EB' },
+        data: {
+          workspaceId: destination.id,
+          name: definition.name,
+          color: definition.color,
+        },
       })
-      destinationProjects.set(name.toLowerCase(), project.id)
+      destinationProjects.set(definition.name.toLowerCase(), project.id)
     }
 
     const tasks = await transaction.task.findMany({
