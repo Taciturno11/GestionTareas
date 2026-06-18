@@ -12,7 +12,10 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "import:backup": "tsx scripts/import-local-backup.ts"
+    "import:backup": "tsx scripts/import-local-backup.ts",
+    "backup:database": "tsx scripts/backup-database.ts",
+    "audit:tenancy": "tsx scripts/audit-workspaces-projects.ts",
+    "migrate:martin": "tsx scripts/consolidate-martin-workspaces.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

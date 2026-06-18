@@ -25,6 +25,10 @@ Este directorio guarda los Architecture Decision Records del proyecto.
 - [0019 - ProjectId en tareas para proyectos configurables](./0019-projectid-en-tareas-para-proyectos-configurables.md)
 - [0020 - Decision historica de verificacion por correo](./0020-2fa-opcional-por-correo-en-autenticacion.md)
 - [0021 - Normalizacion de roles y login simple](./0021-normalizacion-roles-y-login-simple.md)
+- [0022 - Pizarras backend-first con snapshots de tldraw](./0022-pizarras-backend-first-con-snapshots-tldraw.md)
+- [0023 - Cache compartida para tareas y estado de calendario en URL](./0023-cache-compartida-para-tareas-y-estado-de-calendario-en-url.md)
+- [0024 - Multitenancy por workspace personal y proyectos como entidad](./0024-multitenancy-por-workspace-personal-y-proyectos-como-entidad.md)
+- [0025 - Acceso administrativo y ciclo de vida de proyectos](./0025-acceso-administrativo-y-ciclo-de-vida-de-proyectos.md)
 
 ## Convencion
 

@@ -2,8 +2,11 @@ import { assertWorkspaceMember, assertWorkspaceOwner } from '../../shared/utils/
 import { HttpError } from '../../shared/utils/http-error.js'
 import type { CreateWorkspaceDto, UpdateWorkspaceDto } from './workspaces.dto.js'
 import * as workspacesRepository from './workspaces.repository.js'
+import { prisma } from '../../database/prisma.js'
 
-export function list(userId: string) {
+export async function list(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } })
+  if (user?.role === 'admin') return workspacesRepository.findManyAll()
   return workspacesRepository.findManyForUser(userId)
 }
 

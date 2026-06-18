@@ -18,6 +18,21 @@ Stack:
 - Zod
 - JWT
 
+## Modelo de tenancy
+
+La aplicacion usa multitenancy logico por workspace en una base PostgreSQL compartida.
+
+- Cada usuario nuevo recibe un workspace personal y queda como `OWNER`.
+- Los endpoints privados validan membresia mediante `WorkspaceMember`.
+- El rol global `admin` tiene acceso administrativo explícito a cualquier workspace.
+- La relacion muchos-a-muchos se conserva para colaboracion futura.
+- Los proyectos son entidades normalizadas dentro del workspace.
+
+Decision formal:
+
+- `docs/adr/0024-multitenancy-por-workspace-personal-y-proyectos-como-entidad.md`
+- `docs/adr/0025-acceso-administrativo-y-ciclo-de-vida-de-proyectos.md`
+
 ## Estructura
 
 ```text
@@ -31,6 +46,7 @@ backend/
       workspaces/
       spaces/
       pages/
+      projects/
       tasks/
       task-settings/
     database/
@@ -65,6 +81,9 @@ npm run prisma:generate
 npm run prisma:migrate
 npm run prisma:migrate:deploy
 npm run import:backup -- ../backups-locales/<archivo>.json
+npm run backup:database
+npm run audit:tenancy
+npm run migrate:martin
 npm run dev
 npm run build
 ```
@@ -94,16 +113,10 @@ Publicos:
 
 ```text
 GET  /health
-POST /api/auth/register
 POST /api/auth/login
 ```
 
-Usuario local importado desde backup:
-
-```text
-email: martin.local@gestion-tareas.dev
-password: 12345678
-```
+Las cuentas se crean exclusivamente desde Administracion.
 
 Privados:
 
@@ -114,7 +127,13 @@ GET  /api/workspaces
 GET  /api/spaces?workspaceId=
 GET  /api/pages?workspaceId=
 GET  /api/tasks?workspaceId=
+GET  /api/projects?workspaceId=
+POST /api/projects
+PATCH /api/projects/:id
+POST /api/projects/:id/archive
+POST /api/projects/:id/restore
 GET  /api/task-settings?workspaceId=
+GET  /api/admin/users/:userId/workspace
 ```
 
 Usan:
@@ -129,7 +148,7 @@ Orden recomendado:
 
 1. Crear `.env` y sincronizar PostgreSQL.
 2. Importar backup local a PostgreSQL.
-3. Probar register/login.
+3. Probar login y creación administrativa de usuarios.
 4. Sincronizar `workspaces`, `spaces` y `pages` desde API hacia la capa local temporal.
 5. Leer `tasks` y `task-settings` desde API.
 6. Reemplazar lecturas directas de `localStorage`.
@@ -148,4 +167,5 @@ Estado actual:
 - Tests de auth y permisos.
 - Repositorio frontend para API.
 - Manejo de refresh tokens/cookies si se requiere.
+- Auditoría persistente de acciones administrativas.
 - Validaciones de integridad mas estrictas para `pageId`, `spaceId` y `assigneeId`.

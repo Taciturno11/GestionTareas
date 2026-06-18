@@ -8,6 +8,7 @@ import { errorMiddleware } from './middlewares/error.middleware.js'
 import adminUsersRoutes from './modules/admin-users/admin-users.routes.js'
 import authRoutes from './modules/auth/auth.routes.js'
 import pagesRoutes from './modules/pages/pages.routes.js'
+import projectsRoutes from './modules/projects/projects.routes.js'
 import spacesRoutes from './modules/spaces/spaces.routes.js'
 import taskSettingsRoutes from './modules/task-settings/task-settings.routes.js'
 import tasksRoutes from './modules/tasks/tasks.routes.js'
@@ -24,7 +25,7 @@ export function createApp() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }))
-  app.use(express.json({ limit: '2mb' }))
+  app.use(express.json({ limit: '20mb' }))
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
   app.get('/health', (_req, res) => {
@@ -37,6 +38,7 @@ export function createApp() {
   app.use(`${API_PREFIX}/workspaces`, workspacesRoutes)
   app.use(`${API_PREFIX}/spaces`, spacesRoutes)
   app.use(`${API_PREFIX}/pages`, pagesRoutes)
+  app.use(`${API_PREFIX}/projects`, projectsRoutes)
   app.use(`${API_PREFIX}/tasks`, tasksRoutes)
   app.use(`${API_PREFIX}/task-settings`, taskSettingsRoutes)
 

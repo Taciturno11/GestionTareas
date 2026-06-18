@@ -22,12 +22,14 @@ import {
   subMonths,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useTasks } from '@/hooks/useTasks'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
+import { useProjects } from '@/hooks/useProjects'
 import type { Task } from '@/types/task'
 import { formatTaskDateRange as formatSharedTaskDateRange } from '@/utils/date.utils'
 
@@ -40,13 +42,38 @@ interface CalendarTask {
   startDate: string
   endDate: string
   assignee: string
-  workspaceId: string
+  projectId: string
   color?: string
 }
 
+const CALENDAR_VIEW_KEY = 'gt_calendar_view'
+
+function defaultCalendarParams() {
+  const savedParams = sessionStorage.getItem(CALENDAR_VIEW_KEY)
+  if (savedParams) return new URLSearchParams(savedParams)
+
+  const today = new Date()
+  return new URLSearchParams({
+    date: format(today, 'yyyy-MM-dd'),
+    month: format(today, 'yyyy-MM'),
+  })
+}
+
 function parseTaskDate(value: string) {
+  const dateOnly = value.slice(0, 10)
+  const date = parseISO(dateOnly)
+  return isValid(date) ? date : null
+}
+
+function parseCalendarDate(value: string | null) {
+  if (!value) return null
   const date = parseISO(value)
   return isValid(date) ? date : null
+}
+
+function parseCalendarMonth(value: string | null) {
+  const date = parseCalendarDate(value ? `${value}-01` : null)
+  return date ? startOfMonth(date) : null
 }
 
 function taskTouchesDate(task: CalendarTask, date: Date) {
@@ -79,10 +106,10 @@ function fromApiTasks(tasks: Task[]): CalendarTask[] {
     colId: task.status,
     priority: task.priority,
     tag: task.tag,
-    startDate: task.startDate ?? '',
-    endDate: task.endDate ?? '',
+    startDate: task.startDate?.slice(0, 10) ?? '',
+    endDate: task.endDate?.slice(0, 10) ?? '',
     assignee: task.assigneeId ?? task.assignee ?? '',
-    workspaceId: task.projectId ?? task.workspaceId,
+    projectId: task.projectId ?? '',
     color: task.color ?? undefined,
   }))
 }
@@ -115,23 +142,51 @@ function ProjectPill({
 
 export default function CalendarPage() {
   const { activeWorkspaceId } = useWorkspaces()
-  const { settings } = useTaskSettings(activeWorkspaceId)
-  const { tasks } = useTasks<CalendarTask[]>([], {
+  const { settings, refresh: refreshSettings } = useTaskSettings(activeWorkspaceId)
+  const { projects, refresh: refreshProjects } = useProjects(activeWorkspaceId, true)
+  const activeProjects = projects.filter(project => !project.archivedAt)
+  const { tasks, refresh: refreshTasks } = useTasks<CalendarTask[]>([], {
     workspaceId: activeWorkspaceId,
     fromApi: fromApiTasks,
   })
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
-  const [selectedDate, setSelectedDate] = useState(() => new Date())
-  const [projectFilter, setProjectFilter] = useState('all')
+  const [searchParams, setSearchParams] = useSearchParams(defaultCalendarParams())
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const selectedDate = parseCalendarDate(searchParams.get('date')) ?? new Date()
+  const currentMonth = parseCalendarMonth(searchParams.get('month')) ?? startOfMonth(selectedDate)
+  const projectFilter = searchParams.get('project') || 'all'
+
+  useEffect(() => {
+    const serializedParams = searchParams.toString()
+    sessionStorage.setItem(CALENDAR_VIEW_KEY, serializedParams)
+
+    if (!window.location.search && serializedParams) {
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
+
+  function updateCalendarParams(updates: Record<string, string | null>) {
+    setSearchParams(currentParams => {
+      const nextParams = new URLSearchParams(currentParams)
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '' || value === 'all') {
+          nextParams.delete(key)
+        } else {
+          nextParams.set(key, value)
+        }
+      })
+
+      return nextParams
+    }, { replace: true })
+  }
 
   const projectLabels = useMemo(
-    () => Object.fromEntries(settings.projects.map(project => [project.id, project.label])),
-    [settings.projects]
+    () => Object.fromEntries(projects.map(project => [project.id, project.name])),
+    [projects]
   )
   const projectColors = useMemo(
-    () => Object.fromEntries(settings.projects.map(project => [project.id, project.color ?? '#64748B'])),
-    [settings.projects]
+    () => Object.fromEntries(projects.map(project => [project.id, project.color ?? '#64748B'])),
+    [projects]
   )
   const statusLabels = useMemo(
     () => Object.fromEntries(settings.statuses.map(status => [status.id, status.label])),
@@ -142,16 +197,16 @@ export default function CalendarPage() {
     [settings.priorities]
   )
 
-  const monthDays = useMemo(() => {
-    const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 })
-    const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
-    return eachDayOfInterval({ start, end })
-  }, [currentMonth])
+  const monthStart = startOfMonth(currentMonth)
+  const monthDays = eachDayOfInterval({
+    start: startOfWeek(monthStart, { weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 }),
+  })
 
   const filteredTasks = useMemo(() => {
     const nextTasks = projectFilter === 'all'
       ? tasks
-      : tasks.filter(task => task.workspaceId === projectFilter)
+      : tasks.filter(task => task.projectId === projectFilter)
 
     return nextTasks.sort((a, b) => compareAsc(getTaskSortDate(a), getTaskSortDate(b)))
   }, [projectFilter, tasks])
@@ -162,8 +217,7 @@ export default function CalendarPage() {
     : projectLabels[projectFilter] ?? projectFilter
 
   function refreshData() {
-    window.dispatchEvent(new CustomEvent('gt-tasks-change'))
-    window.dispatchEvent(new CustomEvent('gt-task-settings-change'))
+    void Promise.all([refreshTasks(), refreshSettings(), refreshProjects()])
   }
 
   return (
@@ -173,7 +227,9 @@ export default function CalendarPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCurrentMonth(prev => subMonths(prev, 1))}
+              onClick={() => updateCalendarParams({
+                month: format(subMonths(currentMonth, 1), 'yyyy-MM'),
+              })}
               className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
               title="Mes anterior"
             >
@@ -181,7 +237,9 @@ export default function CalendarPage() {
             </button>
             <button
               type="button"
-              onClick={() => setCurrentMonth(prev => addMonths(prev, 1))}
+              onClick={() => updateCalendarParams({
+                month: format(addMonths(currentMonth, 1), 'yyyy-MM'),
+              })}
               className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
               title="Mes siguiente"
             >
@@ -212,7 +270,7 @@ export default function CalendarPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setProjectFilter('all')
+                    updateCalendarParams({ project: null })
                     setIsFilterOpen(false)
                   }}
                   className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors ${
@@ -225,7 +283,7 @@ export default function CalendarPage() {
                   {projectFilter === 'all' && <span className="h-1.5 w-1.5 rounded-full bg-[#6472EB]" />}
                 </button>
 
-                {settings.projects.map(project => {
+                {activeProjects.map(project => {
                   const color = project.color ?? '#64748B'
                   const isSelected = projectFilter === project.id
 
@@ -234,7 +292,7 @@ export default function CalendarPage() {
                       key={project.id}
                       type="button"
                       onClick={() => {
-                        setProjectFilter(project.id)
+                        updateCalendarParams({ project: project.id })
                         setIsFilterOpen(false)
                       }}
                       className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors ${
@@ -245,7 +303,7 @@ export default function CalendarPage() {
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
-                        <span className="truncate">{project.label}</span>
+                        <span className="truncate">{project.name}</span>
                       </span>
                       {isSelected && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#6472EB]" />}
                     </button>
@@ -266,8 +324,10 @@ export default function CalendarPage() {
               type="button"
               onClick={() => {
                 const today = new Date()
-                setCurrentMonth(startOfMonth(today))
-                setSelectedDate(today)
+                updateCalendarParams({
+                  date: format(today, 'yyyy-MM-dd'),
+                  month: format(today, 'yyyy-MM'),
+                })
               }}
               className="rounded-md bg-[#6472EB] px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5360D8]"
             >
@@ -297,7 +357,10 @@ export default function CalendarPage() {
                 <button
                   key={day.toISOString()}
                   type="button"
-                  onClick={() => setSelectedDate(day)}
+                  onClick={() => updateCalendarParams({
+                    date: format(day, 'yyyy-MM-dd'),
+                    month: format(day, 'yyyy-MM'),
+                  })}
                   className={`min-h-[126px] border-b border-r border-gray-200 p-2 text-left align-top transition-colors ${
                     isSelected
                       ? 'bg-[#6472EB]/5 ring-1 ring-inset ring-[#6472EB]/40'
@@ -324,7 +387,7 @@ export default function CalendarPage() {
 
                   <div className="space-y-1">
                     {dayTasks.slice(0, 3).map(task => {
-                      const color = projectColors[task.workspaceId] ?? '#64748B'
+                      const color = projectColors[task.projectId] ?? '#64748B'
                       return (
                         <div
                           key={task.id}
@@ -374,7 +437,7 @@ export default function CalendarPage() {
               <div className="space-y-3">
                 {selectedDateTasks.map(task => {
                   const priority = priorityColors[task.priority]
-                  const projectColor = projectColors[task.workspaceId] ?? '#64748B'
+                  const projectColor = projectColors[task.projectId] ?? '#64748B'
 
                   return (
                     <div
@@ -387,7 +450,7 @@ export default function CalendarPage() {
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <ProjectPill
-                          projectId={task.workspaceId}
+                          projectId={task.projectId}
                           projectLabels={projectLabels}
                           projectColors={projectColors}
                         />

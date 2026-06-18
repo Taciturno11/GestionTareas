@@ -10,5 +10,6 @@ router.use(authMiddleware)
 router.use(asyncHandler(requireAdmin))
 router.get('/users', asyncHandler(adminUsersController.list))
 router.post('/users', asyncHandler(adminUsersController.create))
+router.get('/users/:userId/workspace', asyncHandler(adminUsersController.getWorkspace))
 
 export default router

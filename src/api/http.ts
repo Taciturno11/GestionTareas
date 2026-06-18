@@ -1,6 +1,6 @@
 import { clearAuthToken, getAuthToken } from '@/services/auth-token'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -22,8 +22,15 @@ export class ApiError extends Error {
   }
 }
 
+export function expectArray<T>(payload: unknown, resource: string): T[] {
+  if (Array.isArray(payload)) return payload as T[]
+
+  throw new TypeError(`Respuesta invalida de ${resource}: se esperaba una lista`)
+}
+
 function buildUrl(path: string, query?: HttpOptions['query']) {
-  const url = new URL(path.startsWith('http') ? path : `${API_BASE_URL}${path}`)
+  const rawUrl = path.startsWith('http') ? path : `${API_BASE_URL}${path}`
+  const url = new URL(rawUrl, window.location.origin)
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {

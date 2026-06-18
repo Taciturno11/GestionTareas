@@ -6,6 +6,7 @@ const publicUserSelect = {
   email: true,
   name: true,
   role: true,
+  personalWorkspaceId: true,
 } satisfies Prisma.UserSelect
 
 const authUserSelect = {

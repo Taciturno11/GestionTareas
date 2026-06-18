@@ -1,0 +1,3 @@
+window.__GESTION_TAREAS_CONFIG__ = window.__GESTION_TAREAS_CONFIG__ || {
+  TLDRAW_LICENSE_KEY: '',
+};

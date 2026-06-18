@@ -2,6 +2,8 @@
 
 Documento visual del modelo de base de datos definido en `backend/prisma/schema.prisma`.
 
+El diagrama representa el schema vigente después de implementar los ADR `0024` y `0025`.
+
 ## Diagrama ER
 
 ```mermaid
@@ -12,6 +14,7 @@ erDiagram
     string name
     string role
     string passwordHash
+    string personalWorkspaceId FK_UK
     datetime createdAt
     datetime updatedAt
   }
@@ -30,6 +33,16 @@ erDiagram
     string userId FK
     string workspaceId FK
     datetime createdAt
+  }
+
+  PROJECT {
+    string id PK
+    string workspaceId FK
+    string name
+    string color
+    datetime archivedAt
+    datetime createdAt
+    datetime updatedAt
   }
 
   SPACE {
@@ -81,7 +94,7 @@ erDiagram
   TASK_SETTINGS {
     string id PK
     string workspaceId FK_UK
-    json projects
+    json projects_legacy
     json assignees
     json labels
     json priorities
@@ -91,7 +104,9 @@ erDiagram
   }
 
   USER ||--o{ WORKSPACE_MEMBER : belongs_to
+  USER o|--o| WORKSPACE : personal_workspace
   WORKSPACE ||--o{ WORKSPACE_MEMBER : has_members
+  WORKSPACE ||--o{ PROJECT : has_projects
 
   WORKSPACE ||--o{ SPACE : has_spaces
   SPACE ||--o{ SPACE : has_subspaces
@@ -102,6 +117,7 @@ erDiagram
   WORKSPACE ||--o| TASK_SETTINGS : has_settings
 
   PAGE ||--o{ TASK : groups_tasks
+  PROJECT o|--o{ TASK : classifies
 
   USER ||--o{ TASK : creates
   USER ||--o{ TASK : assigned_to
@@ -119,6 +135,7 @@ Guarda:
 - nombre.
 - rol.
 - hash de password.
+- referencia explícita a su workspace personal.
 
 No guarda password en texto plano.
 
@@ -211,6 +228,7 @@ Puede pertenecer opcionalmente a:
 
 - `Page`
 - `User` asignado
+- `Project` del mismo workspace
 
 Campos funcionales:
 
@@ -218,7 +236,7 @@ Campos funcionales:
 - descripcion.
 - estado.
 - prioridad.
-- proyecto configurable (`projectId`) tomado de `TaskSettings.projects`.
+- proyecto normalizado mediante `projectId`.
 - etiqueta.
 - fechas.
 - color.
@@ -230,7 +248,7 @@ Ajustes configurables por workspace.
 
 Guarda como JSON:
 
-- proyectos.
+- `projects` únicamente como columna de compatibilidad temporal; ya no es fuente activa.
 - responsables.
 - etiquetas.
 - prioridades.
@@ -241,6 +259,15 @@ Hay una configuracion por workspace:
 ```text
 workspaceId unique
 ```
+
+### `Project`
+
+Clasificación visible de tareas dentro de un workspace.
+
+- El nombre es único dentro de cada workspace.
+- Puede archivarse y restaurarse.
+- Un proyecto archivado conserva las tareas históricas.
+- La relación compuesta impide asignar una tarea a un proyecto de otro workspace.
 
 ## Reglas de borrado
 

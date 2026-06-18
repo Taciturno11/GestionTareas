@@ -1,5 +1,5 @@
 import type { WorkspacePageType } from '@/types/workspace'
-import { http } from './http'
+import { expectArray, http } from './http'
 import { normalizePage } from './workspace.mappers'
 
 export interface CreatePageRequest {
@@ -20,8 +20,8 @@ export interface UpdatePageRequest {
 
 export const pagesApi = {
   list: async (workspaceId: string, spaceId?: string) => {
-    const pages = await http<unknown[]>('/pages', { query: { workspaceId, spaceId } })
-    return pages.map(normalizePage)
+    const payload = await http<unknown>('/pages', { query: { workspaceId, spaceId } })
+    return expectArray<unknown>(payload, 'pages').map(normalizePage)
   },
   get: async (id: string) => normalizePage(await http<unknown>(`/pages/${id}`)),
   create: async (body: CreatePageRequest) => normalizePage(await http<unknown>('/pages', { method: 'POST', body })),

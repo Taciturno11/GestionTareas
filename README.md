@@ -14,6 +14,7 @@ Aplicacion web full-stack de productividad tipo workspace para gestionar espacio
 - Arquitectura frontend: [docs/frontend-arquitectura.md](./docs/frontend-arquitectura.md).
 - Backend MVC modular: [docs/backend.md](./docs/backend.md).
 - Modelo entidad-relacion: [docs/database-er.md](./docs/database-er.md).
+- Plan de migracion de workspaces y proyectos: [docs/plan-migracion-workspaces-proyectos.md](./docs/plan-migracion-workspaces-proyectos.md).
 - Resumen de implementacion full-stack: [docs/resumen-implementacion-2026-05-19.md](./docs/resumen-implementacion-2026-05-19.md).
 - Guia para clonar y ejecutar: [docs/guia-clonar-y-ejecutar.md](./docs/guia-clonar-y-ejecutar.md).
 - Guia para instalar en otra laptop: [docs/guia-instalar-en-nueva-laptop.md](./docs/guia-instalar-en-nueva-laptop.md).
@@ -27,6 +28,7 @@ Aplicacion web full-stack de productividad tipo workspace para gestionar espacio
 - Vite
 - Tailwind CSS
 - React Router
+- TanStack Query para cache de datos remotos
 - shadcn/Base UI para componentes base
 - Tiptap para hojas de texto enriquecido
 - tldraw para hojas tipo pizarra

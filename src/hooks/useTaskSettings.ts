@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { taskSettingsApi } from '@/api/task-settings.api'
 import { loadTaskSettings, saveTaskSettings } from '@/data/taskSettings'
@@ -6,53 +7,59 @@ import { getAuthToken } from '@/services/auth-token'
 import type { TaskSettings } from '@/types/taskSettings'
 
 export function useTaskSettings(workspaceId?: string) {
-  const [settings, setSettings] = useState<TaskSettings>(() => loadTaskSettings())
-  const [error, setError] = useState<unknown>(null)
+  const queryClient = useQueryClient()
+  const [localSettings, setLocalSettings] = useState<TaskSettings>(() => loadTaskSettings(workspaceId))
+  const [mutationError, setMutationError] = useState<unknown>(null)
+  const queryKey = ['task-settings', workspaceId] as const
+  const settingsQuery = useQuery({
+    queryKey,
+    queryFn: () => taskSettingsApi.get(workspaceId!),
+    enabled: Boolean(workspaceId && getAuthToken()),
+  })
+  const settings = settingsQuery.data ?? localSettings
 
   useEffect(() => {
-    const syncSettings = () => setSettings(loadTaskSettings())
+    const syncSettings = () => setLocalSettings(loadTaskSettings(workspaceId))
 
     window.addEventListener('gt-task-settings-change', syncSettings)
     return () => window.removeEventListener('gt-task-settings-change', syncSettings)
-  }, [])
-
-  useEffect(() => {
-    if (!workspaceId || !getAuthToken()) return
-
-    let cancelled = false
-
-    taskSettingsApi.get(workspaceId)
-      .then(remoteSettings => {
-        if (cancelled || !remoteSettings) return
-        saveTaskSettings(remoteSettings)
-        setSettings(remoteSettings)
-        setError(null)
-      })
-      .catch(setError)
-
-    return () => {
-      cancelled = true
-    }
   }, [workspaceId])
 
+  useEffect(() => {
+    Promise.resolve().then(() => setLocalSettings(loadTaskSettings(workspaceId)))
+  }, [workspaceId])
+
+  useEffect(() => {
+    if (!settingsQuery.data) return
+    localStorage.setItem(
+      workspaceId ? `gt_task_settings:${workspaceId}` : 'gt_task_settings',
+      JSON.stringify(settingsQuery.data),
+    )
+  }, [settingsQuery.data, workspaceId])
+
   function updateSettings(nextSettings: TaskSettings | ((prev: TaskSettings) => TaskSettings)) {
-    setSettings(prev => {
-      const resolvedSettings = typeof nextSettings === 'function'
-        ? nextSettings(prev)
-        : nextSettings
+    const resolvedSettings = typeof nextSettings === 'function'
+      ? nextSettings(settings)
+      : nextSettings
 
-      saveTaskSettings(resolvedSettings)
-      if (workspaceId && getAuthToken()) {
-        taskSettingsApi.upsert({ workspaceId, ...resolvedSettings }).catch(setError)
-      }
-
-      return resolvedSettings
-    })
+    setLocalSettings(resolvedSettings)
+    saveTaskSettings(resolvedSettings, workspaceId)
+    if (workspaceId && getAuthToken()) {
+      queryClient.setQueryData(queryKey, resolvedSettings)
+      taskSettingsApi.upsert({ workspaceId, ...resolvedSettings })
+        .then(savedSettings => {
+          queryClient.setQueryData(queryKey, savedSettings)
+          saveTaskSettings(savedSettings, workspaceId)
+          setMutationError(null)
+        })
+        .catch(setMutationError)
+    }
   }
 
   return {
     settings,
     setSettings: updateSettings,
-    error,
+    error: mutationError ?? settingsQuery.error,
+    refresh: settingsQuery.refetch,
   }
 }

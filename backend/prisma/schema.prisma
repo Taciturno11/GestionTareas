@@ -21,29 +21,49 @@ enum PageType {
 }
 
 model User {
-  id                 String              @id @default(cuid())
-  email              String              @unique
-  name               String
-  role               String              @default("usuario")
-  passwordHash       String
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  memberships        WorkspaceMember[]
-  tasksCreated       Task[]              @relation("TaskCreatedBy")
-  tasksAssigned      Task[]              @relation("TaskAssignedTo")
+  id                  String            @id @default(cuid())
+  email               String            @unique
+  name                String
+  role                String            @default("usuario")
+  passwordHash        String
+  personalWorkspaceId String?           @unique
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  personalWorkspace   Workspace?        @relation("PersonalWorkspace", fields: [personalWorkspaceId], references: [id], onDelete: SetNull)
+  memberships         WorkspaceMember[]
+  tasksCreated        Task[]            @relation("TaskCreatedBy")
+  tasksAssigned       Task[]            @relation("TaskAssignedTo")
 }
 
 model Workspace {
-  id        String            @id @default(cuid())
-  name      String
-  color     String            @default("#6472EB")
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  members   WorkspaceMember[]
-  spaces    Space[]
-  pages     Page[]
-  tasks     Task[]
-  settings  TaskSettings?
+  id               String            @id @default(cuid())
+  name             String
+  color            String            @default("#6472EB")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  members          WorkspaceMember[]
+  spaces           Space[]
+  pages            Page[]
+  tasks            Task[]
+  projects         Project[]
+  settings         TaskSettings?
+  personalForUsers User[]            @relation("PersonalWorkspace")
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  workspaceId String
+  name        String
+  color       String    @default("#6472EB")
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@unique([workspaceId, name])
+  @@unique([id, workspaceId])
+  @@index([workspaceId, archivedAt])
 }
 
 model WorkspaceMember {
@@ -113,15 +133,19 @@ model Task {
   endDate     DateTime?
   color       String?
   notes       String    @default("")
+  position    Int       @default(0)
   createdById String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId, workspaceId], references: [id, workspaceId], onDelete: Restrict)
   page        Page?     @relation(fields: [pageId], references: [id], onDelete: SetNull)
   createdBy   User      @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   assignee    User?     @relation("TaskAssignedTo", fields: [assigneeId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
+  @@index([workspaceId, status, position])
+  @@index([projectId, workspaceId])
   @@index([pageId])
   @@index([assigneeId])
 }

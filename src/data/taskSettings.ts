@@ -35,12 +35,12 @@ export const defaultTaskSettings: TaskSettings = {
 }
 
 function mergeSettings(settings: Partial<TaskSettings>): TaskSettings {
-  const priorities = settings.priorities?.length ? settings.priorities : defaultTaskSettings.priorities
+  const priorities = settings.priorities ?? defaultTaskSettings.priorities
 
   return {
-    projects: settings.projects?.length ? settings.projects : defaultTaskSettings.projects,
-    assignees: settings.assignees?.length ? settings.assignees : defaultTaskSettings.assignees,
-    labels: settings.labels?.length ? settings.labels : defaultTaskSettings.labels,
+    projects: settings.projects ?? defaultTaskSettings.projects,
+    assignees: settings.assignees ?? defaultTaskSettings.assignees,
+    labels: settings.labels ?? defaultTaskSettings.labels,
     priorities: priorities.map(priority => {
       const normalized = priority.label.trim().toLowerCase()
       if (normalized === 'alta') return { ...priority, bg: '#FEE2E2', text: '#B91C1C' }
@@ -48,22 +48,36 @@ function mergeSettings(settings: Partial<TaskSettings>): TaskSettings {
       if (normalized === 'baja') return { ...priority, bg: '#F1F5F9', text: '#64748B' }
       return priority
     }),
-    statuses: settings.statuses?.length ? settings.statuses : defaultTaskSettings.statuses,
+    statuses: settings.statuses ?? defaultTaskSettings.statuses,
   }
 }
 
-export function loadTaskSettings(): TaskSettings {
-  const saved = localStorage.getItem(TASK_SETTINGS_KEY)
-  if (!saved) return defaultTaskSettings
+export const emptyTaskSettings: TaskSettings = {
+  projects: [],
+  assignees: [],
+  labels: [],
+  priorities: defaultTaskSettings.priorities,
+  statuses: defaultTaskSettings.statuses,
+}
+
+function taskSettingsKey(workspaceId?: string) {
+  return workspaceId ? `${TASK_SETTINGS_KEY}:${workspaceId}` : TASK_SETTINGS_KEY
+}
+
+export function loadTaskSettings(workspaceId?: string): TaskSettings {
+  const saved = localStorage.getItem(taskSettingsKey(workspaceId))
+  if (!saved) return emptyTaskSettings
 
   try {
     return mergeSettings(JSON.parse(saved))
   } catch {
-    return defaultTaskSettings
+    return emptyTaskSettings
   }
 }
 
-export function saveTaskSettings(settings: TaskSettings) {
-  localStorage.setItem(TASK_SETTINGS_KEY, JSON.stringify(settings))
-  window.dispatchEvent(new CustomEvent('gt-task-settings-change', { detail: settings }))
+export function saveTaskSettings(settings: TaskSettings, workspaceId?: string) {
+  localStorage.setItem(taskSettingsKey(workspaceId), JSON.stringify(settings))
+  window.dispatchEvent(new CustomEvent('gt-task-settings-change', {
+    detail: { workspaceId, settings },
+  }))
 }

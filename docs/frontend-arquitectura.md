@@ -51,6 +51,7 @@ src/
     task.utils.ts
 
   lib/
+    queryClient.ts
     utils.ts
 ```
 
@@ -83,6 +84,15 @@ Reglas:
 - Las paginas deben ir migrando a hooks para no concentrar persistencia y eventos.
 - Mientras dure la migracion, los hooks pueden envolver `localStorage`.
 - Cuando la API este lista, los hooks pueden pasar a usar `api/` sin cambiar toda la UI.
+
+`useTasks` y `useTaskSettings` usan TanStack Query como cache compartida por workspace. Las paginas conservan la misma interfaz de hooks mientras la migracion sigue siendo incremental.
+
+Reglas:
+
+- Usar claves de consulta que incluyan el workspace y filtros estructurales como `pageId`.
+- Actualizar la cache al escribir y reconciliar con API mediante invalidacion.
+- No repetir una cache manual nueva dentro de cada pagina.
+- Mantener `localStorage` solo como compatibilidad temporal mientras termina la migracion.
 
 ### `utils/`
 
@@ -143,6 +153,20 @@ Estado:
 - `AppLayout` intenta sincronizar datos del backend si existe token.
 - `backend-sync.ts` trae `workspaces`, `spaces` y `pages` desde API y los vuelca en `localStorage` temporal.
 - `src/data/workspaces.ts` conserva compatibilidad local y espeja cambios de espacios/paginas al backend.
+- Tareas y ajustes comparten cache en memoria mediante TanStack Query.
+- La cache considera frescos los datos durante 30 segundos y conserva consultas inactivas durante 10 minutos.
+
+## Estado navegable
+
+El estado que identifica una vista debe preferir URL sobre estado local.
+
+Calendario usa parametros:
+
+```text
+/calendario?date=2026-06-18&month=2026-06&project=odoo
+```
+
+La sesion recuerda la ultima vista de Calendario para que el enlace fijo del sidebar pueda recuperarla al volver.
 
 Esta capa hibrida es temporal. Permite usar la UI actual sin reescribir `Sidebar`, `PageView`, `SubspaceView` y `ArchivePage` de golpe.
 

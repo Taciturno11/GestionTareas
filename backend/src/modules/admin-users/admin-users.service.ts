@@ -24,3 +24,17 @@ export async function create(dto: CreateAdminUserDto) {
     passwordHash,
   })
 }
+
+export async function getWorkspace(userId: string) {
+  const user = await adminUsersRepository.findPersonalWorkspaceByUserId(userId)
+  if (!user) throw new HttpError(404, 'User not found')
+  if (!user.personalWorkspace) throw new HttpError(404, 'Personal workspace not found')
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+    },
+    workspace: user.personalWorkspace,
+  }
+}

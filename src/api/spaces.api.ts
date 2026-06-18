@@ -1,4 +1,4 @@
-import { http } from './http'
+import { expectArray, http } from './http'
 import { normalizeSpace } from './workspace.mappers'
 
 export interface CreateSpaceRequest {
@@ -25,8 +25,8 @@ export interface UpdateSpaceRequest {
 
 export const spacesApi = {
   list: async (workspaceId: string) => {
-    const spaces = await http<unknown[]>('/spaces', { query: { workspaceId } })
-    return spaces.map(normalizeSpace)
+    const payload = await http<unknown>('/spaces', { query: { workspaceId } })
+    return expectArray<unknown>(payload, 'spaces').map(normalizeSpace)
   },
   create: async (body: CreateSpaceRequest) => normalizeSpace(await http<unknown>('/spaces', { method: 'POST', body })),
   update: async (id: string, body: UpdateSpaceRequest) => normalizeSpace(await http<unknown>(`/spaces/${id}`, { method: 'PATCH', body })),

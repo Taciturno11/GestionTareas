@@ -6,6 +6,7 @@ export interface TaskProjectOption {
 
 export interface TaskAssigneeOption {
   id: string
+  initials?: string
   fullName: string
   bg: string
   text: string

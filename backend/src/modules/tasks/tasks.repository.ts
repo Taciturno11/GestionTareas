@@ -2,18 +2,22 @@ import { prisma } from '../../database/prisma.js'
 import type { CreateTaskDto, UpdateTaskDto } from './tasks.dto.js'
 
 function toDate(value: string | null | undefined) {
-  return value ? new Date(value) : null
+  return value ? new Date(`${value.slice(0, 10)}T12:00:00.000Z`) : null
 }
 
 export function findMany(workspaceId: string, pageId?: string) {
   return prisma.task.findMany({
     where: { workspaceId, ...(pageId ? { pageId } : {}) },
-    orderBy: { updatedAt: 'desc' },
+    include: { project: true },
+    orderBy: [
+      { position: 'asc' },
+      { updatedAt: 'desc' },
+    ],
   })
 }
 
 export function findById(id: string) {
-  return prisma.task.findUnique({ where: { id } })
+  return prisma.task.findUnique({ where: { id }, include: { project: true } })
 }
 
 export function create(createdById: string, data: CreateTaskDto) {
@@ -33,8 +37,10 @@ export function create(createdById: string, data: CreateTaskDto) {
       endDate: toDate(data.endDate),
       color: data.color ?? null,
       notes: data.notes,
+      position: data.position,
       createdById,
     },
+    include: { project: true },
   })
 }
 
@@ -49,6 +55,7 @@ export function update(id: string, data: UpdateTaskDto) {
       endDate: data.endDate === undefined ? undefined : toDate(data.endDate),
       color: data.color === undefined ? undefined : data.color,
     },
+    include: { project: true },
   })
 }
 

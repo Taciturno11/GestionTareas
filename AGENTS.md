@@ -21,6 +21,7 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - Vite
 - Tailwind CSS
 - React Router
+- TanStack Query para cache compartida de tareas y ajustes
 - shadcn/Base UI
 - Tiptap para hojas de texto enriquecido
 - tldraw para hojas tipo pizarra
@@ -38,6 +39,7 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - `src/types/`: tipos compartidos.
 - `docs/adr/`: decisiones arquitectonicas.
 - `docs/hojas-texto-pizarra.md`: reglas operativas para hojas de texto y pizarra.
+- `docs/plan-migracion-workspaces-proyectos.md`: plan aprobado para workspaces personales y proyectos normalizados.
 
 ## Reglas para cambios
 

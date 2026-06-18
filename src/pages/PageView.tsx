@@ -46,7 +46,7 @@ export default function PageView() {
   if (page.type === 'blank' || page.type === 'text') {
     return (
       <Suspense fallback={<RouteFallback />}>
-        <TextPage page={page} onChange={handleChange} />
+        <TextPage key={page.id} page={page} onChange={handleChange} />
       </Suspense>
     )
   }
@@ -62,7 +62,7 @@ export default function PageView() {
   if (page.type === 'database') {
     return (
       <Suspense fallback={<RouteFallback />}>
-        <DatabaseDiagramPage page={page} onChange={handleChange} />
+        <DatabaseDiagramPage key={page.id} page={page} onChange={handleChange} />
       </Suspense>
     )
   }

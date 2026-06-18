@@ -156,14 +156,18 @@ export function saveWorkspaceDataSnapshot({
 
 export function getDefaultSpaceId(workspaceId: string) {
   const spaces = loadWorkspaceSpaces()
-  const existingSpace = spaces.find(space => space.workspaceId === workspaceId && space.name === 'General')
+  const existingSpace = spaces.find(space =>
+    space.workspaceId === workspaceId &&
+    !space.parentId &&
+    (space.name === 'Mi mundo' || space.name === 'General')
+  )
   if (existingSpace) return existingSpace.id
 
   const now = new Date().toISOString()
   const newSpace: WorkspaceSpace = {
     id: createId('space'),
     workspaceId,
-    name: 'General',
+    name: 'Mi mundo',
     collapsed: false,
     createdAt: now,
     updatedAt: now,
@@ -218,6 +222,21 @@ export function updateWorkspacePage(pageId: string, patch: Partial<Omit<Workspac
   saveWorkspacePages(nextPages)
   const updatedPage = nextPages.find(page => page.id === pageId)
   if (updatedPage) mirrorToBackend(pagesApi.update(pageId, patch))
+}
+
+export function updateWorkspacePageCache(
+  pageId: string,
+  patch: Partial<Omit<WorkspacePage, 'id'>>,
+  options: { emit?: boolean } = {},
+) {
+  const nextPages = loadWorkspacePages().map(page =>
+    page.id === pageId
+      ? { ...page, ...patch, updatedAt: new Date().toISOString() }
+      : page
+  )
+
+  localStorage.setItem(WORKSPACE_PAGES_KEY, JSON.stringify(nextPages))
+  if (options.emit ?? true) emitWorkspaceDataChange()
 }
 
 export function deleteWorkspacePage(pageId: string) {

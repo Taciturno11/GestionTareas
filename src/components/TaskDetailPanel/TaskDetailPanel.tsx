@@ -1,6 +1,8 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import type { ReactNode } from 'react'
+import { PlusIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 
+import TaskSettingFormModal from '@/components/TaskSettingFormModal/TaskSettingFormModal'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TaskSelect } from '@/components/ui/task-select'
 
@@ -14,7 +16,7 @@ export interface TaskDetailPanelTask {
   startDate: string
   endDate: string
   assignee: string
-  workspaceId: string
+  projectId: string
   notes: string
 }
 
@@ -35,6 +37,8 @@ interface TaskDetailPanelProps {
   onChange: (task: Partial<TaskDetailPanelTask>) => void
   onClose: () => void
   onSave: () => void
+  onCreateTag: (name: string, color: string) => string
+  onCreateProject: (name: string, color: string) => Promise<string>
 }
 
 export default function TaskDetailPanel({
@@ -49,7 +53,32 @@ export default function TaskDetailPanel({
   onChange,
   onClose,
   onSave,
+  onCreateTag,
+  onCreateProject,
 }: TaskDetailPanelProps) {
+  const [quickCreateType, setQuickCreateType] = useState<'tag' | 'project' | null>(null)
+
+  function openQuickCreate(type: 'tag' | 'project') {
+    setQuickCreateType(type)
+  }
+
+  function closeQuickCreate() {
+    setQuickCreateType(null)
+  }
+
+  async function submitQuickCreate(name: string, color: string) {
+    if (!quickCreateType) return
+    const id = quickCreateType === 'tag'
+      ? onCreateTag(name, color)
+      : await onCreateProject(name, color)
+
+    onChange({
+      ...task,
+      [quickCreateType === 'tag' ? 'tag' : 'projectId']: id,
+    })
+    closeQuickCreate()
+  }
+
   return (
     <div className="fixed inset-0 z-50">
       <button
@@ -100,7 +129,8 @@ export default function TaskDetailPanel({
             <div className="min-w-0">
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Prioridad</label>
               <TaskSelect
-                value={task.priority ?? 'Media'}
+                value={task.priority ?? ''}
+                placeholder="Prioridad"
                 options={priorities}
                 onChange={value => onChange({ ...task, priority: value as TaskPriority })}
               />
@@ -111,9 +141,27 @@ export default function TaskDetailPanel({
             <div className="min-w-0">
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Etiqueta</label>
               <TaskSelect
-                value={task.tag ?? 'General'}
-                options={tags}
-                onChange={value => onChange({ ...task, tag: value })}
+                value={task.tag ?? ''}
+                placeholder="Etiqueta"
+                options={[
+                  ...tags,
+                  {
+                    value: '__new_tag__',
+                    label: (
+                      <span className="flex items-center gap-2 font-semibold text-indigo-600">
+                        <PlusIcon className="h-3.5 w-3.5" />
+                        Nueva etiqueta
+                      </span>
+                    ),
+                  },
+                ]}
+                onChange={value => {
+                  if (value === '__new_tag__') {
+                    openQuickCreate('tag')
+                    return
+                  }
+                  onChange({ ...task, tag: value })
+                }}
               />
             </div>
 
@@ -148,9 +196,27 @@ export default function TaskDetailPanel({
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Proyecto</label>
               <TaskSelect
-                value={task.workspaceId ?? 'job-1'}
-                options={projects}
-                onChange={value => onChange({ ...task, workspaceId: value })}
+                value={task.projectId ?? ''}
+                placeholder="Proyecto"
+                options={[
+                  ...projects,
+                  {
+                    value: '__new_project__',
+                    label: (
+                      <span className="flex items-center gap-2 font-semibold text-indigo-600">
+                        <PlusIcon className="h-3.5 w-3.5" />
+                        Nuevo proyecto
+                      </span>
+                    ),
+                  },
+                ]}
+                onChange={value => {
+                  if (value === '__new_project__') {
+                    openQuickCreate('project')
+                    return
+                  }
+                  onChange({ ...task, projectId: value })
+                }}
               />
             </div>
           )}
@@ -185,6 +251,15 @@ export default function TaskDetailPanel({
           </button>
         </div>
       </aside>
+
+      {quickCreateType && (
+        <TaskSettingFormModal
+          type={quickCreateType === 'tag' ? 'labels' : 'projects'}
+          submitLabel="Agregar"
+          onSubmit={submitQuickCreate}
+          onCancel={closeQuickCreate}
+        />
+      )}
     </div>
   )
 }

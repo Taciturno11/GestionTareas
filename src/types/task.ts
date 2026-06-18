@@ -6,6 +6,8 @@ export interface TaskStatusOption {
   color: string
 }
 
+import type { Project } from './project'
+
 export interface Task {
   id: string
   pageId?: string | null
@@ -24,4 +26,6 @@ export interface Task {
   workspaceId: string
   color?: string | null
   notes?: string
+  position?: number
+  project?: Project | null
 }

@@ -1,6 +1,6 @@
 import { Select } from "@base-ui/react/select"
 import { CheckIcon, ChevronDownIcon } from "lucide-react"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -13,35 +13,47 @@ interface TaskSelectProps {
   value: string
   options: TaskSelectOption[]
   onChange: (value: string) => void
+  placeholder?: ReactNode
   className?: string
   triggerClassName?: string
+  triggerStyle?: CSSProperties
+  showIcon?: boolean
 }
 
 export function TaskSelect({
   value,
   options,
   onChange,
+  placeholder,
   className,
   triggerClassName,
+  triggerStyle,
+  showIcon = true,
 }: TaskSelectProps) {
   return (
     <Select.Root
-      value={value}
+      value={value || null}
       onValueChange={(nextValue) => {
         if (typeof nextValue === "string") onChange(nextValue)
       }}
       items={options.map(option => ({ value: option.value, label: option.label }))}
     >
       <Select.Trigger
+        style={triggerStyle}
         className={cn(
           "group/select inline-flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-[13px] font-medium text-gray-700 shadow-[0_1px_1px_rgba(15,23,42,0.03)] outline-none transition-colors hover:bg-gray-50 focus-visible:border-indigo-500 focus-visible:ring-3 focus-visible:ring-indigo-500/15",
           triggerClassName
         )}
       >
-        <Select.Value />
-        <Select.Icon>
-          <ChevronDownIcon className="h-3.5 w-3.5 text-gray-400 transition-transform group-data-[popup-open]/select:rotate-180" />
-        </Select.Icon>
+        <Select.Value
+          placeholder={placeholder}
+          className="truncate data-[placeholder]:font-normal data-[placeholder]:text-gray-400"
+        />
+        {showIcon && (
+          <Select.Icon>
+            <ChevronDownIcon className="h-3.5 w-3.5 text-gray-400 transition-transform group-data-[popup-open]/select:rotate-180" />
+          </Select.Icon>
+        )}
       </Select.Trigger>
 
       <Select.Portal>

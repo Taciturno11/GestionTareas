@@ -9,13 +9,14 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline'
 import { HandRaisedIcon } from '@heroicons/react/24/solid'
-import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { useEffect, useMemo, useState } from 'react'
+import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { useMemo } from 'react'
 
-import { tasksApi } from '@/api/tasks.api'
 import PageContainer from '@/components/PageContainer/PageContainer'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProjects } from '@/hooks/useProjects'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
+import { useTasks } from '@/hooks/useTasks'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
 import type { Task } from '@/types/task'
 
@@ -94,7 +95,7 @@ function normalize(value: string | null | undefined) {
 
 function isCompleted(task: Task) {
   const status = normalize(task.status)
-  return ['completed', 'complete', 'completada', 'completado', 'done', 'finalizada', 'finalizado'].includes(status)
+  return ['completed', 'complete', 'completada', 'completado', 'done', 'finalizada', 'finalizado', 'hecho'].includes(status)
 }
 
 function isInProgress(task: Task) {
@@ -110,8 +111,15 @@ function isOverdue(task: Task, today: Date) {
 
 function formatShortDate(value: string | null | undefined) {
   if (!value) return ''
-  const [, month, day] = value.split('-')
-  return month && day ? `${month}/${day}` : value
+  const dateOnly = value.slice(0, 10)
+  const [year, month, day] = dateOnly.split('-').map(Number)
+  if (!year || !month || !day) return ''
+
+  return new Intl.DateTimeFormat('es', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, month - 1, day)))
 }
 
 function dueLabel(value: string | null | undefined, today: Date) {
@@ -163,30 +171,10 @@ export default function InicioPage() {
   const { user } = useCurrentUser()
   const { activeWorkspaceId } = useWorkspaces()
   const { settings } = useTaskSettings(activeWorkspaceId)
-  const [workspaceTasks, setWorkspaceTasks] = useState<Task[]>(EMPTY_TASKS)
+  const { projects: workspaceProjects } = useProjects(activeWorkspaceId)
+  const { tasks: workspaceTasks } = useTasks<Task[]>(EMPTY_TASKS, { workspaceId: activeWorkspaceId })
   const today = useMemo(() => new Date(), [])
   const userInitials = initials(user?.name)
-
-  useEffect(() => {
-    if (!activeWorkspaceId) {
-      Promise.resolve().then(() => setWorkspaceTasks(EMPTY_TASKS))
-      return
-    }
-
-    let cancelled = false
-
-    tasksApi.list(activeWorkspaceId)
-      .then(remoteTasks => {
-        if (!cancelled) setWorkspaceTasks(remoteTasks)
-      })
-      .catch(() => {
-        if (!cancelled) setWorkspaceTasks(EMPTY_TASKS)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [activeWorkspaceId])
 
   const tasks = useMemo(
     () => workspaceTasks.filter(task => !activeWorkspaceId || task.workspaceId === activeWorkspaceId),
@@ -220,26 +208,33 @@ export default function InicioPage() {
   ]
 
   const projects = useMemo(() => {
-    const projectsById = new Map(settings.projects.map(project => [project.id, project]))
+    const projectsById = new Map(workspaceProjects.map(project => [project.id, project]))
     const grouped = new Map<string, { id: string; name: string; color: string; totalTasks: number; completedTasks: number }>()
+    const doneStatusIds = new Set(
+      settings.statuses
+        .filter(status => normalize(status.id) === 'hecho' || normalize(status.label) === 'hecho')
+        .map(status => status.id),
+    )
 
     tasks.forEach(task => {
-      const projectId = task.projectId || task.tag || 'sin-proyecto'
+      const projectId = task.projectId || 'sin-proyecto'
       const project = projectsById.get(projectId)
       const current = grouped.get(projectId) ?? {
         id: projectId,
-        name: project?.label || task.tag || 'Sin proyecto',
+        name: project?.name || 'Sin proyecto',
         color: project?.color || task.color || '#4F46E5',
         totalTasks: 0,
         completedTasks: 0,
       }
       current.totalTasks += 1
-      if (isCompleted(task)) current.completedTasks += 1
+      if (doneStatusIds.has(task.status) || normalize(task.status) === 'hecho') {
+        current.completedTasks += 1
+      }
       grouped.set(projectId, current)
     })
 
     return [...grouped.values()].slice(0, 6)
-  }, [settings.projects, tasks])
+  }, [workspaceProjects, settings.statuses, tasks])
 
   return (
     <PageContainer size="fluid" align="start" className="!px-4 md:!px-6 2xl:!px-10">
@@ -367,21 +362,32 @@ export default function InicioPage() {
               <ChartBarIcon className="h-4 w-4 text-gray-500" />
               <h2 className="text-[13px] font-semibold text-gray-800">Progreso de Metas</h2>
             </div>
-            <div className="relative min-w-0 p-4" style={{ height: 260 }}>
+            <div
+              className="relative min-w-0 p-4 [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none"
+              style={{ height: 260 }}
+            >
               {projects.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <BarChart data={projects} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <BarChart data={projects} margin={{ top: 28, right: 10, left: -25, bottom: 0 }}>
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6B7280' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-                    <Tooltip
-                      cursor={{ fill: '#F3F4F6' }}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', fontSize: '12px' }}
+                    <YAxis
+                      allowDecimals={false}
+                      domain={[0, (dataMax: number) => Math.max(dataMax, 1)]}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#9CA3AF' }}
                     />
-                    <Bar dataKey="totalTasks" name="Total de tareas" fill="#E5E7EB" radius={[4, 4, 0, 0]} barSize={24} />
-                    <Bar dataKey="completedTasks" name="Completadas" radius={[4, 4, 0, 0]} barSize={24}>
+                    <Bar dataKey="completedTasks" name="Hecho" radius={[4, 4, 0, 0]} barSize={34}>
                       {projects.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
+                      <LabelList
+                        dataKey="completedTasks"
+                        position="top"
+                        fill="#374151"
+                        fontSize={12}
+                        fontWeight={700}
+                      />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>

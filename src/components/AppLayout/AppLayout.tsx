@@ -5,6 +5,7 @@ import Sidebar from '../Sidebar/Sidebar'
 import { getAuthToken } from '@/services/auth-token'
 import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useWorkspaces } from '@/hooks/useWorkspaces'
 
 /**
  * AppLayout envuelve todas las páginas autenticadas.
@@ -15,6 +16,21 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const { user, isLoading: isUserLoading } = useCurrentUser()
+  const { setActiveWorkspaceId } = useWorkspaces()
+  const adminContext = (() => {
+    try {
+      const raw = sessionStorage.getItem('gt_admin_workspace_context')
+      return raw ? JSON.parse(raw) as { userName: string; workspaceId: string } : null
+    } catch {
+      return null
+    }
+  })()
+
+  function leaveAdminWorkspace() {
+    sessionStorage.removeItem('gt_admin_workspace_context')
+    if (user?.personalWorkspaceId) setActiveWorkspaceId(user.personalWorkspaceId)
+    window.location.assign('/ajustes/usuarios')
+  }
 
   useEffect(() => {
     if (!getAuthToken()) return
@@ -41,6 +57,21 @@ export default function AppLayout() {
 
         {/* Área de contenido: flex-1 + overflow-hidden para que
             cada página controle su propio scroll internamente */}
+        {user?.role === 'admin' && adminContext && (
+          <div className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-amber-200 bg-amber-50 px-4 text-[12px] text-amber-900">
+            <span>
+              Vista administrativa del workspace de <strong>{adminContext.userName}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={leaveAdminWorkspace}
+              className="rounded-md border border-amber-300 bg-white px-3 py-1 font-semibold transition-colors hover:bg-amber-100"
+            >
+              Volver a Administración
+            </button>
+          </div>
+        )}
+
         <div className="flex-1 overflow-hidden min-h-0">
           <div className="h-full overflow-y-auto">
             <Outlet />

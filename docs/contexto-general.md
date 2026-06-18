@@ -10,6 +10,18 @@ Construir una SPA frontend para gestion de tareas que pueda evolucionar hacia vi
 
 El backend ya tiene una base inicial en `backend/` con Express, TypeScript, Prisma y PostgreSQL. El frontend todavia usa mock data local y persistencia temporal en `localStorage` hasta conectar las vistas con la API.
 
+## Modelo de usuarios y datos
+
+- La aplicacion usa aislamiento por workspace.
+- Cada usuario nuevo recibe un workspace personal y queda como `OWNER`.
+- El workspace funciona como frontera tecnica de datos y permisos, pero no necesita mostrarse en la experiencia comun.
+- Los roles globales son `admin` y `usuario`.
+- Los roles internos son `OWNER` y `MEMBER`.
+- La relacion de membresias se conserva para colaboracion futura, aunque las invitaciones no se implementan aun.
+- Proyecto es una clasificacion visible de tareas dentro del workspace y debe separarse completamente de `workspaceId`.
+
+Ver ADR `0024`.
+
 ## Stack actual
 
 - React
@@ -17,6 +29,7 @@ El backend ya tiene una base inicial en `backend/` con Express, TypeScript, Pris
 - Vite
 - Tailwind CSS
 - React Router
+- TanStack Query para cache compartida de tareas y ajustes
 - shadcn/Base UI para componentes base
 - Heroicons y Lucide para iconos
 - dnd-kit para drag and drop del Kanban
@@ -234,6 +247,8 @@ Funcionalidades actuales:
 - tareas de varios dias aparecen en cada dia dentro del rango.
 - tareas con solo fecha de inicio aparecen solo en esa fecha.
 - colores de proyecto se reflejan en las tareas y en el panel lateral.
+- el dia, mes y filtro seleccionados se conservan en la URL y durante la sesion.
+- tareas y ajustes reutilizan cache compartida al cambiar entre Calendario y Mis tareas.
 
 La vista por ahora es de lectura. La edicion de tareas sigue viviendo en `Mis tareas`.
 
@@ -278,6 +293,9 @@ Cada tarjeta permite:
 - editar desde icono
 - borrar
 - cambiar color
+- escoger proyecto, etiqueta y prioridad desde la tarjeta
+
+Las tareas creadas rapidamente dentro de una columna no asignan proyecto, etiqueta ni prioridad por defecto. La tarjeta muestra placeholders hasta que el usuario escoja cada valor. Si la vista ya esta dentro de un proyecto mediante `?w=`, ese proyecto se conserva implicitamente.
 
 Las tarjetas muestran:
 
@@ -332,9 +350,11 @@ Comportamiento:
 
 - aparece desde el lado derecho
 - se cierra con animacion
-- se cierra con `Cancelar`, `X`, click fuera o guardar
-- edita campos de tarea
-- cambios se reflejan en tiempo real en Kanban/lista
+- el click fuera, `Cancelar` y `X` cierran directamente si no hubo cambios
+- el click fuera, `Cancelar` y `X` piden confirmacion mediante modal si hay cambios sin guardar
+- una tarea nueva existe como borrador hasta pulsar `Guardar cambios`
+- editar una tarea usa una copia temporal; el Kanban conserva la version confirmada hasta guardar
+- guardar crea o actualiza la tarea con una sola sincronizacion, no una solicitud por caracter
 
 Campos actuales:
 
@@ -353,6 +373,8 @@ El panel usa:
 - `DatePicker`
 
 El campo Proyecto del panel muestra el punto de color definido en Ajustes.
+
+Al crear una tarea, Proyecto empieza vacio y muestra `Seleccionar proyecto`; no se asigna automaticamente el primer proyecto disponible.
 
 Layout actual:
 

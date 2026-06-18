@@ -1,4 +1,4 @@
-import { http } from './http'
+import { expectArray, http } from './http'
 
 export type AdminUserRole = 'admin' | 'usuario'
 
@@ -8,6 +8,11 @@ export interface AdminUser {
   email: string
   role: AdminUserRole | string
   createdAt: string
+  personalWorkspace: {
+    id: string
+    name: string
+    color: string
+  } | null
 }
 
 export interface CreateAdminUserRequest {
@@ -18,6 +23,10 @@ export interface CreateAdminUserRequest {
 }
 
 export const adminUsersApi = {
-  list: () => http<AdminUser[]>('/admin/users'),
+  list: async () => expectArray<AdminUser>(await http<unknown>('/admin/users'), 'admin users'),
   create: (body: CreateAdminUserRequest) => http<AdminUser>('/admin/users', { method: 'POST', body }),
+  getWorkspace: (userId: string) => http<{
+    user: { id: string; name: string }
+    workspace: { id: string; name: string; color: string }
+  }>(`/admin/users/${userId}/workspace`),
 }

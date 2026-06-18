@@ -1,5 +1,6 @@
 import {
   ArrowDownTrayIcon,
+  ArrowPathIcon,
   EyeIcon,
   EyeSlashIcon,
   PencilSquareIcon,
@@ -9,13 +10,15 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { adminUsersApi, type AdminUser, type AdminUserRole } from '@/api/admin-users.api'
 import type { AuthUser } from '@/api/auth.api'
 import { ApiError } from '@/api/http'
 import PageContainer from '@/components/PageContainer/PageContainer'
+import TaskSettingFormModal from '@/components/TaskSettingFormModal/TaskSettingFormModal'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProjects } from '@/hooks/useProjects'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
 import { downloadLocalBackup } from '@/lib/localBackup'
@@ -93,6 +96,7 @@ interface CardItem {
   initials: string
   color: string
   role: string
+  archived?: boolean
 }
 
 function Avatar({ initials, color, size = 44 }: { initials: string; color: string; size?: number }) {
@@ -143,9 +147,9 @@ function SettingsCard({
         type="button"
         onClick={() => onDelete(item.id)}
         className="flex h-5 w-5 items-center justify-center rounded text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-        title="Eliminar"
+        title={item.archived ? 'Restaurar' : 'Archivar'}
       >
-        <TrashIcon className="h-3.5 w-3.5" />
+        {item.archived ? <ArrowPathIcon className="h-3.5 w-3.5" /> : <TrashIcon className="h-3.5 w-3.5" />}
       </button>
     </span>
   )
@@ -228,52 +232,14 @@ function SettingsCard({
             type="button"
             onClick={() => onDelete(item.id)}
             className="flex h-6 w-6 items-center justify-center rounded-md bg-red-50 text-red-600 transition-colors hover:bg-red-100"
-            title="Eliminar"
+            title={item.archived ? 'Restaurar' : 'Archivar'}
           >
-            <TrashIcon className="h-3.5 w-3.5" />
+            {item.archived ? <ArrowPathIcon className="h-3.5 w-3.5" /> : <TrashIcon className="h-3.5 w-3.5" />}
           </button>
         </div>
       )}
     </div>
   )
-}
-
-function AddPreview({ tab, input, color }: { tab: SettingsTab; input: string; color: string }) {
-  const label = input || 'Nuevo'
-
-  if (tab === 'labels') {
-    return (
-      <span
-        className="inline-flex max-w-[120px] items-center rounded-md border px-2 py-1 text-[13px] font-medium shadow-sm"
-        style={{ background: softColorFor(color), borderColor: `${color}33`, color }}
-      >
-        <span className="truncate">{label}</span>
-      </span>
-    )
-  }
-
-  if (tab === 'priorities') {
-    return (
-      <span
-        className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[13px] font-semibold shadow-sm"
-        style={{ background: softColorFor(color), borderColor: `${color}33`, color }}
-      >
-        <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
-        {label}
-      </span>
-    )
-  }
-
-  if (tab === 'statuses') {
-    return (
-      <span className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-gray-100 px-2 py-1 text-[13px] font-medium text-gray-700 shadow-sm">
-        <span className="h-2 w-2 rounded-full" style={{ background: color }} />
-        {label}
-      </span>
-    )
-  }
-
-  return <Avatar initials={input ? getInitials(input) : '?'} color={color} size={38} />
 }
 
 function AddForm({
@@ -291,124 +257,15 @@ function AddForm({
   onSubmit: (name: string, color: string) => void
   onCancel: () => void
 }) {
-  const [input, setInput] = useState(initialName)
-  const [color, setColor] = useState(initialColor)
-  const isEditing = submitLabel === 'Guardar'
-  const placeholder = tab === 'assignees'
-    ? 'Nombre del responsable'
-    : tab === 'projects'
-      ? 'Nombre del proyecto'
-      : 'Nombre'
-  const itemLabel = tab === 'assignees'
-    ? 'responsable'
-    : tab === 'projects'
-      ? 'proyecto'
-      : tab === 'labels'
-        ? 'etiqueta'
-        : tab === 'priorities'
-          ? 'prioridad'
-          : 'estado'
-
-  function submit() {
-    const value = input.trim()
-    if (!value) return
-    onSubmit(value, colorForNewItem(tab, value, color))
-    setInput('')
-  }
-
   return (
-    <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/20 px-4"
-      onMouseDown={event => {
-        if (event.target === event.currentTarget) onCancel()
-      }}
-    >
-      <form
-        className="w-full max-w-[520px] rounded-xl border border-gray-200 bg-white p-5 shadow-xl"
-        onSubmit={event => {
-          event.preventDefault()
-          submit()
-        }}
-      >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-[15px] font-semibold text-gray-900">
-              {isEditing ? `Editar ${itemLabel}` : `Agregar ${itemLabel}`}
-            </h3>
-            <p className="mt-1 text-[12px] text-gray-500">
-              Define el nombre y color que se usara en las tareas.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            title="Cerrar"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="shrink-0">
-              <AddPreview tab={tab} input={input} color={color} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                Nombre
-              </label>
-              <input
-                autoFocus
-                value={input}
-                onChange={event => setInput(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === 'Escape') onCancel()
-                }}
-                placeholder={placeholder}
-                className="cursor-text-dark h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-900 caret-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
-              />
-            </div>
-          </div>
-
-          <div>
-            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Color</span>
-            <div className="flex flex-wrap items-center gap-2">
-              {COLORS.map(itemColor => (
-                <button
-                  key={itemColor}
-                  type="button"
-                  onClick={() => setColor(itemColor)}
-                  className="h-6 w-6 rounded-full transition-transform hover:scale-105"
-                  style={{
-                    background: itemColor,
-                    outline: color === itemColor ? '1px solid #1c1917' : '1px solid rgba(17, 24, 39, 0.12)',
-                    outlineOffset: 2,
-                  }}
-                  title="Elegir color"
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="h-10 rounded-lg bg-[#6472EB] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#5360D8]"
-          >
-            {submitLabel}
-          </button>
-        </div>
-      </form>
-    </div>
+    <TaskSettingFormModal
+      type={tab}
+      initialName={initialName}
+      initialColor={initialColor}
+      submitLabel={submitLabel}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+    />
   )
 }
 
@@ -589,6 +446,8 @@ function UsersSettingsSection({ currentUser }: { currentUser: AuthUser | null })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const isAdmin = currentUser?.role === 'admin'
+  const navigate = useNavigate()
+  const { setActiveWorkspaceId } = useWorkspaces()
 
   useEffect(() => {
     if (!isAdmin) return
@@ -649,6 +508,22 @@ function UsersSettingsSection({ currentUser }: { currentUser: AuthUser | null })
       .finally(() => setIsSubmitting(false))
   }
 
+  function viewWorkspace(userId: string) {
+    setError('')
+    adminUsersApi.getWorkspace(userId)
+      .then(({ user, workspace }) => {
+        sessionStorage.setItem('gt_admin_workspace_context', JSON.stringify({
+          userId: user.id,
+          userName: user.name,
+          workspaceId: workspace.id,
+          workspaceName: workspace.name,
+        }))
+        setActiveWorkspaceId(workspace.id)
+        navigate('/tareas')
+      })
+      .catch(() => setError('No se pudo abrir el workspace del usuario.'))
+  }
+
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -675,11 +550,12 @@ function UsersSettingsSection({ currentUser }: { currentUser: AuthUser | null })
       )}
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
-        <div className="grid grid-cols-[1.2fr_1.4fr_130px_130px] gap-3 bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+        <div className="grid grid-cols-[1.1fr_1.3fr_110px_1fr_120px] gap-3 bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
           <span>Nombre</span>
           <span>Email</span>
           <span>Rol</span>
-          <span>Creado</span>
+          <span>Workspace</span>
+          <span>Acciones</span>
         </div>
 
         {isLoading ? (
@@ -689,12 +565,21 @@ function UsersSettingsSection({ currentUser }: { currentUser: AuthUser | null })
             {users.map(item => (
               <div
                 key={item.id}
-                className="grid grid-cols-[1.2fr_1.4fr_130px_130px] gap-3 px-4 py-3 text-[13px] text-slate-600"
+                className="grid grid-cols-[1.1fr_1.3fr_110px_1fr_120px] items-center gap-3 px-4 py-3 text-[13px] text-slate-600"
               >
                 <span className="min-w-0 truncate font-semibold text-slate-900">{item.name}</span>
                 <span className="min-w-0 truncate">{item.email}</span>
                 <span>{roleLabel(item.role)}</span>
-                <span>{formatDate(item.createdAt)}</span>
+                <span className="min-w-0 truncate">{item.personalWorkspace?.name ?? 'Sin workspace'}</span>
+                <button
+                  type="button"
+                  disabled={!item.personalWorkspace}
+                  onClick={() => viewWorkspace(item.id)}
+                  className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  title={`Creado ${formatDate(item.createdAt)}`}
+                >
+                  Ver workspace
+                </button>
               </div>
             ))}
           </div>
@@ -723,6 +608,7 @@ export default function AjustesPage() {
   const [editingItem, setEditingItem] = useState<{ section: SettingsSection; item: CardItem } | null>(null)
   const { activeWorkspaceId } = useWorkspaces()
   const { settings, setSettings } = useTaskSettings(activeWorkspaceId)
+  const { projects, createProject, updateProject, archiveProject, restoreProject } = useProjects(activeWorkspaceId, true)
   const { user, isLoading: isUserLoading } = useCurrentUser()
   const [backupStatus, setBackupStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
   const location = useLocation()
@@ -732,17 +618,18 @@ export default function AjustesPage() {
   const tab = section ? SECTION_TO_TAB[section] : undefined
 
   const items: Record<SettingsTab, CardItem[]> = {
-    projects: settings.projects.map(project => ({
+    projects: projects.map(project => ({
       id: project.id,
-      name: project.label,
-      initials: getInitials(project.label),
+      name: project.name,
+      initials: getInitials(project.name),
       color: project.color ?? COLORS[0],
-      role: 'proyecto',
+      role: project.archivedAt ? 'archivado' : 'proyecto',
+      archived: Boolean(project.archivedAt),
     })),
     assignees: settings.assignees.map(assignee => ({
       id: assignee.id,
       name: assignee.fullName,
-      initials: assignee.id,
+      initials: assignee.initials ?? getInitials(assignee.fullName),
       color: assignee.text,
       role: 'miembro',
     })),
@@ -773,14 +660,12 @@ export default function AjustesPage() {
     if (!tab) return
     const resolvedColor = colorForNewItem(tab, name, color)
 
-    setSettings(prev => {
-      if (tab === 'projects') {
-        return {
-          ...prev,
-          projects: [...prev.projects, { id: slug(name), label: name, color: resolvedColor }],
-        }
-      }
+    if (tab === 'projects') {
+      void createProject({ name, color: resolvedColor })
+      return
+    }
 
+    setSettings(prev => {
       if (tab === 'assignees') {
         const initials = getInitials(name) || slug(name).slice(0, 2).toUpperCase()
         return {
@@ -833,11 +718,13 @@ export default function AjustesPage() {
     if (!tab) return
     const resolvedColor = colorForNewItem(tab, name, color)
 
+    if (tab === 'projects') {
+      void updateProject(id, { name, color: resolvedColor })
+      return
+    }
+
     setSettings(prev => ({
       ...prev,
-      projects: tab === 'projects'
-        ? prev.projects.map(item => item.id === id ? { ...item, label: name, color: resolvedColor } : item)
-        : prev.projects,
       assignees: tab === 'assignees'
         ? prev.assignees.map(item => item.id === id
           ? { ...item, fullName: name, bg: softColorFor(resolvedColor), text: resolvedColor }
@@ -861,9 +748,13 @@ export default function AjustesPage() {
 
   function deleteItem(id: string) {
     if (!tab) return
+    if (tab === 'projects') {
+      const project = projects.find(item => item.id === id)
+      void (project?.archivedAt ? restoreProject(id) : archiveProject(id))
+      return
+    }
     setSettings(prev => ({
       ...prev,
-      projects: tab === 'projects' ? prev.projects.filter(item => item.id !== id) : prev.projects,
       assignees: tab === 'assignees' ? prev.assignees.filter(item => item.id !== id) : prev.assignees,
       labels: tab === 'labels' ? prev.labels.filter(item => item.id !== id) : prev.labels,
       priorities: tab === 'priorities' ? prev.priorities.filter(item => item.id !== id) : prev.priorities,

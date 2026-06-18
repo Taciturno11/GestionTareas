@@ -43,6 +43,7 @@ import { defaultTaskSettings } from '@/data/taskSettings'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useTasks } from '@/hooks/useTasks'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
+import { useProjects } from '@/hooks/useProjects'
 import { formatTaskDateRange } from '@/utils/date.utils'
 import type { Task } from '@/types/task'
 import { format, parseISO } from 'date-fns'
@@ -61,14 +62,14 @@ interface BoardTask {
   startDate: string
   endDate: string
   assignee: string
-  workspaceId: string
+  projectId: string
   color?: string
   notes?: string
 }
 
 type EditableTaskField = keyof Pick<
   BoardTask,
-  'title' | 'assignee' | 'priority' | 'colId' | 'startDate' | 'endDate' | 'tag' | 'workspaceId'
+  'title' | 'assignee' | 'priority' | 'colId' | 'startDate' | 'endDate' | 'tag' | 'projectId'
 >
 
 interface BoardColumn {
@@ -80,27 +81,12 @@ interface BoardColumn {
 /* ─────────────────────── Data ─────────────────────── */
 
 const TASKS: BoardTask[] = [
-  { id: '1', title: 'Revisar propuesta de diseño',     colId: 'progreso',   priority: 'Alta',  tag: 'Diseño',     startDate: '2026-07-15', endDate: '2026-07-22', assignee: 'AG', workspaceId: 'job-1' },
-  { id: '2', title: 'Reunión con equipo de producto',  colId: 'pendiente',  priority: 'Media', tag: 'Reunión',    startDate: '2026-07-18', endDate: '2026-07-23', assignee: 'LT', workspaceId: 'job-1' },
-  { id: '3', title: 'Documentar API de autenticación', colId: 'completado', priority: 'Alta',  tag: 'Desarrollo', startDate: '2026-07-10', endDate: '2026-07-20', assignee: 'ML', workspaceId: 'job-1' },
-  { id: '4', title: 'Actualizar dependencias npm',     colId: 'pendiente',  priority: 'Baja',  tag: 'Desarrollo', startDate: '2026-07-05', endDate: '2026-07-25', assignee: 'CR', workspaceId: 'job-2' },
-  { id: '5', title: 'Redactar informe Q2',             colId: 'progreso',   priority: 'Alta',  tag: 'Finanzas',   startDate: '2026-07-18', endDate: '2026-07-24', assignee: 'SD', workspaceId: 'job-2' },
+  { id: '1', title: 'Revisar propuesta de diseño',     colId: 'progreso',   priority: 'Alta',  tag: 'Diseño',     startDate: '2026-07-15', endDate: '2026-07-22', assignee: 'AG', projectId: 'job-1' },
+  { id: '2', title: 'Reunión con equipo de producto',  colId: 'pendiente',  priority: 'Media', tag: 'Reunión',    startDate: '2026-07-18', endDate: '2026-07-23', assignee: 'LT', projectId: 'job-1' },
+  { id: '3', title: 'Documentar API de autenticación', colId: 'completado', priority: 'Alta',  tag: 'Desarrollo', startDate: '2026-07-10', endDate: '2026-07-20', assignee: 'ML', projectId: 'job-1' },
+  { id: '4', title: 'Actualizar dependencias npm',     colId: 'pendiente',  priority: 'Baja',  tag: 'Desarrollo', startDate: '2026-07-05', endDate: '2026-07-25', assignee: 'CR', projectId: 'job-2' },
+  { id: '5', title: 'Redactar informe Q2',             colId: 'progreso',   priority: 'Alta',  tag: 'Finanzas',   startDate: '2026-07-18', endDate: '2026-07-24', assignee: 'SD', projectId: 'job-2' },
 ]
-
-// Tag colors — pastel pills exactamente como Notion
-const TAG_COLORS: Record<string, { bg: string; text: string }> = {
-  Diseño:     { bg: '#DBEAFE', text: '#1D4ED8' },
-  Reunión:    { bg: '#EDE9FE', text: '#5B21B6' },
-  Desarrollo: { bg: '#D1FAE5', text: '#065F46' },
-  Finanzas:   { bg: '#FEF3C7', text: '#92400E' },
-  General:    { bg: '#F3F4F6', text: '#374151' },
-}
-
-const PRIORITY_COLORS: Record<TaskPriority, { bg: string; text: string }> = {
-  Alta:  { bg: '#FEE2E2', text: '#B91C1C' },
-  Media: { bg: '#FEF3C7', text: '#92400E' },
-  Baja:  { bg: '#F1F5F9', text: '#64748B' },
-}
 
 const TASK_COLORS = [
   '#FFFFFF',
@@ -112,6 +98,35 @@ const TASK_COLORS = [
   '#F1F5F9',
 ]
 
+function getInitials(value: string) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+function softColorFor(color: string) {
+  return `${color}1F`
+}
+
+function taskDraftSignature(task: Partial<BoardTask>) {
+  return JSON.stringify({
+    title: task.title ?? '',
+    colId: task.colId ?? '',
+    priority: task.priority ?? '',
+    tag: task.tag ?? '',
+    startDate: task.startDate ?? '',
+    endDate: task.endDate ?? '',
+    assignee: task.assignee ?? '',
+    projectId: task.projectId ?? '',
+    color: task.color ?? '',
+    notes: task.notes ?? '',
+  })
+}
+
 function fromApiTasks(tasks: Task[]): BoardTask[] {
   return tasks.map(task => ({
     id: task.id,
@@ -119,10 +134,10 @@ function fromApiTasks(tasks: Task[]): BoardTask[] {
     colId: task.status,
     priority: task.priority,
     tag: task.tag,
-    startDate: task.startDate ?? '—',
-    endDate: task.endDate ?? '—',
+    startDate: task.startDate ? task.startDate.slice(0, 10) : '—',
+    endDate: task.endDate ? task.endDate.slice(0, 10) : '—',
     assignee: task.assigneeId ?? task.assignee ?? 'MN',
-    workspaceId: task.projectId ?? task.workspaceId,
+    projectId: task.projectId ?? '',
     color: task.color ?? undefined,
     notes: task.notes ?? '',
   }))
@@ -136,7 +151,7 @@ function toApiTask(task: unknown) {
     description: '',
     status: localTask.colId,
     priority: localTask.priority,
-    projectId: localTask.workspaceId,
+    projectId: localTask.projectId || null,
     tag: localTask.tag,
     assigneeId: null,
     startDate: localTask.startDate,
@@ -155,7 +170,7 @@ function ProjectPill({
   projectLabels: Record<string, string>
   projectColors: Record<string, string>
 }) {
-  const color = projectColors[projectId] ?? '#64748B'
+  const color = projectId ? projectColors[projectId] ?? '#64748B' : '#94A3B8'
 
   return (
     <span
@@ -167,7 +182,9 @@ function ProjectPill({
       }}
     >
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
-      <span className="truncate">{projectLabels[projectId] ?? projectId}</span>
+      <span className="truncate">
+        {projectId ? projectLabels[projectId] ?? projectId : 'Proyecto'}
+      </span>
     </span>
   )
 }
@@ -180,18 +197,34 @@ function TaskCardContent({
   assigneeColors,
   projectLabels,
   projectColors,
+  projectOptions = [],
+  tagOptions = [],
+  priorityOptions = [],
+  onFieldChange,
 }: {
   task: BoardTask
   currentWorkspace: string | null
   tagColors: Record<string, { bg: string; text: string }>
   priorityColors: Record<string, { bg: string; text: string }>
-  assigneeColors: Record<string, { bg: string; text: string; fullName: string }>
+  assigneeColors: Record<string, { bg: string; text: string; fullName: string; initials?: string }>
   projectLabels: Record<string, string>
   projectColors: Record<string, string>
+  projectOptions?: { value: string; label: string }[]
+  tagOptions?: { value: string; label: string }[]
+  priorityOptions?: { value: string; label: string }[]
+  onFieldChange?: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
+    field: K,
+    value: BoardTask[K],
+  ) => void
 }) {
-  const tagCfg = tagColors[task.tag] ?? TAG_COLORS.General
-  const priCfg = priorityColors[task.priority] ?? PRIORITY_COLORS.Media
-  const aCfg = assigneeColors[task.assignee] ?? { bg: '#F3F4F6', text: '#374151', fullName: 'Desconocido' }
+  const tagCfg = tagColors[task.tag] ?? { bg: '#F8FAFC', text: '#94A3B8' }
+  const priCfg = priorityColors[task.priority] ?? { bg: '#F8FAFC', text: '#94A3B8' }
+  const aCfg = assigneeColors[task.assignee] ?? {
+    bg: '#F3F4F6',
+    text: '#374151',
+    fullName: 'Desconocido',
+    initials: getInitials(task.assignee),
+  }
   const dateLabel = formatTaskDateRange(task.startDate, task.endDate)
 
   return (
@@ -209,33 +242,97 @@ function TaskCardContent({
 
       <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
         {!currentWorkspace && (
-          <ProjectPill
-            projectId={task.workspaceId}
-            projectLabels={projectLabels}
-            projectColors={projectColors}
-          />
+          onFieldChange ? (
+            <div
+              onPointerDown={event => event.stopPropagation()}
+              onClick={event => event.stopPropagation()}
+            >
+              <TaskSelect
+                value={task.projectId}
+                placeholder="Proyecto"
+                options={projectOptions}
+                onChange={value => onFieldChange('projectId', value)}
+                showIcon={false}
+                triggerClassName="h-6 w-auto max-w-[150px] justify-start gap-0 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-none hover:brightness-95 focus-visible:ring-2"
+                triggerStyle={{
+                  background: `${projectColors[task.projectId] ?? '#64748B'}14`,
+                  borderColor: `${projectColors[task.projectId] ?? '#64748B'}33`,
+                  color: projectColors[task.projectId] ?? '#64748B',
+                }}
+              />
+            </div>
+          ) : (
+            <ProjectPill
+              projectId={task.projectId}
+              projectLabels={projectLabels}
+              projectColors={projectColors}
+            />
+          )
         )}
 
-        <span
-          className="rounded border px-2 py-0.5 text-[11px] font-semibold"
-          style={{
-            background: tagCfg.bg,
-            borderColor: `${tagCfg.text}24`,
-            color: tagCfg.text,
-          }}
-        >
-          {task.tag}
-        </span>
-        <span
-          className="rounded border px-2 py-0.5 text-[11px] font-semibold"
-          style={{
-            background: priCfg.bg,
-            borderColor: `${priCfg.text}24`,
-            color: priCfg.text,
-          }}
-        >
-          {task.priority}
-        </span>
+        {onFieldChange ? (
+          <>
+            <div
+              onPointerDown={event => event.stopPropagation()}
+              onClick={event => event.stopPropagation()}
+            >
+              <TaskSelect
+                value={task.tag}
+                placeholder="Etiqueta"
+                options={tagOptions}
+                onChange={value => onFieldChange('tag', value)}
+                showIcon={false}
+                triggerClassName="h-6 w-auto max-w-[130px] justify-start gap-0 rounded border px-2 py-0.5 text-[11px] font-semibold shadow-none hover:brightness-95 focus-visible:ring-2"
+                triggerStyle={{
+                  background: tagCfg.bg,
+                  borderColor: `${tagCfg.text}24`,
+                  color: tagCfg.text,
+                }}
+              />
+            </div>
+            <div
+              onPointerDown={event => event.stopPropagation()}
+              onClick={event => event.stopPropagation()}
+            >
+              <TaskSelect
+                value={task.priority}
+                placeholder="Prioridad"
+                options={priorityOptions}
+                onChange={value => onFieldChange('priority', value)}
+                showIcon={false}
+                triggerClassName="h-6 w-auto max-w-[110px] justify-start gap-0 rounded border px-2 py-0.5 text-[11px] font-semibold shadow-none hover:brightness-95 focus-visible:ring-2"
+                triggerStyle={{
+                  background: priCfg.bg,
+                  borderColor: `${priCfg.text}24`,
+                  color: priCfg.text,
+                }}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <span
+              className="rounded border px-2 py-0.5 text-[11px] font-semibold"
+              style={{
+                background: tagCfg.bg,
+                borderColor: `${tagCfg.text}24`,
+                color: tagCfg.text,
+              }}
+            >
+              {task.tag}
+            </span>
+            <span
+              className="rounded border px-2 py-0.5 text-[11px] font-semibold"
+              style={{
+                background: priCfg.bg,
+                borderColor: `${priCfg.text}24`,
+                color: priCfg.text,
+              }}
+            >
+              {task.priority}
+            </span>
+          </>
+        )}
 
         <div className="flex-1" />
 
@@ -244,7 +341,7 @@ function TaskCardContent({
             className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold"
             style={{ background: aCfg.bg, color: aCfg.text }}
           >
-            {task.assignee}
+            {aCfg.initials ?? getInitials(aCfg.fullName)}
           </div>
           <span className="max-w-[110px] truncate text-[11px] font-medium text-gray-600">
             {aCfg.fullName}
@@ -266,17 +363,29 @@ function KanbanTaskCard({
   onOpen,
   onDelete,
   onColorChange,
+  projectOptions,
+  tagOptions,
+  priorityOptions,
+  onFieldChange,
 }: {
   task: BoardTask
   currentWorkspace: string | null
   tagColors: Record<string, { bg: string; text: string }>
   priorityColors: Record<string, { bg: string; text: string }>
-  assigneeColors: Record<string, { bg: string; text: string; fullName: string }>
+  assigneeColors: Record<string, { bg: string; text: string; fullName: string; initials?: string }>
   projectLabels: Record<string, string>
   projectColors: Record<string, string>
   onOpen: (task: BoardTask) => void
   onDelete: (taskId: string) => void
   onColorChange: (taskId: string, color: string) => void
+  projectOptions: { value: string; label: string }[]
+  tagOptions: { value: string; label: string }[]
+  priorityOptions: { value: string; label: string }[]
+  onFieldChange: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
+    taskId: string,
+    field: K,
+    value: BoardTask[K],
+  ) => void
 }) {
   const {
     attributes,
@@ -371,6 +480,10 @@ function KanbanTaskCard({
         assigneeColors={assigneeColors}
         projectLabels={projectLabels}
         projectColors={projectColors}
+        projectOptions={projectOptions}
+        tagOptions={tagOptions}
+        priorityOptions={priorityOptions}
+        onFieldChange={(field, value) => onFieldChange(task.id, field, value)}
       />
     </div>
   )
@@ -392,6 +505,10 @@ function KanbanColumn({
   onOpenTask,
   onDeleteTask,
   onColorTask,
+  projectOptions,
+  tagOptions,
+  priorityOptions,
+  onFieldChange,
   onStartAdd,
   onNewTaskTitleChange,
   onAddTask,
@@ -402,7 +519,7 @@ function KanbanColumn({
   currentWorkspace: string | null
   tagColors: Record<string, { bg: string; text: string }>
   priorityColors: Record<string, { bg: string; text: string }>
-  assigneeColors: Record<string, { bg: string; text: string; fullName: string }>
+  assigneeColors: Record<string, { bg: string; text: string; fullName: string; initials?: string }>
   projectLabels: Record<string, string>
   projectColors: Record<string, string>
   activeDropColId: string | null
@@ -412,6 +529,14 @@ function KanbanColumn({
   onOpenTask: (task: BoardTask) => void
   onDeleteTask: (taskId: string) => void
   onColorTask: (taskId: string, color: string) => void
+  projectOptions: { value: string; label: string }[]
+  tagOptions: { value: string; label: string }[]
+  priorityOptions: { value: string; label: string }[]
+  onFieldChange: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
+    taskId: string,
+    field: K,
+    value: BoardTask[K],
+  ) => void
   onStartAdd: (colId: string) => void
   onNewTaskTitleChange: (title: string) => void
   onAddTask: (colId: string) => void
@@ -467,6 +592,10 @@ function KanbanColumn({
               onOpen={onOpenTask}
               onDelete={onDeleteTask}
               onColorChange={onColorTask}
+              projectOptions={projectOptions}
+              tagOptions={tagOptions}
+              priorityOptions={priorityOptions}
+              onFieldChange={onFieldChange}
             />
           ))}
         </SortableContext>
@@ -483,7 +612,7 @@ function KanbanColumn({
             <textarea
               autoFocus
               placeholder="Título de la tarea…"
-              className="w-full resize-none bg-transparent text-[13px] text-gray-800 outline-none placeholder-gray-400"
+              className="cursor-text-dark w-full resize-none bg-transparent text-[13px] text-gray-800 caret-gray-900 outline-none placeholder-gray-400"
               rows={2}
               value={newTaskTitle}
               onChange={e => onNewTaskTitleChange(e.target.value)}
@@ -519,7 +648,9 @@ export default function DashboardPage() {
   const location = useLocation()
   const currentWorkspace = new URLSearchParams(location.search).get('w')
   const { activeWorkspaceId } = useWorkspaces()
-  const { settings: taskSettings } = useTaskSettings(activeWorkspaceId)
+  const { settings: taskSettings, setSettings: setTaskSettings } = useTaskSettings(activeWorkspaceId)
+  const { projects, createProject } = useProjects(activeWorkspaceId, true)
+  const activeProjects = projects.filter(project => !project.archivedAt)
   const { tasks, setTasks } = useTasks<BoardTask[]>(TASKS, {
     workspaceId: activeWorkspaceId,
     fromApi: fromApiTasks,
@@ -540,6 +671,8 @@ export default function DashboardPage() {
   const [isPanelOpen, setIsPanelOpen]     = useState(false)
   const [isPanelClosing, setIsPanelClosing] = useState(false)
   const [newTaskData, setNewTaskData]     = useState<Partial<BoardTask>>({})
+  const [initialTaskData, setInitialTaskData] = useState<Partial<BoardTask>>({})
+  const [isDiscardChangesOpen, setIsDiscardChangesOpen] = useState(false)
 
   const [editingCell, setEditingCell] = useState<{ taskId: string, field: EditableTaskField } | null>(null)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
@@ -564,23 +697,61 @@ export default function DashboardPage() {
       bg: assignee.bg,
       text: assignee.text,
       fullName: assignee.fullName,
+      initials: assignee.initials ?? getInitials(assignee.fullName),
     }])
   )
   const projectLabels = Object.fromEntries(
-    taskSettings.projects.map(project => [project.id, project.label])
+    projects.map(project => [project.id, project.name])
   )
   const projectColors = Object.fromEntries(
-    taskSettings.projects.map(project => [project.id, project.color ?? '#64748B'])
+    projects.map(project => [project.id, project.color ?? '#64748B'])
   )
+  const projectOptions = activeProjects.map(project => ({
+    value: project.id,
+    label: project.name,
+  }))
+  const tagOptions = taskSettings.labels.map(tag => ({
+    value: tag.id,
+    label: tag.label,
+  }))
+  const priorityOptions = taskSettings.priorities.map(priority => ({
+    value: priority.id,
+    label: priority.label,
+  }))
 
   const updateTaskField = <K extends EditableTaskField>(taskId: string, field: K, value: BoardTask[K]) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t))
   }
 
+  function createQuickTag(name: string, color: string) {
+    const baseId = name.trim()
+    let id = baseId
+    let suffix = 2
+    while (taskSettings.labels.some(label => label.id === id)) {
+      id = `${baseId} ${suffix}`
+      suffix += 1
+    }
+
+    setTaskSettings(prev => ({
+      ...prev,
+      labels: [...prev.labels, {
+        id,
+        label: name.trim(),
+        bg: softColorFor(color),
+        text: color,
+      }],
+    }))
+    return id
+  }
+
+  async function createQuickProject(name: string, color: string) {
+    const project = await createProject({ name: name.trim(), color })
+    return project.id
+  }
+
   const effectiveProjectFilter = projectFilter !== 'all' ? projectFilter : currentWorkspace
-  const filteredTasks = effectiveProjectFilter ? tasks.filter(t => t.workspaceId === effectiveProjectFilter) : tasks
+  const filteredTasks = effectiveProjectFilter ? tasks.filter(t => t.projectId === effectiveProjectFilter) : tasks
   const activeTask = activeTaskId === null ? null : tasks.find(task => task.id === activeTaskId) ?? null
-  const defaultProjectId = effectiveProjectFilter || taskSettings.projects[0]?.id || 'job-1'
   const selectedProjectLabel = effectiveProjectFilter
     ? projectLabels[effectiveProjectFilter] ?? effectiveProjectFilter
     : 'Todos los proyectos'
@@ -684,31 +855,47 @@ export default function DashboardPage() {
   }
 
   const openTaskPanel = (colId?: string, existingTask?: BoardTask) => {
-    if (existingTask) {
-      setNewTaskData(existingTask)
-    } else {
-      setNewTaskData({
+    const taskDraft = existingTask
+      ? { ...existingTask }
+      : {
         title: '',
         colId: colId || 'pendiente',
-        priority: 'Media',
-        tag: 'General',
+        priority: '',
+        tag: '',
         startDate: '',
         endDate: '',
-        assignee: 'MN',
-        workspaceId: defaultProjectId,
+        assignee: taskSettings.assignees[0]?.id || '',
+        projectId: currentWorkspace || '',
         notes: '',
-      })
-    }
+      }
+
+    setNewTaskData(taskDraft)
+    setInitialTaskData(taskDraft)
+    setIsDiscardChangesOpen(false)
     setIsPanelClosing(false)
     setIsPanelOpen(true)
   }
 
-  const closeTaskPanel = () => {
+  const finishClosingTaskPanel = () => {
     setIsPanelClosing(true)
     window.setTimeout(() => {
       setIsPanelOpen(false)
       setIsPanelClosing(false)
+      setIsDiscardChangesOpen(false)
+      setNewTaskData({})
+      setInitialTaskData({})
     }, 200)
+  }
+
+  const requestCloseTaskPanel = () => {
+    const hasUnsavedChanges = taskDraftSignature(newTaskData) !== taskDraftSignature(initialTaskData)
+
+    if (hasUnsavedChanges) {
+      setIsDiscardChangesOpen(true)
+      return
+    }
+
+    finishClosingTaskPanel()
   }
 
   const handleSaveTask = () => {
@@ -731,28 +918,20 @@ export default function DashboardPage() {
         endDate: newTaskData.endDate || '—',
       } as BoardTask])
     }
-    closeTaskPanel()
+    finishClosingTaskPanel()
   }
 
   const handlePanelTaskChange = (updatedTask: Partial<TaskDetailPanelTask>) => {
     const nextTaskData = { ...newTaskData, ...updatedTask }
     setNewTaskData(nextTaskData)
-
-    if (!nextTaskData.id) return
-
-    setTasks(prev => prev.map(task =>
-      task.id === nextTaskData.id
-        ? { ...task, ...nextTaskData } as BoardTask
-        : task
-    ))
   }
 
   const addTask = (colId: string) => {
     if (!newTaskTitle.trim()) { setAddingToCol(null); return }
     setTasks(prev => [...prev, {
       id: crypto.randomUUID(), title: newTaskTitle.trim(), colId,
-      priority: 'Media', tag: 'General', startDate: '—', endDate: '—', assignee: 'MN',
-      workspaceId: defaultProjectId,
+      priority: '', tag: '', startDate: '—', endDate: '—', assignee: 'MN',
+      projectId: currentWorkspace || '',
       color: '#FFFFFF',
       notes: '',
     }])
@@ -761,49 +940,12 @@ export default function DashboardPage() {
   }
 
   const createTableTask = () => {
-    const id = crypto.randomUUID()
-    const task: BoardTask = {
-      id,
-      title: '',
-      colId: 'pendiente',
-      priority: 'Media',
-      tag: 'General',
-      startDate: '—',
-      endDate: '—',
-      assignee: 'MN',
-      workspaceId: defaultProjectId,
-      color: '#FFFFFF',
-      notes: '',
-    }
-
-    setTasks(prev => [task, ...prev])
-    setNewTaskData(task)
-    setIsPanelClosing(false)
-    setIsPanelOpen(true)
-    setEditingCell({ taskId: id, field: 'title' })
+    openTaskPanel('pendiente')
   }
 
   const handleNewTaskClick = () => {
     if (view === 'board') {
-      const id = crypto.randomUUID()
-      const task: BoardTask = {
-        id,
-        title: '',
-        colId: 'pendiente',
-        priority: 'Media',
-        tag: 'General',
-        startDate: '—',
-        endDate: '—',
-        assignee: 'MN',
-        workspaceId: defaultProjectId,
-        color: '#FFFFFF',
-        notes: '',
-      }
-
-      setTasks(prev => [...prev, task])
-      setNewTaskData(task)
-      setIsPanelClosing(false)
-      setIsPanelOpen(true)
+      openTaskPanel('pendiente')
       setAddingToCol(null)
       return
     }
@@ -876,7 +1018,7 @@ export default function DashboardPage() {
                   {projectFilter === 'all' && <span className="h-1.5 w-1.5 rounded-full bg-[#6472EB]" />}
                 </button>
 
-                {taskSettings.projects.map(project => {
+                {activeProjects.map(project => {
                   const color = project.color ?? '#64748B'
                   const isSelected = projectFilter === project.id
 
@@ -896,7 +1038,7 @@ export default function DashboardPage() {
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
-                        <span className="truncate">{project.label}</span>
+                        <span className="truncate">{project.name}</span>
                       </span>
                       {isSelected && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#6472EB]" />}
                     </button>
@@ -984,6 +1126,10 @@ export default function DashboardPage() {
                   }}
                   onDeleteTask={deleteTask}
                   onColorTask={updateTaskColor}
+                  projectOptions={projectOptions}
+                  tagOptions={tagOptions}
+                  priorityOptions={priorityOptions}
+                  onFieldChange={updateTaskField}
                   onStartAdd={setAddingToCol}
                   onNewTaskTitleChange={setNewTaskTitle}
                   onAddTask={addTask}
@@ -1069,7 +1215,7 @@ export default function DashboardPage() {
               <tbody>
                 {filteredTasks.map((task, i) => {
                   const col    = cols.find(c => c.id === task.colId)
-                  const priCfg = priorityColors[task.priority] ?? PRIORITY_COLORS.Media
+                  const priCfg = priorityColors[task.priority] ?? { bg: '#F8FAFC', text: '#94A3B8' }
                   const aCfg   = assigneeColors[task.assignee] ?? { bg: '#F3F4F6', text: '#374151', fullName: 'Desconocido' }
                   const dateLabel = formatTaskDateRange(task.startDate, task.endDate)
                   return (
@@ -1083,7 +1229,7 @@ export default function DashboardPage() {
                     >
                       <td className="px-4 py-3 border-r border-gray-200">
                         <ProjectPill
-                          projectId={task.workspaceId}
+                          projectId={task.projectId}
                           projectLabels={projectLabels}
                           projectColors={projectColors}
                         />
@@ -1095,7 +1241,7 @@ export default function DashboardPage() {
                         {editingCell?.taskId === task.id && editingCell?.field === 'title' ? (
                           <input 
                             autoFocus
-                            className="w-full bg-transparent border-none outline-none focus:ring-1 focus:ring-indigo-500 rounded px-1 -mx-1"
+                            className="cursor-text-dark w-full rounded border-none bg-transparent px-1 -mx-1 caret-gray-900 outline-none focus:ring-1 focus:ring-indigo-500"
                             defaultValue={task.title}
                             onBlur={e => {
                               if (e.target.value.trim()) updateTaskField(task.id, 'title', e.target.value.trim())
@@ -1168,7 +1314,7 @@ export default function DashboardPage() {
                               color: priCfg.text,
                             }}
                           >
-                            {task.priority}
+                            {task.priority || 'Seleccionar prioridad'}
                           </span>
                         )}
                       </td>
@@ -1271,7 +1417,7 @@ export default function DashboardPage() {
             value: assignee.id,
             label: assignee.fullName,
           }))}
-          projects={taskSettings.projects.map(project => ({
+          projects={activeProjects.map(project => ({
             value: project.id,
             label: (
               <span className="inline-flex items-center gap-2">
@@ -1279,16 +1425,52 @@ export default function DashboardPage() {
                   className="h-2 w-2 rounded-full"
                   style={{ background: project.color ?? '#64748B' }}
                 />
-                {project.label}
+                {project.name}
               </span>
             ),
           }))}
           showWorkspace={!currentWorkspace}
+          onCreateTag={createQuickTag}
+          onCreateProject={createQuickProject}
           isClosing={isPanelClosing}
           onChange={handlePanelTaskChange}
-          onClose={closeTaskPanel}
+          onClose={requestCloseTaskPanel}
           onSave={handleSaveTask}
         />
+      )}
+
+      {isDiscardChangesOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/25 px-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discard-task-changes-title"
+            className="w-full max-w-[420px] rounded-xl border border-gray-200 bg-white p-5 shadow-xl"
+          >
+            <h3 id="discard-task-changes-title" className="text-[15px] font-semibold text-gray-900">
+              ¿Descartar cambios?
+            </h3>
+            <p className="mt-2 text-[13px] leading-5 text-gray-500">
+              Tienes cambios sin guardar. Si sales ahora, se perderán.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsDiscardChangesOpen(false)}
+                className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
+              >
+                Seguir editando
+              </button>
+              <button
+                type="button"
+                onClick={finishClosingTaskPanel}
+                className="h-10 rounded-lg bg-red-600 px-4 text-[13px] font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                Descartar cambios
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {/* Help FAB */}
       <div className="fixed bottom-6 right-6">

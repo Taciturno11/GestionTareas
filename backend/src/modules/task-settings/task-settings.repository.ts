@@ -6,6 +6,13 @@ export function findByWorkspaceId(workspaceId: string) {
   return prisma.taskSettings.findUnique({ where: { workspaceId } })
 }
 
+export function findUser(userId: string) {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true },
+  })
+}
+
 export function upsert(data: UpsertTaskSettingsDto) {
   const jsonData = {
     projects: data.projects as Prisma.InputJsonValue,

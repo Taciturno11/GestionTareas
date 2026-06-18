@@ -44,13 +44,24 @@ Usa tldraw:
 
 - `tldraw`
 
-La pizarra usa `persistenceKey` por `page.id`.
+La pizarra usa `WorkspacePage.content` como fuente principal de persistencia.
+
+Formato actual para nuevas escrituras:
+
+- `tldraw-snapshot-v1`: snapshot serializado de tldraw guardado en `WorkspacePage.content`.
+
+Compatibilidad:
+
+- Las pizarras importadas desde backups antiguos pueden venir como `tldraw-indexeddb-backup-v1`.
+- Al abrir una pizarra antigua, el frontend convierte ese backup a un snapshot de tldraw en memoria.
+- Al editar y guardar, la pizarra pasa a persistirse como `tldraw-snapshot-v1`.
 
 Reglas:
 
 - No construir canvas propio mientras tldraw cubra dibujo, formas y diagramas.
 - La pizarra no muestra titulo en el area principal; su nombre se edita desde el sidebar.
-- Si se necesita exportar/importar pizarras, revisar primero APIs de snapshot de tldraw.
+- No usar `persistenceKey` como fuente principal en produccion; IndexedDB no debe ser la verdad de datos.
+- Si se necesita exportar/importar pizarras, usar snapshots de tldraw y mantener compatibilidad con backups antiguos.
 - Separar mejoras de pizarra de mejoras de texto para evitar mezclar modelos de persistencia.
 
 ## Hoja diagrama BD

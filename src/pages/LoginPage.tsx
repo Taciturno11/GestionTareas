@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { authApi, type AuthResponse } from '@/api/auth.api'
 import { saveAuthToken } from '@/services/auth-token'
 import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
-import coverImage from '../assets/portada_gestion_HD.webp'
+import coverImage from '../assets/portada_gestion.avif'
 
 function CurvedDivider() {
   const width = 320
