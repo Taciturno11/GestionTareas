@@ -74,5 +74,8 @@ un workspace ajeno mediante un contexto administrativo explicito y consulta por 
 - Produccion conserva el release actual y el anterior, un rollback inmediato de
   frontend/backend y los tres respaldos PostgreSQL mas recientes.
 - Los scripts operativos versionados viven en `ops/production/`.
+- Cada despliegue de esta mejora inicia un monitor temporal de 24 horas que registra
+  salud, memoria, CPU, disco, cantidad de `PATCH /api/pages`, errores y tiempo de
+  respuesta.
 - Los respaldos operativos no restauran contenido que un usuario elimino
   voluntariamente.

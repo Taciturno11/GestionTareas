@@ -18,6 +18,9 @@ import { API_PREFIX } from './shared/constants/routes.js'
 
 export function createApp() {
   const app = express()
+  const requestLogFormat = env.NODE_ENV === 'production'
+    ? ':remote-addr - :method :url :status :res[content-length] :response-time ms'
+    : 'dev'
 
   app.use(helmet())
   app.use(cors({
@@ -26,7 +29,7 @@ export function createApp() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   }))
   app.use(express.json({ limit: '20mb' }))
-  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'))
+  app.use(morgan(requestLogFormat))
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' })

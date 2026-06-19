@@ -1,0 +1,12 @@
+[Unit]
+Description=Monitor GESTION_TAREAS every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=gestion-tareas-performance.service
+
+[Install]
+WantedBy=timers.target
+

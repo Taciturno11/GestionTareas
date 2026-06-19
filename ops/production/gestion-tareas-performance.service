@@ -1,0 +1,8 @@
+[Unit]
+Description=GESTION_TAREAS performance sample
+After=gestion-tareas-backend.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/gestion_tareas/performance-monitor.sh
+
