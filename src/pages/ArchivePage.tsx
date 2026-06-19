@@ -5,23 +5,22 @@ import { useNavigate } from 'react-router-dom'
 import PageContainer from '@/components/PageContainer/PageContainer'
 import {
   loadActiveWorkspaceId,
-  loadWorkspacePages,
   loadWorkspaceSpaces,
   updateWorkspaceSpace,
   WORKSPACE_DATA_CHANGE_EVENT,
 } from '@/data/workspaces'
-import type { WorkspacePage, WorkspaceSpace } from '@/types/workspace'
+import type { WorkspaceSpace } from '@/types/workspace'
+import { usePageSummaries } from '@/hooks/usePages'
 
 export default function ArchivePage() {
   const navigate = useNavigate()
   const [spaces, setSpaces] = useState<WorkspaceSpace[]>(() => loadWorkspaceSpaces())
-  const [pages, setPages] = useState<WorkspacePage[]>(() => loadWorkspacePages())
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => loadActiveWorkspaceId())
+  const { data: pages = [] } = usePageSummaries(activeWorkspaceId)
 
   useEffect(() => {
     const syncData = () => {
       setSpaces(loadWorkspaceSpaces())
-      setPages(loadWorkspacePages())
       setActiveWorkspaceId(loadActiveWorkspaceId())
     }
 

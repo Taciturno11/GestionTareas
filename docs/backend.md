@@ -125,7 +125,9 @@ GET  /api/auth/me
 GET  /api/users/me
 GET  /api/workspaces
 GET  /api/spaces?workspaceId=
-GET  /api/pages?workspaceId=
+GET  /api/pages?workspaceId=&includeContent=false
+GET  /api/pages/:id
+PATCH /api/pages/:id
 GET  /api/tasks?workspaceId=
 GET  /api/projects?workspaceId=
 POST /api/projects
@@ -149,7 +151,7 @@ Orden recomendado:
 1. Crear `.env` y sincronizar PostgreSQL.
 2. Importar backup local a PostgreSQL.
 3. Probar login y creación administrativa de usuarios.
-4. Sincronizar `workspaces`, `spaces` y `pages` desde API hacia la capa local temporal.
+4. Sincronizar `workspaces`, `spaces` y metadatos de paginas hacia la capa local temporal.
 5. Leer `tasks` y `task-settings` desde API.
 6. Reemplazar lecturas directas de `localStorage`.
 
@@ -157,8 +159,10 @@ Estado actual:
 
 - Login frontend ya usa `/api/auth/login`.
 - Al iniciar sesion se guarda `gt_auth_token`.
-- Luego se sincronizan `workspaces`, `spaces` y `pages` desde PostgreSQL hacia `localStorage`.
-- Las escrituras locales de espacios y paginas se espejan al backend de forma progresiva.
+- Luego se sincronizan `workspaces`, `spaces` y `PageSummary` desde PostgreSQL.
+- El contenido completo se carga por `GET /api/pages/:id`.
+- `PATCH /api/pages/:id` devuelve metadatos y confirmacion, no reenvia contenido pesado.
+- Omitir `includeContent` conserva temporalmente la respuesta completa para despliegues compatibles.
 
 ## Pendientes tecnicos
 

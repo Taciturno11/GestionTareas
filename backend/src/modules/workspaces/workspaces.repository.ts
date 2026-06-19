@@ -10,13 +10,6 @@ export function findManyForUser(userId: string) {
   })
 }
 
-export function findManyAll() {
-  return prisma.workspace.findMany({
-    orderBy: { updatedAt: 'desc' },
-    include: { members: true },
-  })
-}
-
 export function findById(id: string) {
   return prisma.workspace.findUnique({ where: { id } })
 }

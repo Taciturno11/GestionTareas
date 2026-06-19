@@ -134,6 +134,7 @@ const nodeTypes = {
 export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramPageProps) {
   const [initialContent] = useState(() => parseDiagramContent(page.content))
   const onChangeRef = useRef(onChange)
+  const hasMountedRef = useRef(false)
   const [nodes, setNodes, onNodesChange] = useNodesState<DatabaseTableNode>(initialContent.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialContent.edges)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialContent.nodes[0]?.id ?? null)
@@ -145,6 +146,10 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
   }, [onChange])
 
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true
+      return
+    }
     onChangeRef.current({ content: JSON.stringify({ nodes, edges }) })
   }, [edges, nodes])
 

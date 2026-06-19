@@ -34,6 +34,7 @@ import {
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 
+import { pagesApi } from '@/api/pages.api'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   createWorkspaceSpace,
@@ -41,14 +42,18 @@ import {
   deleteWorkspacePage,
   deleteWorkspaceSpace,
   loadActiveWorkspaceId,
-  loadWorkspacePages,
   loadWorkspaceSpaces,
   loadWorkspaces,
-  updateWorkspacePage,
   updateWorkspaceSpace,
   WORKSPACE_DATA_CHANGE_EVENT,
 } from '@/data/workspaces'
-import type { Workspace, WorkspacePage, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
+import type {
+  Workspace,
+  WorkspacePageSummary,
+  WorkspacePageType,
+  WorkspaceSpace,
+} from '@/types/workspace'
+import { usePageCache, usePageSummaries } from '@/hooks/usePages'
 
 const NAVIGATION = [
   { label: 'Inicio', icon: HomeIcon, to: '/' },
@@ -96,7 +101,7 @@ function getSpaceIconOption(icon?: string) {
   return SPACE_ICON_OPTIONS.find(option => option.id === icon) ?? SPACE_ICON_OPTIONS[0]
 }
 
-function getPageIcon(page: WorkspacePage) {
+function getPageIcon(page: WorkspacePageSummary) {
   if (page.type === 'board') return PaintBrushIcon
   if (page.type === 'database') return CircleStackIcon
   return DocumentTextIcon
@@ -111,8 +116,9 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   const { pathname } = useLocation()
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => loadWorkspaces())
   const [spaces, setSpaces] = useState<WorkspaceSpace[]>(() => loadWorkspaceSpaces())
-  const [pages, setPages] = useState<WorkspacePage[]>(() => loadWorkspacePages())
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => loadActiveWorkspaceId())
+  const { data: pages = [] } = usePageSummaries(activeWorkspaceId)
+  const { updateSummary, removePage } = usePageCache()
   const [isCreateSpaceOpen, setIsCreateSpaceOpen] = useState(false)
   const [creatingSpaceParentId, setCreatingSpaceParentId] = useState<string | null>(null)
   const [editingSpace, setEditingSpace] = useState<WorkspaceSpace | null>(null)
@@ -134,18 +140,17 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     y: number
   } | null>(null)
   const [pageMenu, setPageMenu] = useState<{
-    page: WorkspacePage
+    page: WorkspacePageSummary
     x: number
     y: number
   } | null>(null)
-  const [editingPage, setEditingPage] = useState<WorkspacePage | null>(null)
+  const [editingPage, setEditingPage] = useState<WorkspacePageSummary | null>(null)
   const [pageDraftTitle, setPageDraftTitle] = useState('')
 
   useEffect(() => {
     const syncWorkspaceData = () => {
       setWorkspaces(loadWorkspaces())
       setSpaces(loadWorkspaceSpaces())
-      setPages(loadWorkspacePages())
       setActiveWorkspaceId(loadActiveWorkspaceId())
     }
 
@@ -185,7 +190,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   function handleCreatePage(type: WorkspacePageType, spaceId?: string) {
     if (!activeWorkspace) return
     const page = createWorkspacePage(activeWorkspace.id, type, spaceId)
-    setPages(loadWorkspacePages())
+    updateSummary(page)
     navigate(`/p/${page.id}`)
   }
 
@@ -221,7 +226,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       : '/'
 
     deleteWorkspacePage(pageId)
-    setPages(loadWorkspacePages())
+    if (deletedPage) removePage(pageId, deletedPage.workspaceId)
     if (pathname === `/p/${pageId}`) navigate(fallbackPath)
   }
 
@@ -232,7 +237,6 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
     deleteWorkspaceSpace(spaceId)
     setSpaces(loadWorkspaceSpaces())
-    setPages(loadWorkspacePages())
     if (spacePages.some(page => pathname === `/p/${page.id}`)) navigate('/')
   }
 
@@ -275,21 +279,25 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     setSpaceDraftIconColor(space.iconColor ?? '#6472EB')
   }
 
-  function openEditPage(page: WorkspacePage) {
+  function openEditPage(page: WorkspacePageSummary) {
     setEditingPage(page)
     setPageDraftTitle(page.title)
   }
 
-  function savePageEdit() {
+  async function savePageEdit() {
     if (!editingPage) return
     if (!pageDraftTitle.trim()) {
       setEditingPage(null)
       return
     }
 
-    updateWorkspacePage(editingPage.id, { title: pageDraftTitle.trim() })
-    setPages(loadWorkspacePages())
-    setEditingPage(null)
+    try {
+      const summary = await pagesApi.update(editingPage.id, { title: pageDraftTitle.trim() })
+      updateSummary(summary)
+      setEditingPage(null)
+    } catch (error) {
+      console.error('No se pudo actualizar el título de la página.', error)
+    }
   }
 
   function saveSpaceEdit() {

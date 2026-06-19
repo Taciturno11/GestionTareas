@@ -21,13 +21,16 @@ export interface WorkspaceSpace {
   updatedAt: string
 }
 
-export interface WorkspacePage {
+export interface WorkspacePageSummary {
   id: string
   workspaceId: string
   spaceId: string
   title: string
   type: WorkspacePageType
-  content: string
   createdAt: string
   updatedAt: string
+}
+
+export interface WorkspacePage extends WorkspacePageSummary {
+  content: string
 }

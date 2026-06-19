@@ -29,6 +29,7 @@ Este directorio guarda los Architecture Decision Records del proyecto.
 - [0023 - Cache compartida para tareas y estado de calendario en URL](./0023-cache-compartida-para-tareas-y-estado-de-calendario-en-url.md)
 - [0024 - Multitenancy por workspace personal y proyectos como entidad](./0024-multitenancy-por-workspace-personal-y-proyectos-como-entidad.md)
 - [0025 - Acceso administrativo y ciclo de vida de proyectos](./0025-acceso-administrativo-y-ciclo-de-vida-de-proyectos.md)
+- [0026 - Paginas por metadatos, detalle y autoguardado aislado](./0026-paginas-por-metadatos-detalle-y-autoguardado-aislado.md)
 
 ## Convencion
 

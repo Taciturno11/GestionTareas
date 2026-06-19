@@ -16,6 +16,7 @@ import type { WorkspacePage } from '@/types/workspace'
 interface TextPageProps {
   page: WorkspacePage
   onChange: (patch: Partial<WorkspacePage>) => void
+  onSaveNow: () => Promise<void>
 }
 
 const TEXT_COLORS = ['#111827', '#6472EB', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#EC4899']
@@ -30,13 +31,16 @@ function parseContent(content: string): JSONContent | string {
   }
 }
 
-export default function TextPage({ page, onChange }: TextPageProps) {
+export default function TextPage({ page, onChange, onSaveNow }: TextPageProps) {
   const editor = useEditor({
     extensions: [StarterKit, TextStyle, Color, Underline],
     content: parseContent(page.content),
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange({ content: JSON.stringify(editor.getJSON()) })
+    },
+    onBlur: () => {
+      void onSaveNow()
     },
     editorProps: {
       attributes: {
@@ -146,6 +150,7 @@ export default function TextPage({ page, onChange }: TextPageProps) {
       <input
         value={page.title}
         onChange={event => onChange({ title: event.target.value })}
+        onBlur={() => void onSaveNow()}
         placeholder="Pagina sin titulo"
         className="cursor-text-dark mb-4 w-full border-none bg-transparent text-[34px] font-bold tracking-tight text-gray-900 caret-gray-900 outline-none placeholder:text-gray-300"
       />

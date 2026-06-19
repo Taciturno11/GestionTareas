@@ -1,4 +1,4 @@
-import type { Workspace, WorkspacePage, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
+import type { Workspace, WorkspacePage, WorkspacePageSummary, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
 
 type ApiWorkspace = Partial<Workspace> & Record<string, unknown>
 type ApiWorkspaceSpace = Partial<Omit<WorkspaceSpace, 'parentId'>> & {
@@ -73,6 +73,20 @@ export function normalizePage(value: unknown): WorkspacePage {
     title: String(page.title ?? 'Pagina sin titulo'),
     type: normalizePageType(page.type),
     content,
+    createdAt: fallbackDate(page.createdAt),
+    updatedAt: fallbackDate(page.updatedAt),
+  }
+}
+
+export function normalizePageSummary(value: unknown): WorkspacePageSummary {
+  const page = asRecord(value) as ApiWorkspacePage
+
+  return {
+    id: String(page.id ?? ''),
+    workspaceId: String(page.workspaceId ?? ''),
+    spaceId: String(page.spaceId ?? ''),
+    title: String(page.title ?? 'Pagina sin titulo'),
+    type: normalizePageType(page.type),
     createdAt: fallbackDate(page.createdAt),
     updatedAt: fallbackDate(page.updatedAt),
   }

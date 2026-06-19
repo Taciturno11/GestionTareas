@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 
 import {
   loadActiveWorkspaceId,
-  loadWorkspacePages,
   loadWorkspaceSpaces,
   loadWorkspaces,
   saveActiveWorkspaceId,
@@ -10,21 +9,19 @@ import {
 } from '@/data/workspaces'
 import { getAuthToken } from '@/services/auth-token'
 import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
-import type { Workspace, WorkspacePage, WorkspaceSpace } from '@/types/workspace'
+import type { Workspace, WorkspaceSpace } from '@/types/workspace'
 
 let hasRequestedBackendWorkspaceData = false
 
 export function useWorkspaces() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => loadWorkspaces())
   const [spaces, setSpaces] = useState<WorkspaceSpace[]>(() => loadWorkspaceSpaces())
-  const [pages, setPages] = useState<WorkspacePage[]>(() => loadWorkspacePages())
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState(() => loadActiveWorkspaceId())
 
   useEffect(() => {
     const syncWorkspaceData = () => {
       setWorkspaces(loadWorkspaces())
       setSpaces(loadWorkspaceSpaces())
-      setPages(loadWorkspacePages())
       setActiveWorkspaceIdState(loadActiveWorkspaceId())
     }
 
@@ -43,7 +40,6 @@ export function useWorkspaces() {
         if (cancelled) return
         setWorkspaces(data.workspaces)
         setSpaces(data.spaces)
-        setPages(data.pages)
         setActiveWorkspaceIdState(loadActiveWorkspaceId())
       })
       .catch(error => {
@@ -64,7 +60,6 @@ export function useWorkspaces() {
   return {
     workspaces,
     spaces,
-    pages,
     activeWorkspaceId,
     setActiveWorkspaceId,
   }

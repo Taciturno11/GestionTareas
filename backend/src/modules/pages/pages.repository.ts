@@ -13,10 +13,21 @@ function toPrismaPageType(type: PageTypeDto) {
   return map[type]
 }
 
-export function findMany(workspaceId: string, spaceId?: string) {
+const pageSummarySelect = {
+  id: true,
+  workspaceId: true,
+  spaceId: true,
+  title: true,
+  type: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
+
+export function findMany(workspaceId: string, spaceId?: string, includeContent = true) {
   return prisma.page.findMany({
     where: { workspaceId, ...(spaceId ? { spaceId } : {}) },
     orderBy: { updatedAt: 'desc' },
+    ...(includeContent ? {} : { select: pageSummarySelect }),
   })
 }
 
@@ -44,6 +55,7 @@ export function update(id: string, data: UpdatePageDto) {
       ...data,
       type: data.type ? toPrismaPageType(data.type) : undefined,
     },
+    select: pageSummarySelect,
   })
 }
 

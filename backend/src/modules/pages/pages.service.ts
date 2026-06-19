@@ -3,9 +3,9 @@ import { HttpError } from '../../shared/utils/http-error.js'
 import type { CreatePageDto, UpdatePageDto } from './pages.dto.js'
 import * as pagesRepository from './pages.repository.js'
 
-export async function list(userId: string, workspaceId: string, spaceId?: string) {
+export async function list(userId: string, workspaceId: string, spaceId?: string, includeContent = true) {
   await assertWorkspaceMember(userId, workspaceId)
-  return pagesRepository.findMany(workspaceId, spaceId)
+  return pagesRepository.findMany(workspaceId, spaceId, includeContent)
 }
 
 export async function get(userId: string, pageId: string) {

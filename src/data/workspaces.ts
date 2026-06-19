@@ -1,4 +1,4 @@
-import type { Workspace, WorkspacePage, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
+import type { Workspace, WorkspacePageSummary, WorkspacePageType, WorkspaceSpace } from '@/types/workspace'
 import { pagesApi } from '@/api/pages.api'
 import { spacesApi } from '@/api/spaces.api'
 import { getAuthToken } from '@/services/auth-token'
@@ -36,14 +36,13 @@ export const defaultWorkspaceSpaces: WorkspaceSpace[] = [
   },
 ]
 
-export const defaultWorkspacePages: WorkspacePage[] = [
+export const defaultWorkspacePages: WorkspacePageSummary[] = [
   {
     id: 'roadmap',
     workspaceId: 'job-1',
     spaceId: 'space-general-job-1',
     title: 'Roadmap',
     type: 'text',
-    content: '',
     createdAt: '2026-05-05T00:00:00.000Z',
     updatedAt: '2026-05-05T00:00:00.000Z',
   },
@@ -53,7 +52,6 @@ export const defaultWorkspacePages: WorkspacePage[] = [
     spaceId: 'space-general-job-1',
     title: 'Sprint actual',
     type: 'tasks',
-    content: '',
     createdAt: '2026-05-05T00:00:00.000Z',
     updatedAt: '2026-05-05T00:00:00.000Z',
   },
@@ -101,14 +99,28 @@ export function saveWorkspaces(workspaces: Workspace[]) {
 }
 
 export function loadWorkspacePages() {
-  const pages = readJson<Array<WorkspacePage & { spaceId?: string }>>(WORKSPACE_PAGES_KEY, defaultWorkspacePages)
-  return pages.map(page => ({
-    ...page,
+  const pages = readJson<Array<WorkspacePageSummary & { spaceId?: string; content?: string }>>(
+    WORKSPACE_PAGES_KEY,
+    defaultWorkspacePages,
+  )
+  const summaries = pages.map(page => ({
+    id: page.id,
+    workspaceId: page.workspaceId,
     spaceId: page.spaceId ?? getDefaultSpaceId(page.workspaceId),
+    title: page.title,
+    type: page.type,
+    createdAt: page.createdAt,
+    updatedAt: page.updatedAt,
   }))
+
+  if (pages.some(page => 'content' in page)) {
+    localStorage.setItem(WORKSPACE_PAGES_KEY, JSON.stringify(summaries))
+  }
+
+  return summaries
 }
 
-export function saveWorkspacePages(pages: WorkspacePage[]) {
+export function saveWorkspacePages(pages: WorkspacePageSummary[]) {
   localStorage.setItem(WORKSPACE_PAGES_KEY, JSON.stringify(pages))
   emitWorkspaceDataChange()
 }
@@ -140,7 +152,7 @@ export function saveWorkspaceDataSnapshot({
 }: {
   workspaces: Workspace[]
   spaces: WorkspaceSpace[]
-  pages: WorkspacePage[]
+  pages: WorkspacePageSummary[]
   activeWorkspaceId?: string
 }) {
   localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces))
@@ -195,13 +207,12 @@ export function createWorkspacePage(workspaceId: string, type: WorkspacePageType
     database: 'Nuevo diagrama BD',
     tasks: 'Nueva hoja de tareas',
   }
-  const page: WorkspacePage = {
+  const page: WorkspacePageSummary = {
     id: createId('page'),
     workspaceId,
     spaceId,
     title: titleByType[normalizedType],
     type: normalizedType,
-    content: '',
     createdAt: now,
     updatedAt: now,
   }
@@ -211,27 +222,14 @@ export function createWorkspacePage(workspaceId: string, type: WorkspacePageType
   return page
 }
 
-export function updateWorkspacePage(pageId: string, patch: Partial<Omit<WorkspacePage, 'id'>>) {
-  const pages = loadWorkspacePages()
-  const nextPages = pages.map(page =>
-    page.id === pageId
-      ? { ...page, ...patch, updatedAt: new Date().toISOString() }
-      : page
-  )
-
-  saveWorkspacePages(nextPages)
-  const updatedPage = nextPages.find(page => page.id === pageId)
-  if (updatedPage) mirrorToBackend(pagesApi.update(pageId, patch))
-}
-
-export function updateWorkspacePageCache(
+export function updateWorkspacePageSummaryCache(
   pageId: string,
-  patch: Partial<Omit<WorkspacePage, 'id'>>,
+  patch: Partial<Omit<WorkspacePageSummary, 'id'>>,
   options: { emit?: boolean } = {},
 ) {
   const nextPages = loadWorkspacePages().map(page =>
     page.id === pageId
-      ? { ...page, ...patch, updatedAt: new Date().toISOString() }
+      ? { ...page, ...patch, updatedAt: patch.updatedAt ?? new Date().toISOString() }
       : page
   )
 

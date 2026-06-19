@@ -5,6 +5,9 @@ export const pageTypeSchema = z.enum(['blank', 'text', 'board', 'database', 'tas
 export const listPagesQuerySchema = z.object({
   workspaceId: z.string().min(1),
   spaceId: z.string().min(1).optional(),
+  includeContent: z.enum(['true', 'false'])
+    .transform(value => value === 'true')
+    .default(true),
 })
 
 export const createPageSchema = z.object({

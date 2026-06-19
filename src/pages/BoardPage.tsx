@@ -10,8 +10,7 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-import { pagesApi } from '@/api/pages.api'
-import { updateWorkspacePageCache } from '@/data/workspaces'
+import { usePageSaveQueue } from '@/hooks/usePageSaveQueue'
 import { getTldrawLicenseKey } from '@/lib/runtimeConfig'
 import type { WorkspacePage } from '@/types/workspace'
 
@@ -28,7 +27,6 @@ const boardAssetStore: TLAssetStore = {
 
 interface BoardPageProps {
   page: WorkspacePage
-  onChange: (patch: Partial<WorkspacePage>) => void
 }
 
 interface TldrawIndexedDbDump {
@@ -141,36 +139,37 @@ function createSnapshotContent(editor: Editor) {
 export default function BoardPage({ page }: BoardPageProps) {
   const initialSnapshot = useMemo(() => parseBoardSnapshot(page.content), [page.content])
   const licenseKey = getTldrawLicenseKey()
+  const { queueSave, flush } = usePageSaveQueue({
+    page,
+    delay: 0,
+  })
 
   function handleMount(editor: Editor) {
-    let saveTimeout: number | undefined
-    let lastSavedContent = page.content
+    let lastQueuedContent = page.content
+    let saveTimer: number | undefined
+    let hasPendingChanges = false
 
-    const persistSnapshot = async () => {
-      try {
-        const content = createSnapshotContent(editor)
-        if (content === lastSavedContent) return
-
-        await pagesApi.update(page.id, { content })
-        lastSavedContent = content
-        updateWorkspacePageCache(page.id, { content }, { emit: false })
-      } catch (error) {
-        console.error('No se pudo guardar la pizarra en backend.', error)
-      }
+    const queueCurrentSnapshot = () => {
+      hasPendingChanges = false
+      const content = createSnapshotContent(editor)
+      if (content === lastQueuedContent) return
+      lastQueuedContent = content
+      queueSave({ content })
     }
 
     const scheduleSave = () => {
-      window.clearTimeout(saveTimeout)
-      saveTimeout = window.setTimeout(() => {
-        void persistSnapshot()
-      }, BOARD_SAVE_DEBOUNCE_MS)
+      hasPendingChanges = true
+      window.clearTimeout(saveTimer)
+      saveTimer = window.setTimeout(queueCurrentSnapshot, BOARD_SAVE_DEBOUNCE_MS)
     }
 
     const unlisten = editor.store.listen(scheduleSave, { source: 'user', scope: 'document' })
 
     return () => {
-      window.clearTimeout(saveTimeout)
       unlisten()
+      window.clearTimeout(saveTimer)
+      if (hasPendingChanges) queueCurrentSnapshot()
+      void flush()
     }
   }
 

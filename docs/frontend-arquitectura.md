@@ -35,6 +35,8 @@ src/
     mock y persistencia local temporal
 
   hooks/
+    usePages.ts
+    usePageSaveQueue.ts
     useTasks.ts
     useWorkspaces.ts
     useTaskSettings.ts
@@ -85,7 +87,15 @@ Reglas:
 - Mientras dure la migracion, los hooks pueden envolver `localStorage`.
 - Cuando la API este lista, los hooks pueden pasar a usar `api/` sin cambiar toda la UI.
 
-`useTasks` y `useTaskSettings` usan TanStack Query como cache compartida por workspace. Las paginas conservan la misma interfaz de hooks mientras la migracion sigue siendo incremental.
+`useTasks`, `useTaskSettings` y las paginas usan TanStack Query como cache compartida.
+
+Las paginas se dividen en:
+
+- `['pages', workspaceId]`: metadatos sin contenido;
+- `['page', pageId]`: detalle completo de una sola hoja.
+
+`usePageSaveQueue` combina cambios, aplica debounce y evita solicitudes concurrentes
+fuera de orden.
 
 Reglas:
 
@@ -151,8 +161,9 @@ Estado:
 - `LoginPage` autentica contra `/api/auth/login`.
 - El token se guarda en `gt_auth_token`.
 - `AppLayout` intenta sincronizar datos del backend si existe token.
-- `backend-sync.ts` trae `workspaces`, `spaces` y `pages` desde API y los vuelca en `localStorage` temporal.
-- `src/data/workspaces.ts` conserva compatibilidad local y espeja cambios de espacios/paginas al backend.
+- `backend-sync.ts` trae `workspaces`, `spaces` y metadatos de paginas desde API.
+- `gt_workspace_pages` conserva solo metadatos; el contenido se solicita al abrir cada hoja.
+- Las escrituras de contenido actualizan solamente el detalle y el resumen afectados.
 - Tareas y ajustes comparten cache en memoria mediante TanStack Query.
 - La cache considera frescos los datos durante 30 segundos y conserva consultas inactivas durante 10 minutos.
 

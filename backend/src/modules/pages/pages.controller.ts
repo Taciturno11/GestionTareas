@@ -11,7 +11,12 @@ function requireUserId(req: Request) {
 
 export async function list(req: Request, res: Response) {
   const query = validateQuery(req, listPagesQuerySchema)
-  res.json(await pagesService.list(requireUserId(req), query.workspaceId, query.spaceId))
+  res.json(await pagesService.list(
+    requireUserId(req),
+    query.workspaceId,
+    query.spaceId,
+    query.includeContent,
+  ))
 }
 
 export async function get(req: Request, res: Response) {

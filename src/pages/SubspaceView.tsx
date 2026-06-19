@@ -5,25 +5,24 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import PageContainer from '@/components/PageContainer/PageContainer'
 import {
   findWorkspaceSpace,
-  loadWorkspacePages,
   updateWorkspaceSpace,
   WORKSPACE_DATA_CHANGE_EVENT,
 } from '@/data/workspaces'
-import type { WorkspacePage, WorkspaceSpace } from '@/types/workspace'
+import type { WorkspaceSpace } from '@/types/workspace'
+import { usePageSummaries } from '@/hooks/usePages'
 
 export default function SubspaceView() {
   const { spaceId } = useParams()
   const [space, setSpace] = useState<WorkspaceSpace | null>(() => (
     spaceId ? findWorkspaceSpace(spaceId) : null
   ))
-  const [pages, setPages] = useState<WorkspacePage[]>(() => loadWorkspacePages())
+  const { data: pages = [] } = usePageSummaries(space?.workspaceId)
 
   useEffect(() => {
     if (!spaceId) return
 
     const syncSpace = () => {
       setSpace(findWorkspaceSpace(spaceId))
-      setPages(loadWorkspacePages())
     }
 
     syncSpace()

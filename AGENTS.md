@@ -38,11 +38,17 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - `src/pages/`: paginas principales.
 - `src/types/`: tipos compartidos.
 - `docs/adr/`: decisiones arquitectonicas.
+- `docs/bitacora-cambios-gestion-tareas.md`: historial vivo y obligatorio de cambios recientes.
 - `docs/hojas-texto-pizarra.md`: reglas operativas para hojas de texto y pizarra.
 - `docs/plan-migracion-workspaces-proyectos.md`: plan aprobado para workspaces personales y proyectos normalizados.
 
 ## Reglas para cambios
 
+- Leer `docs/bitacora-cambios-gestion-tareas.md` antes de comenzar cualquier cambio para conocer el contexto mas reciente.
+- Actualizar la bitacora al terminar cada implementacion, correccion, cambio documental o despliegue.
+- Agregar las entradas nuevas al inicio de `Cambios recientes` y nunca borrar el historial anterior.
+- Registrar objetivo, cambios, validaciones, despliegue y commit cuando corresponda.
+- No escribir secretos, tokens, contrasenas ni claves sensibles en la bitacora.
 - Leer ADRs antes de cambiar decisiones de arquitectura.
 - Crear ADR nuevo si una decision aprobada cambia o aparece una decision tecnica relevante.
 - No editar ADR antiguo para ocultar historia; solo corregir typos o enlaces.
@@ -82,6 +88,7 @@ npm run lint
 
 - Ejecutar `npm run build` si cambia codigo TypeScript o configuracion.
 - Ejecutar `npm run lint` si cambia logica, componentes o imports.
+- Actualizar `docs/bitacora-cambios-gestion-tareas.md` con el resultado real de la tarea.
 - Actualizar README o ADR si cambia contexto, estructura o decision tecnica.
 
 ## Notas de contexto

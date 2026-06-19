@@ -1,6 +1,108 @@
 # Bitacora de cambios de GESTION_TAREAS
 
-Fecha de cierre de etapa: 2026-06-07
+Documento vivo para conservar el contexto cronologico de los cambios realizados en el proyecto.
+
+## Regla de mantenimiento
+
+- Leer esta bitacora antes de comenzar cualquier implementacion, correccion o despliegue.
+- Registrar cada cambio terminado en la seccion `Cambios recientes`.
+- Agregar las entradas nuevas al inicio, manteniendo orden cronologico inverso.
+- Cada entrada debe indicar como minimo:
+  - fecha;
+  - objetivo;
+  - cambios realizados;
+  - validaciones ejecutadas;
+  - estado del despliegue;
+  - commit, si existe.
+- No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva que explique el reemplazo.
+- No registrar secretos, contrasenas, tokens, claves privadas ni valores sensibles del servidor.
+
+## Plantilla para nuevas entradas
+
+```md
+### AAAA-MM-DD - Titulo breve
+
+- Objetivo:
+- Cambios:
+- Validaciones:
+- Despliegue:
+- Commit:
+```
+
+## Cambios recientes
+
+### 2026-06-18 - Rendimiento de hojas y almacenamiento aislado
+
+- Objetivo: eliminar la lentitud al escribir y evitar cargar o copiar contenido pesado innecesariamente.
+- Cambios:
+  - API separada entre metadatos de paginas y detalle completo;
+  - caches TanStack Query `pages/workspace` y `page/id`;
+  - `gt_workspace_pages` reducido a metadatos;
+  - autoguardado de texto a 800 ms con cola serial, borrador temporal e indicador visual;
+  - snapshot de pizarra generado una vez tras 1.5 segundos de inactividad;
+  - diagramas y paginas actualizan solamente su cache aislada;
+  - listado de workspaces restringido nuevamente a membresias, incluido el administrador;
+  - ADR 0026 y documentacion operativa actualizados.
+- Validaciones:
+  - frontend build y lint;
+  - backend build;
+  - prueba local de API: listado de 32 paginas reducido de 619625 a 6648 bytes (98.93%);
+  - detalle conserva contenido, `PATCH` responde sin contenido y persiste correctamente;
+  - listado de workspaces coincide con las membresias del usuario.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-18 - Bitacora continua obligatoria
+
+- Objetivo: mantener un historial legible de todo cambio futuro y facilitar la continuidad entre chats, agentes y desarrolladores.
+- Cambios:
+  - se convirtio este documento en una bitacora viva;
+  - se definio una plantilla minima para nuevas entradas;
+  - se agrego en `AGENTS.md` la obligacion de leer y actualizar la bitacora.
+- Validaciones: revision documental y comprobacion de enlaces existentes desde README.
+- Despliegue: pendiente; cambio exclusivamente documental.
+- Commit: pendiente.
+
+### 2026-06-18 - Profundidad visual de tarjetas Kanban
+
+- Objetivo: separar visualmente las tarjetas de tareas del fondo sin generar movimiento incomodo.
+- Cambios:
+  - borde de tarjeta aumentado a `slate-300`;
+  - sombra ligera `0 2px 6px`;
+  - hover sin desplazamiento vertical y con sombra moderada.
+- Validaciones: `npm run build` y `npm run lint`.
+- Despliegue: publicado en `agenda.martinnauca.com`; frontend respaldado y `config.js` preservado.
+- Commit: `12cbd3d`.
+
+### 2026-06-18 - Workspaces personales y proyectos normalizados
+
+- Objetivo: separar workspace y proyecto, consolidar los datos de Martin y preparar colaboración futura.
+- Cambios:
+  - entidad PostgreSQL `Project`;
+  - relación segura entre tareas, proyectos y workspace;
+  - `personalWorkspaceId` para usuarios;
+  - API y cache compartida de proyectos;
+  - archivado y restauración de proyectos;
+  - acceso administrativo mediante `Ver workspace`;
+  - registro público desactivado;
+  - placeholders vacíos para proyecto, prioridad y etiqueta;
+  - consolidación de los workspaces históricos de Martin.
+- Validaciones:
+  - frontend build y lint;
+  - backend build;
+  - Prisma validate y migrate status;
+  - pruebas de permisos `200/403`;
+  - auditoría sin proyectos inválidos.
+- Despliegue:
+  - publicado en producción;
+  - Martin conserva 20 espacios, 28 páginas, 15 tareas y 7 proyectos;
+  - los workspaces huérfanos permanecen aislados;
+  - respaldo PostgreSQL: `gestion_tareas_before_projects_20260618205546.dump`.
+- Commits: `f650c81` y `a6c6a1f`.
+
+## Historial anterior
+
+Fecha de cierre de la etapa anterior: 2026-06-07
 
 ## Resumen
 

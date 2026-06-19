@@ -4,6 +4,11 @@ import { useLocation } from 'react-router-dom'
 
 import type { AuthUser } from '@/api/auth.api'
 import { findWorkspacePage, WORKSPACE_DATA_CHANGE_EVENT } from '@/data/workspaces'
+import {
+  PAGE_SAVE_STATUS_EVENT,
+  type PageSaveStatus,
+  type PageSaveStatusDetail,
+} from '@/services/page-save-status'
 import UserMenu from './UserMenu'
 
 const PAGE_TITLES: Record<string, string> = {
@@ -20,6 +25,34 @@ interface HeaderProps {
   onToggleSidebar: () => void
   user: AuthUser | null
   isUserLoading?: boolean
+}
+
+function PageSaveStatusLabel({ pageId }: { pageId: string }) {
+  const [saveStatus, setSaveStatus] = useState<PageSaveStatus>('idle')
+
+  useEffect(() => {
+    const syncSaveStatus = (event: Event) => {
+      const detail = (event as CustomEvent<PageSaveStatusDetail>).detail
+      if (detail.pageId === pageId) setSaveStatus(detail.status)
+    }
+
+    window.addEventListener(PAGE_SAVE_STATUS_EVENT, syncSaveStatus)
+    return () => window.removeEventListener(PAGE_SAVE_STATUS_EVENT, syncSaveStatus)
+  }, [pageId])
+
+  const saveStatusLabel = {
+    idle: 'Guardado',
+    dirty: 'Cambios sin guardar',
+    saving: 'Guardando…',
+    saved: 'Guardado',
+    error: 'Error al guardar',
+  }[saveStatus]
+
+  return (
+    <span className={`text-[12px] ${saveStatus === 'error' ? 'text-red-600' : ''}`}>
+      {saveStatusLabel}
+    </span>
+  )
 }
 
 export default function Header({ collapsed, onToggleSidebar, user, isUserLoading = false }: HeaderProps) {
@@ -69,7 +102,9 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
       </div>
 
       <div className="flex min-w-0 items-center gap-3" style={{ color: 'var(--color-text-muted)' }}>
-        <span className="text-[12px]">Editado hace 2 min</span>
+        {dynamicPageId
+          ? <PageSaveStatusLabel key={dynamicPageId} pageId={dynamicPageId} />
+          : <span className="text-[12px]">Editado hace 2 min</span>}
         <button
           className="rounded-md px-3 py-1 text-[13px] font-medium transition-colors hover:bg-gray-100"
           style={{ color: 'var(--color-text-secondary)' }}
