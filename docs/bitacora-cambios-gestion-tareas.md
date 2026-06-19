@@ -48,9 +48,21 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - backend build;
   - prueba local de API: listado de 32 paginas reducido de 619625 a 6648 bytes (98.93%);
   - detalle conserva contenido, `PATCH` responde sin contenido y persiste correctamente;
-  - listado de workspaces coincide con las membresias del usuario.
-- Despliegue: pendiente.
-- Commit: pendiente.
+  - listado de workspaces coincide con las membresias del usuario;
+  - produccion: listado de 34 paginas reducido de 4685774 a 7089 bytes;
+  - prueba de humo `POST/PATCH/GET/DELETE` exitosa;
+  - jerarquia `Relampago -> Repaso -> prueba` y contenido conservados;
+  - web y backend responden `200`;
+  - monitor idempotente ejecutado dos veces sin crear copias de chunks.
+- Despliegue:
+  - backend compatible publicado antes que el frontend;
+  - frontend publicado preservando exactamente `config.js`;
+  - no se modifico `TLDRAW_LICENSE_KEY`;
+  - respaldo PostgreSQL `gestion_tareas_before_page_performance_20260618225820.dump`;
+  - politica aplicada: 2 releases, 1 rollback frontend, 1 rollback backend y 3 respaldos PostgreSQL;
+  - limpieza de copias y respaldos antiguos libero aproximadamente 2.98 GB;
+  - monitor temporal activo cada cinco minutos hasta el 2026-06-19 23:04, hora de Lima.
+- Commits: `57680df`, `55c4258` y `fd447d8`.
 
 ### 2026-06-18 - Bitacora continua obligatoria
 
@@ -60,8 +72,8 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - se definio una plantilla minima para nuevas entradas;
   - se agrego en `AGENTS.md` la obligacion de leer y actualizar la bitacora.
 - Validaciones: revision documental y comprobacion de enlaces existentes desde README.
-- Despliegue: pendiente; cambio exclusivamente documental.
-- Commit: pendiente.
+- Despliegue: incorporado al repositorio junto con la mejora de rendimiento.
+- Commit: `57680df`.
 
 ### 2026-06-18 - Profundidad visual de tarjetas Kanban
 
