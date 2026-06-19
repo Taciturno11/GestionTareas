@@ -73,6 +73,6 @@ un workspace ajeno mediante un contexto administrativo explicito y consulta por 
 - El monitor del chunk procesa cada archivo generado una sola vez mediante estado.
 - Produccion conserva el release actual y el anterior, un rollback inmediato de
   frontend/backend y los tres respaldos PostgreSQL mas recientes.
+- Los scripts operativos versionados viven en `ops/production/`.
 - Los respaldos operativos no restauran contenido que un usuario elimino
   voluntariamente.
-
