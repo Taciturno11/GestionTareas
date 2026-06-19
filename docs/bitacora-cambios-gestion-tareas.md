@@ -40,9 +40,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - respuestas anteriores ya no reemplazan el titulo local que sigue editandose;
   - el backend acepta titulo vacio en actualizaciones;
   - `Pagina sin titulo` queda como placeholder y etiqueta visual, no como valor forzado.
-- Validaciones: frontend build y lint; backend build; API local confirma que el titulo vacio se persiste como `""`.
-- Despliegue: pendiente.
-- Commit: pendiente.
+- Validaciones:
+  - frontend build y lint;
+  - backend build;
+  - API local y produccion confirman que el titulo vacio se persiste como `""`;
+  - web y backend responden `200`;
+  - `config.js` preservado y cero copias automaticas del chunk.
+- Despliegue: publicado en `agenda.martinnauca.com` el 2026-06-18; backend y frontend actualizados.
+- Commit: `f3c3bff`.
 
 ### 2026-06-18 - Rendimiento de hojas y almacenamiento aislado
 
