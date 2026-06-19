@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 
 import { pagesApi } from '@/api/pages.api'
 import {
@@ -40,7 +41,7 @@ export function usePage(pageId?: string) {
 export function usePageCache() {
   const queryClient = useQueryClient()
 
-  function updateSummary(summary: WorkspacePageSummary) {
+  const updateSummary = useCallback((summary: WorkspacePageSummary) => {
     updateWorkspacePageSummaryCache(summary.id, summary, { emit: true })
     queryClient.setQueryData<WorkspacePageSummary[]>(
       pageSummariesKey(summary.workspaceId),
@@ -52,22 +53,22 @@ export function usePageCache() {
           : [...current, summary]
       },
     )
-  }
+  }, [queryClient])
 
-  function updateDetail(pageId: string, patch: Partial<WorkspacePage>) {
+  const updateDetail = useCallback((pageId: string, patch: Partial<WorkspacePage>) => {
     queryClient.setQueryData<WorkspacePage>(
       pageDetailKey(pageId),
       current => current ? { ...current, ...patch } : current,
     )
-  }
+  }, [queryClient])
 
-  function removePage(pageId: string, workspaceId: string) {
+  const removePage = useCallback((pageId: string, workspaceId: string) => {
     queryClient.removeQueries({ queryKey: pageDetailKey(pageId) })
     queryClient.setQueryData<WorkspacePageSummary[]>(
       pageSummariesKey(workspaceId),
       current => current?.filter(page => page.id !== pageId) ?? [],
     )
-  }
+  }, [queryClient])
 
   return { updateSummary, updateDetail, removePage }
 }

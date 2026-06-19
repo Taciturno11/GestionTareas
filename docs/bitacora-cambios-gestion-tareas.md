@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-18 - Correccion de escritura rapida en titulos
+
+- Objetivo: respetar escritura rapida y permitir titulos vacios sin solicitudes por caracter.
+- Cambios:
+  - callbacks de cache y autoguardado estabilizados entre renders;
+  - la limpieza del efecto deja de ejecutar `flush` por cada tecla;
+  - respuestas anteriores ya no reemplazan el titulo local que sigue editandose;
+  - el backend acepta titulo vacio en actualizaciones;
+  - `Pagina sin titulo` queda como placeholder y etiqueta visual, no como valor forzado.
+- Validaciones: frontend build y lint; backend build; API local confirma que el titulo vacio se persiste como `""`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-18 - Rendimiento de hojas y almacenamiento aislado
 
 - Objetivo: eliminar la lentitud al escribir y evitar cargar o copiar contenido pesado innecesariamente.

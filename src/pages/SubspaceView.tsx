@@ -82,7 +82,7 @@ export default function SubspaceView() {
                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-[14px] text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950"
               >
                 <DocumentTextIcon className="h-4 w-4 shrink-0 text-gray-400" />
-                <span className="truncate">{page.title}</span>
+                <span className="truncate">{page.title || 'Página sin título'}</span>
               </Link>
             ))}
           </div>

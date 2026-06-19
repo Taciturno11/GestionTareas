@@ -21,7 +21,7 @@ export const createPageSchema = z.object({
 
 export const updatePageSchema = z.object({
   spaceId: z.string().min(1).optional(),
-  title: z.string().min(1).max(200).optional(),
+  title: z.string().max(200).optional(),
   type: pageTypeSchema.optional(),
   content: z.string().optional(),
 })

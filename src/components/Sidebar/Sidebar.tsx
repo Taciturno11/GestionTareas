@@ -537,7 +537,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                                         className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
                                       />
                                     ) : (
-                                      <span className="truncate">{page.title}</span>
+                                      <span className="truncate">{page.title || 'Página sin título'}</span>
                                     )}
                                   </NavLink>
 
@@ -599,7 +599,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                               className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
                             />
                           ) : (
-                            <span className="truncate">{page.title}</span>
+                            <span className="truncate">{page.title || 'Página sin título'}</span>
                           )}
                         </NavLink>
 
@@ -667,7 +667,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                       className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
                     />
                   ) : (
-                    <span className="truncate">{page.title}</span>
+                    <span className="truncate">{page.title || 'Página sin título'}</span>
                   )}
                 </NavLink>
 

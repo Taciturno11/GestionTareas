@@ -35,7 +35,8 @@ Reglas:
 - Titulo y contenido pendientes se combinan en una sola solicitud.
 - Solo puede existir una solicitud de guardado activa por hoja.
 - Al perder foco, cambiar de ruta o ocultar la pestana se intenta guardar inmediatamente.
-- Un titulo vacio se normaliza a `Pagina sin titulo`.
+- Un titulo vacio se conserva como valor vacio.
+- `Pagina sin titulo` se muestra solamente como placeholder o etiqueta visual.
 - La cabecera informa `Cambios sin guardar`, `Guardando`, `Guardado` o `Error al guardar`.
 - Un error conserva un borrador pequeno en `gt_text_draft:<pageId>`.
 - Si el servidor cambio desde la version base, el borrador no se aplica automaticamente.

@@ -71,13 +71,6 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
     page,
     delay: isTextPage ? 800 : 900,
     keepTextDraft: isTextPage,
-    onSaved: (summary, patch) => {
-      setPage(current => ({
-        ...current,
-        ...patch,
-        ...summary,
-      }))
-    },
   })
 
   useEffect(() => {

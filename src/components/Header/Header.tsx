@@ -60,7 +60,7 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
   const [, setWorkspaceDataVersion] = useState(0)
   const dynamicPageId = pathname.startsWith('/p/') ? pathname.replace('/p/', '') : null
   const pageTitle = dynamicPageId
-    ? findWorkspacePage(dynamicPageId)?.title ?? 'Pagina'
+    ? findWorkspacePage(dynamicPageId)?.title || 'Página sin título'
     : PAGE_TITLES[pathname] ?? 'Pagina'
 
   useEffect(() => {

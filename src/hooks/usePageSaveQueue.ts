@@ -58,13 +58,17 @@ export function usePageSaveQueue({
   const inFlightRef = useRef(false)
   const flushAgainRef = useRef(false)
   const mountedRef = useRef(true)
+  const onStatusChangeRef = useRef(onStatusChange)
+  const onSavedRef = useRef(onSaved)
 
   pageRef.current = page
+  onStatusChangeRef.current = onStatusChange
+  onSavedRef.current = onSaved
 
   const setStatus = useCallback((status: PageSaveStatus) => {
     publishPageSaveStatus({ pageId: pageRef.current.id, status })
-    onStatusChange?.(status)
-  }, [onStatusChange])
+    onStatusChangeRef.current?.(status)
+  }, [])
 
   const persistDraft = useCallback((patch: UpdatePageRequest) => {
     if (!keepTextDraft) return
@@ -90,8 +94,6 @@ export function usePageSaveQueue({
 
     const patch = pendingRef.current
     pendingRef.current = {}
-    if ('title' in patch && !patch.title?.trim()) patch.title = 'Página sin título'
-
     inFlightRef.current = true
     setStatus('saving')
     let savedSuccessfully = false
@@ -101,7 +103,7 @@ export function usePageSaveQueue({
       baseUpdatedAtRef.current = summary.updatedAt
       updateSummary(summary)
       updateDetail(summary.id, { ...patch, ...summary })
-      if (mountedRef.current) onSaved?.(summary, patch)
+      if (mountedRef.current) onSavedRef.current?.(summary, patch)
 
       if (!Object.keys(pendingRef.current).length && keepTextDraft) {
         discardTextPageDraft(summary.id)
@@ -127,7 +129,6 @@ export function usePageSaveQueue({
     }
   }, [
     keepTextDraft,
-    onSaved,
     persistDraft,
     setStatus,
     updateDetail,

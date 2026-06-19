@@ -48,6 +48,11 @@ El guardado se aisla por pagina:
 - diagrama BD: guardado debounced de su propia pagina;
 - cambio de foco, ruta o visibilidad intenta vaciar la cola pendiente.
 
+La identidad de la cola y sus efectos permanece estable durante los renders del
+editor. Una respuesta de guardado actualiza caches y metadatos, pero no reemplaza
+el valor local que el usuario continua escribiendo. Los titulos vacios se persisten
+como vacios y `Pagina sin titulo` es solo una representacion visual.
+
 Los borradores locales se permiten unicamente para texto y usan
 `gt_text_draft:<pageId>`. Una pizarra no genera copias ni borradores automaticos.
 
