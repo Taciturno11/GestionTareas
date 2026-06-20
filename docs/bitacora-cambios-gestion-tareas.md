@@ -31,6 +31,25 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-20 - Continuidad entre laptops y despliegue documentado
+
+- Objetivo: permitir clonar, continuar y desplegar el proyecto desde otra laptop sin versionar secretos.
+- Cambios:
+  - se creo una guia unica de GitHub, entorno local, SSH, produccion, backups, migraciones, health checks y rollback;
+  - se documentaron las rutas y servicios reales de produccion;
+  - README, guia de laptop nueva y contexto de agentes enlazan el nuevo procedimiento;
+  - `.gitignore` protege archivos `.env` generales y conserva las plantillas versionadas.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`;
+  - `backend/npm run prisma:migrate:deploy`, sin migraciones pendientes;
+  - acceso SSH por llave y servicios `gestion-tareas-backend`/Nginx activos;
+  - health checks local del servidor y publico con respuesta `200`;
+  - revision de diff y escaneo documental sin secretos.
+- Despliegue: no aplica; cambio local documental.
+- Commit principal: `25d9423`.
+
 ### 2026-06-18 - Correccion de escritura rapida en titulos
 
 - Objetivo: respetar escritura rapida y permitir titulos vacios sin solicitudes por caracter.
