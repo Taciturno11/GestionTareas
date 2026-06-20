@@ -2,6 +2,9 @@
 
 Esta guia permite clonar el proyecto, instalar dependencias, crear la base local y restaurar los datos validados. No incluye backups ni secretos reales porque esos archivos no deben subirse a GitHub.
 
+Para configurar GitHub, acceso SSH y despliegues de produccion, continuar con
+`docs/guia-continuidad-y-despliegue-produccion.md`.
+
 ## A. Requisitos
 
 - Git
@@ -253,3 +256,14 @@ http://localhost:4000/api
 ```
 
 El backend usa CORS simple con origen libre para desarrollo.
+
+## O. Continuar y desplegar desde esta laptop
+
+Cuando el entorno local ya funcione, seguir la guia:
+
+```text
+docs/guia-continuidad-y-despliegue-produccion.md
+```
+
+Esa guia documenta acceso de escritura a GitHub, llave SSH independiente,
+backups, despliegue, migraciones, health checks y rollback.

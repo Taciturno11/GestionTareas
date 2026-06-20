@@ -18,6 +18,7 @@ Aplicacion web full-stack de productividad tipo workspace para gestionar espacio
 - Resumen de implementacion full-stack: [docs/resumen-implementacion-2026-05-19.md](./docs/resumen-implementacion-2026-05-19.md).
 - Guia para clonar y ejecutar: [docs/guia-clonar-y-ejecutar.md](./docs/guia-clonar-y-ejecutar.md).
 - Guia para instalar en otra laptop: [docs/guia-instalar-en-nueva-laptop.md](./docs/guia-instalar-en-nueva-laptop.md).
+- Continuidad entre laptops y despliegue seguro: [docs/guia-continuidad-y-despliegue-produccion.md](./docs/guia-continuidad-y-despliegue-produccion.md).
 - Bitacora de cambios recientes: [docs/bitacora-cambios-gestion-tareas.md](./docs/bitacora-cambios-gestion-tareas.md).
 - Contexto para agentes IA: [AGENTS.md](./AGENTS.md).
 
