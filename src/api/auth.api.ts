@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string
   name: string
   role: UserRole
+  avatarUrl: string | null
   personalWorkspaceId: string | null
 }
 

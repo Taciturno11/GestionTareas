@@ -7,6 +7,8 @@ import { env } from './config/env.js'
 import { errorMiddleware } from './middlewares/error.middleware.js'
 import adminUsersRoutes from './modules/admin-users/admin-users.routes.js'
 import authRoutes from './modules/auth/auth.routes.js'
+import friendRequestsRoutes from './modules/friends/friend-requests.routes.js'
+import friendsRoutes from './modules/friends/friends.routes.js'
 import pagesRoutes from './modules/pages/pages.routes.js'
 import projectsRoutes from './modules/projects/projects.routes.js'
 import sharedSpacesRoutes from './modules/shared-spaces/shared-spaces.routes.js'
@@ -38,6 +40,8 @@ export function createApp() {
 
   app.use(`${API_PREFIX}/auth`, authRoutes)
   app.use(`${API_PREFIX}/admin`, adminUsersRoutes)
+  app.use(`${API_PREFIX}/friends`, friendsRoutes)
+  app.use(`${API_PREFIX}/friend-requests`, friendRequestsRoutes)
   app.use(`${API_PREFIX}/users`, usersRoutes)
   app.use(`${API_PREFIX}/workspaces`, workspacesRoutes)
   app.use(`${API_PREFIX}/shared-spaces`, sharedSpacesRoutes)

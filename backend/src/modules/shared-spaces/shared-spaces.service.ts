@@ -1,5 +1,6 @@
 import { assertSpaceShareManager } from '../../shared/utils/access.js'
 import { HttpError } from '../../shared/utils/http-error.js'
+import * as friendsService from '../friends/friends.service.js'
 import type { CreateSpaceShareDto, UpdateSpaceShareDto } from './shared-spaces.dto.js'
 import * as repository from './shared-spaces.repository.js'
 
@@ -74,6 +75,9 @@ export async function create(userId: string, spaceId: string, dto: CreateSpaceSh
   const targetMembership = await repository.findWorkspaceMember(dto.userId, space.workspaceId)
   if (targetMembership) throw new HttpError(400, 'User is already a workspace member')
 
+  const areFriends = await friendsService.areFriends(userId, dto.userId)
+  if (!areFriends) throw new HttpError(403, 'Solo puedes compartir espacios con amigos')
+
   const existing = await repository.findBySpaceAndUser(spaceId, dto.userId)
   if (existing) throw new HttpError(409, 'Space already shared with this user')
 
@@ -93,4 +97,3 @@ export async function remove(userId: string, spaceId: string, shareId: string) {
   if (!share || share.spaceId !== spaceId) throw new HttpError(404, 'Space share not found')
   return repository.remove(shareId)
 }
-

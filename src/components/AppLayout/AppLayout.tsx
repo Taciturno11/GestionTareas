@@ -15,7 +15,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces'
  */
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
-  const { user, isLoading: isUserLoading } = useCurrentUser()
+  const { user, isLoading: isUserLoading, refreshUser } = useCurrentUser()
   const { setActiveWorkspaceId } = useWorkspaces()
   const adminContext = (() => {
     try {
@@ -45,7 +45,7 @@ export default function AppLayout() {
       className="flex h-screen overflow-hidden font-sans text-[14px]"
       style={{ background: 'var(--color-bg-app)' }}
     >
-      <Sidebar collapsed={collapsed} />
+      <Sidebar collapsed={collapsed} currentUserId={user?.id ?? null} />
 
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header
@@ -53,6 +53,7 @@ export default function AppLayout() {
           onToggleSidebar={() => setCollapsed(prev => !prev)}
           user={user}
           isUserLoading={isUserLoading}
+          onUserUpdated={refreshUser}
         />
 
         {/* Área de contenido: flex-1 + overflow-hidden para que

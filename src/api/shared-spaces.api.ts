@@ -29,6 +29,7 @@ function normalizeUser(value: unknown): PublicUser {
     email: String(user.email ?? ''),
     name: String(user.name ?? ''),
     role: String(user.role ?? 'usuario'),
+    avatarUrl: typeof user.avatarUrl === 'string' ? user.avatarUrl : null,
   }
 }
 
@@ -51,6 +52,7 @@ function normalizeSharedSpace(value: unknown): SharedSpace {
     role: normalizeRole(shared.role),
     rootSpaceId: String(shared.rootSpaceId ?? ''),
     workspace: normalizeWorkspace(shared.workspace),
+    createdBy: normalizeUser(shared.createdBy),
     spaces: expectArray<unknown>(shared.spaces, 'shared spaces').map(normalizeSpace),
     pages: expectArray<unknown>(shared.pages, 'shared pages').map(normalizePageSummary),
     createdAt: String(shared.createdAt ?? ''),
@@ -74,4 +76,3 @@ export const sharedSpacesApi = {
   removeShare: (spaceId: string, shareId: string) =>
     http<void>(`/spaces/${spaceId}/shares/${shareId}`, { method: 'DELETE' }),
 }
-

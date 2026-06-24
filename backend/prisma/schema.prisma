@@ -17,6 +17,13 @@ enum SpaceShareRole {
   EDITOR
 }
 
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
+}
+
 enum PageType {
   BLANK
   TEXT
@@ -31,15 +38,48 @@ model User {
   name                String
   role                String            @default("usuario")
   passwordHash        String
+  avatarUrl           String?
   personalWorkspaceId String?           @unique
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   personalWorkspace   Workspace?        @relation("PersonalWorkspace", fields: [personalWorkspaceId], references: [id], onDelete: SetNull)
   memberships         WorkspaceMember[]
+  sentFriendRequests  FriendRequest[]   @relation("FriendRequestRequester")
+  receivedFriendRequests FriendRequest[] @relation("FriendRequestRecipient")
+  friendshipsA        Friendship[]       @relation("FriendshipUserA")
+  friendshipsB        Friendship[]       @relation("FriendshipUserB")
   spaceShares         SpaceShare[]      @relation("SpaceShareUser")
   spaceSharesCreated  SpaceShare[]      @relation("SpaceShareCreator")
   tasksCreated        Task[]            @relation("TaskCreatedBy")
   tasksAssigned       Task[]            @relation("TaskAssignedTo")
+}
+
+model FriendRequest {
+  id          String              @id @default(cuid())
+  requesterId String
+  recipientId String
+  status      FriendRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  respondedAt DateTime?
+  requester   User                @relation("FriendRequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  recipient   User                @relation("FriendRequestRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([requesterId, status])
+  @@index([recipientId, status])
+  @@index([requesterId, recipientId])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+  userA     User     @relation("FriendshipUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB     User     @relation("FriendshipUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
 }
 
 model Workspace {

@@ -5,6 +5,7 @@ export interface PublicAuthUser {
   email: string
   name: string
   role: UserRole | string
+  avatarUrl: string | null
   personalWorkspaceId: string | null
 }
 

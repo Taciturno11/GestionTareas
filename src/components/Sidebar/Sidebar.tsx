@@ -36,9 +36,10 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { pagesApi } from '@/api/pages.api'
+import { friendsApi, friendsKeys } from '@/api/friends.api'
 import { sharedSpacesApi, type SpaceShareRole } from '@/api/shared-spaces.api'
 import { spacesApi } from '@/api/spaces.api'
-import { usersApi, type PublicUser } from '@/api/users.api'
+import type { PublicUser } from '@/api/users.api'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   createWorkspaceSpace,
@@ -65,6 +66,7 @@ const NAVIGATION = [
   { label: 'Inicio', icon: HomeIcon, to: '/' },
   { label: 'Mis tareas', icon: ClipboardDocumentListIcon, to: '/tareas' },
   { label: 'Calendario', icon: CalendarDaysIcon, to: '/calendario' },
+  { label: 'Amigos', icon: UserGroupIcon, to: '/amigos' },
   { label: 'Ajustes', icon: Cog6ToothIcon, to: '/ajustes' },
 ]
 
@@ -113,6 +115,38 @@ function getPageIcon(page: WorkspacePageSummary) {
   return DocumentTextIcon
 }
 
+function getUserInitials(user: PublicUser) {
+  const source = user.name?.trim() || user.email?.trim() || 'U'
+  return source
+    .split(/\s+/)
+    .map(part => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function SharedByAvatar({ user }: { user: PublicUser }) {
+  if (user.avatarUrl) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.name}
+        title={`Compartido por ${user.name}`}
+        className="h-4 w-4 shrink-0 rounded-full border border-white object-cover shadow-[0_0_0_1px_rgba(17,24,39,0.12)]"
+      />
+    )
+  }
+
+  return (
+    <span
+      title={`Compartido por ${user.name}`}
+      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white bg-indigo-50 text-[7px] font-bold text-indigo-600 shadow-[0_0_0_1px_rgba(17,24,39,0.12)]"
+    >
+      {getUserInitials(user)}
+    </span>
+  )
+}
+
 function SharedSpaceTree({
   shared,
   space,
@@ -123,6 +157,7 @@ function SharedSpaceTree({
   onCreateSpace,
   onDeletePage,
   onDeleteSpace,
+  onOpenMenu,
 }: {
   shared: SharedSpace
   space: WorkspaceSpace
@@ -133,6 +168,7 @@ function SharedSpaceTree({
   onCreateSpace: (shared: SharedSpace, space: WorkspaceSpace) => void
   onDeletePage: (shared: SharedSpace, page: WorkspacePageSummary) => void
   onDeleteSpace: (shared: SharedSpace, space: WorkspaceSpace) => void
+  onOpenMenu: (shared: SharedSpace, space: WorkspaceSpace, x: number, y: number) => void
 }) {
   const children = spaces.filter(child => child.parentId === space.id)
   const spacePages = pages.filter(page => page.spaceId === space.id)
@@ -155,6 +191,11 @@ function SharedSpaceTree({
     <div className={level ? 'mt-0.5 pl-4' : 'mb-2'}>
       <NavLink
         to={firstPage ? `/p/${firstPage.id}` : '/'}
+        onContextMenu={event => {
+          if (!canEdit) return
+          event.preventDefault()
+          onOpenMenu(shared, space, event.clientX, event.clientY)
+        }}
         className={({ isActive }) => {
           return `group/shared-space flex min-w-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-left text-[13px] transition-colors ${
             isActive ? 'nav-active' : 'hover:bg-gray-100'
@@ -164,6 +205,7 @@ function SharedSpaceTree({
           color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
         })}
       >
+        {level === 0 && <SharedByAvatar user={shared.createdBy} />}
         <SpaceIcon className="h-3.5 w-3.5 shrink-0" style={{ color: space.iconColor ?? '#6472EB' }} />
         <span className="truncate">{space.name}</span>
         {canEdit && (
@@ -255,6 +297,7 @@ function SharedSpaceTree({
             onCreateSpace={onCreateSpace}
             onDeletePage={onDeletePage}
             onDeleteSpace={onDeleteSpace}
+            onOpenMenu={onOpenMenu}
           />
         ))}
       </div>
@@ -264,16 +307,17 @@ function SharedSpaceTree({
 
 interface SidebarProps {
   collapsed: boolean
+  currentUserId?: string | null
 }
 
-export default function Sidebar({ collapsed }: SidebarProps) {
+export default function Sidebar({ collapsed, currentUserId = null }: SidebarProps) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => loadWorkspaces())
   const [spaces, setSpaces] = useState<WorkspaceSpace[]>(() => loadWorkspaceSpaces())
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => loadActiveWorkspaceId())
   const { data: pages = [] } = usePageSummaries(activeWorkspaceId)
-  const { data: sharedSpaces = [] } = useSharedSpaces()
+  const { data: sharedSpaces = [] } = useSharedSpaces(currentUserId)
   const refreshSharedSpaces = useRefreshSharedSpaces()
   const { updateSummary, removePage } = usePageCache()
   const [isCreateSpaceOpen, setIsCreateSpaceOpen] = useState(false)
@@ -296,6 +340,12 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     x: number
     y: number
   } | null>(null)
+  const [sharedSpaceMenu, setSharedSpaceMenu] = useState<{
+    shared: SharedSpace
+    space: WorkspaceSpace
+    x: number
+    y: number
+  } | null>(null)
   const [pageMenu, setPageMenu] = useState<{
     page: WorkspacePageSummary
     x: number
@@ -305,13 +355,13 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   const [pageDraftTitle, setPageDraftTitle] = useState('')
   const [sharingSpace, setSharingSpace] = useState<WorkspaceSpace | null>(null)
   const [shareSearch, setShareSearch] = useState('')
+  const [isShareFriendPickerOpen, setIsShareFriendPickerOpen] = useState(false)
   const [selectedShareUser, setSelectedShareUser] = useState<PublicUser | null>(null)
   const [shareRole, setShareRole] = useState<SpaceShareRole>('VIEWER')
 
-  const { data: shareCandidates = [] } = useQuery({
-    queryKey: ['users-search', shareSearch],
-    queryFn: () => usersApi.search(shareSearch),
-    enabled: Boolean(sharingSpace && shareSearch.trim().length >= 2),
+  const { data: friends = [] } = useQuery({
+    queryKey: friendsKeys.list(''),
+    queryFn: () => friendsApi.list(),
     staleTime: 30 * 1000,
   })
   const {
@@ -322,6 +372,14 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     queryFn: () => sharedSpacesApi.listShares(sharingSpace!.id),
     enabled: Boolean(sharingSpace),
   })
+  const shareCandidates = friends
+    .map(friendship => friendship.friend)
+    .filter(friend => {
+      const query = shareSearch.trim().toLowerCase()
+      if (!query) return true
+      return friend.name.toLowerCase().includes(query) || friend.email.toLowerCase().includes(query)
+    })
+    .filter(friend => !sharingSpaceShares.some(share => share.user.id === friend.id))
 
   useEffect(() => {
     const syncWorkspaceData = () => {
@@ -335,11 +393,12 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   }, [])
 
   useEffect(() => {
-    if (!spaceMenu && !subspaceMenu && !pageMenu) return
+    if (!spaceMenu && !subspaceMenu && !sharedSpaceMenu && !pageMenu) return
 
     const closeMenu = () => {
       setSpaceMenu(null)
       setSubspaceMenu(null)
+      setSharedSpaceMenu(null)
       setPageMenu(null)
     }
     const closeWithEscape = (event: KeyboardEvent) => {
@@ -353,7 +412,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       window.removeEventListener('click', closeMenu)
       window.removeEventListener('keydown', closeWithEscape)
     }
-  }, [spaceMenu, subspaceMenu, pageMenu])
+  }, [spaceMenu, subspaceMenu, sharedSpaceMenu, pageMenu])
 
   const activeWorkspace = workspaces.find(workspace => workspace.id === activeWorkspaceId) ?? workspaces[0]
   const activePages = pages.filter(page => page.workspaceId === activeWorkspace?.id)
@@ -422,6 +481,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   function openShareSpace(space: WorkspaceSpace) {
     setSharingSpace(space)
     setShareSearch('')
+    setIsShareFriendPickerOpen(false)
     setSelectedShareUser(null)
     setShareRole('VIEWER')
   }
@@ -433,6 +493,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       role: shareRole,
     })
     setShareSearch('')
+    setIsShareFriendPickerOpen(false)
     setSelectedShareUser(null)
     await refetchSharingSpaceShares()
   }
@@ -873,7 +934,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                 className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-widest"
                 style={{ color: 'var(--color-text-muted)' }}
               >
-                Compartidos conmigo
+                Compartido
               </p>
               {sharedSpaces.map(shared => {
                 const rootSpace = shared.spaces.find(space => space.id === shared.rootSpaceId)
@@ -881,9 +942,6 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
                 return (
                   <div key={shared.id}>
-                    <div className="px-3 pb-1 text-[11px] text-gray-400">
-                      {shared.workspace.name} · {shared.role === 'EDITOR' ? 'Puede editar' : 'Solo lectura'}
-                    </div>
                     <SharedSpaceTree
                       shared={shared}
                       space={rootSpace}
@@ -893,6 +951,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                       onCreateSpace={handleCreateSharedSpace}
                       onDeletePage={handleDeleteSharedPage}
                       onDeleteSpace={handleDeleteSharedSpace}
+                      onOpenMenu={(sharedSpace, space, x, y) => setSharedSpaceMenu({ shared: sharedSpace, space, x, y })}
                     />
                   </div>
                 )
@@ -1209,6 +1268,75 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         </div>
       )}
 
+      {sharedSpaceMenu && (
+        <div
+          className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
+          style={{
+            left: Math.min(sharedSpaceMenu.x, window.innerWidth - 188),
+            top: Math.min(sharedSpaceMenu.y, window.innerHeight - 218),
+          }}
+          onClick={event => event.stopPropagation()}
+          onContextMenu={event => event.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              void handleCreateSharedSpace(sharedSpaceMenu.shared, sharedSpaceMenu.space)
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <FolderIcon className="h-4 w-4" />
+            Agregar subespacio
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void handleCreateSharedPage(sharedSpaceMenu.shared, sharedSpaceMenu.space, 'text')
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <DocumentTextIcon className="h-4 w-4" />
+            Agregar texto
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void handleCreateSharedPage(sharedSpaceMenu.shared, sharedSpaceMenu.space, 'board')
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PaintBrushIcon className="h-4 w-4" />
+            Agregar pizarra
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void handleCreateSharedPage(sharedSpaceMenu.shared, sharedSpaceMenu.space, 'database')
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <CircleStackIcon className="h-4 w-4" />
+            Agregar diagrama BD
+          </button>
+          <div className="my-1 h-px bg-gray-100" />
+          <button
+            type="button"
+            onClick={() => {
+              void handleDeleteSharedSpace(sharedSpaceMenu.shared, sharedSpaceMenu.space)
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-red-600 transition-colors hover:bg-red-50"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Borrar
+          </button>
+        </div>
+      )}
+
       {pageMenu && (
         <div
           className="fixed z-[95] w-40 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
@@ -1265,26 +1393,38 @@ export default function Sidebar({ collapsed }: SidebarProps) {
 
             <div className="mt-4 rounded-lg border border-gray-200 p-3">
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                Buscar usuario existente
+                Buscar amigo
               </label>
               <input
                 value={shareSearch}
+                onMouseDown={() => setIsShareFriendPickerOpen(true)}
+                onFocus={() => setIsShareFriendPickerOpen(true)}
+                onClick={() => {
+                  setSelectedShareUser(null)
+                  setIsShareFriendPickerOpen(true)
+                }}
+                onBlur={() => {
+                  window.setTimeout(() => setIsShareFriendPickerOpen(false), 120)
+                }}
                 onChange={event => {
                   setShareSearch(event.target.value)
                   setSelectedShareUser(null)
+                  setIsShareFriendPickerOpen(true)
                 }}
-                placeholder="Nombre o correo"
+                placeholder="Nombre o correo de tu amigo"
                 className="cursor-text-dark h-9 w-full rounded-lg border border-gray-200 px-3 text-[13px] text-gray-800 caret-gray-900 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
               />
-              {shareCandidates.length > 0 && !selectedShareUser && (
+              {isShareFriendPickerOpen && shareCandidates.length > 0 && !selectedShareUser && (
                 <div className="mt-2 max-h-36 overflow-y-auto rounded-lg border border-gray-100">
                   {shareCandidates.map(user => (
                     <button
                       key={user.id}
                       type="button"
-                      onClick={() => {
+                      onMouseDown={event => {
+                        event.preventDefault()
                         setSelectedShareUser(user)
                         setShareSearch(`${user.name} · ${user.email}`)
+                        setIsShareFriendPickerOpen(false)
                       }}
                       className="block w-full px-3 py-2 text-left text-[12px] hover:bg-gray-50"
                     >
@@ -1293,6 +1433,16 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                     </button>
                   ))}
                 </div>
+              )}
+              {isShareFriendPickerOpen && !selectedShareUser && friends.length === 0 && (
+                <p className="mt-2 rounded-lg border border-dashed border-gray-200 p-3 text-[12px] text-gray-400">
+                  Agrega amigos desde la sección Amigos para poder compartir espacios.
+                </p>
+              )}
+              {isShareFriendPickerOpen && !selectedShareUser && friends.length > 0 && shareCandidates.length === 0 && (
+                <p className="mt-2 rounded-lg border border-dashed border-gray-200 p-3 text-[12px] text-gray-400">
+                  No encontramos amigos disponibles con ese texto.
+                </p>
               )}
               <div className="mt-3 flex items-center gap-2">
                 <select

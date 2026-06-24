@@ -9,6 +9,7 @@ const AjustesPage = lazy(() => import('./pages/AjustesPage'))
 const ArchivePage = lazy(() => import('./pages/ArchivePage'))
 const CalendarPage = lazy(() => import('./pages/CalendarPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const FriendsPage = lazy(() => import('./pages/FriendsPage'))
 const InicioPage = lazy(() => import('./pages/InicioPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const PageView = lazy(() => import('./pages/PageView'))
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="/tareas" element={<DashboardPage />} />
             <Route path="/proyectos" element={<PlaceholderPage title="Proyectos" />} />
             <Route path="/calendario" element={<CalendarPage />} />
+            <Route path="/amigos" element={<FriendsPage />} />
             <Route path="/archivo" element={<ArchivePage />} />
             <Route path="/ajustes/*" element={<AjustesPage />} />
             <Route path="/p/:pageId" element={<PageView />} />

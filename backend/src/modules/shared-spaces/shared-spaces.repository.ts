@@ -10,8 +10,8 @@ export function findManyForSpace(spaceId: string) {
     where: { spaceId },
     orderBy: { createdAt: 'asc' },
     include: {
-      user: { select: { id: true, name: true, email: true, role: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
+      createdBy: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
     },
   })
 }
@@ -38,8 +38,8 @@ export function create(spaceId: string, createdById: string, data: CreateSpaceSh
       createdById,
     },
     include: {
-      user: { select: { id: true, name: true, email: true, role: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
+      createdBy: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
     },
   })
 }
@@ -49,8 +49,8 @@ export function update(id: string, data: UpdateSpaceShareDto) {
     where: { id },
     data,
     include: {
-      user: { select: { id: true, name: true, email: true, role: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
+      createdBy: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
     },
   })
 }
@@ -65,7 +65,7 @@ export function findReceivedShares(userId: string) {
     orderBy: { createdAt: 'asc' },
     include: {
       space: { include: { workspace: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
+      createdBy: { select: { id: true, name: true, email: true, role: true, avatarUrl: true } },
     },
   })
 }
@@ -102,4 +102,3 @@ export function findWorkspaceMember(userId: string, workspaceId: string) {
 export function findUserById(id: string) {
   return prisma.user.findUnique({ where: { id }, select: { id: true } })
 }
-

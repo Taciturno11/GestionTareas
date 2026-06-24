@@ -31,6 +31,157 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-24 - Menu contextual para espacios compartidos
+
+- Objetivo: permitir crear pizarra y otras hojas desde carpetas compartidas con permiso de edicion.
+- Cambios:
+  - se agrego menu contextual con anticlick en espacios compartidos `EDITOR`;
+  - el menu permite crear subespacio, texto, pizarra y diagrama BD;
+  - se conserva el borrado de espacio compartido para editores;
+  - el menu se posiciona evitando salirse del borde inferior.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Borde visible en avatar de compartido
+
+- Objetivo: mejorar la legibilidad del avatar del invitador en la seccion `Compartido`.
+- Cambios:
+  - se agrego borde blanco y contorno sutil al avatar con imagen;
+  - se aplico el mismo borde al fallback de iniciales.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Avatar del invitador en seccion Compartido
+
+- Objetivo: limpiar la seccion `Compartido` y mostrar quien compartio cada espacio.
+- Cambios:
+  - se retiro la linea `workspace · permiso` debajo de cada espacio compartido;
+  - la respuesta de compartidos incluye `createdBy.avatarUrl`;
+  - el sidebar muestra el avatar o iniciales del usuario que compartio el espacio junto a la carpeta raiz.
+- Validaciones:
+  - `backend/npm run build`;
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Cache de espacios compartidos por usuario
+
+- Objetivo: corregir que un espacio compartido no aparezca al cambiar entre cuentas, por reutilizacion de cache global.
+- Cambios:
+  - `useSharedSpaces` ahora separa la cache por `userId`;
+  - `Sidebar` recibe el usuario actual desde `AppLayout` para consultar sus compartidos;
+  - la seccion del sidebar se renombro a `Compartido`.
+- Validaciones:
+  - se verifico en base local que `martinsitonauca@gmail.com` tiene un `SpaceShare` creado por `pepito@gmail.com`;
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Apertura explicita del dropdown de amigos
+
+- Objetivo: asegurar que el dropdown de amigos se abra inmediatamente al presionar el input `Buscar amigo`.
+- Cambios:
+  - el input abre el selector con `mouse down`, foco y click;
+  - al volver a presionar el input se limpia la seleccion previa para poder escoger otro amigo;
+  - la seleccion usa `mouse down` para evitar que el blur cierre el dropdown antes de elegir.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Combobox de amigos en compartir espacio
+
+- Objetivo: mejorar el modal `Compartir espacio` para que el selector de amigos se abra al presionar el input.
+- Cambios:
+  - el campo `Buscar amigo` abre la lista de amigos al recibir foco;
+  - el selector se cierra al elegir un amigo o al salir del campo;
+  - los mensajes de vacio/sin resultados solo aparecen mientras el selector esta activo.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Avatar cuadrado y comprimido automaticamente
+
+- Objetivo: evitar guardar imagenes grandes como avatar y normalizar la foto a un formato pequeno tipo Gmail.
+- Cambios:
+  - la carga de avatar ahora recorta automaticamente al centro en formato cuadrado;
+  - el avatar se redimensiona a `128x128`;
+  - la imagen se exporta como `WebP` y se comprime hasta quedar bajo `50 KB`;
+  - el backend acepta solo `data:image/webp;base64` pequeno para `avatarUrl`;
+  - se retiro la accion visual `Quitar avatar` del perfil.
+- Validaciones:
+  - `backend/npm run build`;
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Avatar de usuario y perfil simple
+
+- Objetivo: mostrar avatar en solicitudes de amistad y permitir cambiar la imagen desde el perfil del usuario.
+- Cambios:
+  - se agrego `User.avatarUrl` con migracion local;
+  - auth, usuarios publicos, amigos y compartidos devuelven `avatarUrl`;
+  - el dropdown del avatar incluye vista `Ver perfil`;
+  - el perfil permite cargar una imagen y quitar el avatar;
+  - solicitudes de amistad en campanita y pagina Amigos muestran avatar o iniciales.
+- Validaciones:
+  - `backend/npm run prisma:generate`;
+  - `backend/npm run prisma:migrate:deploy`;
+  - `backend/npm run build`;
+  - `npm run lint`;
+  - `npm run build`;
+  - health local del backend `200`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Pagina dedicada para Amigos
+
+- Objetivo: evitar que el sidebar contenga el formulario de solicitudes y mover la gestion de amigos a una pagina propia.
+- Cambios:
+  - se agrego la ruta `/amigos`;
+  - el sidebar ahora muestra `Amigos` como modulo de navegacion;
+  - nueva pagina `FriendsPage` con formulario para enviar solicitud por correo exacto;
+  - la pagina lista amigos, solicitudes recibidas y solicitudes enviadas;
+  - se mantiene el modal `Compartir espacio` usando solo amigos aceptados.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
+### 2026-06-24 - Amigos y solicitudes para compartir espacios
+
+- Objetivo: permitir compartir espacios solo con amigos aceptados y agregar solicitudes de amistad dentro de la app.
+- Cambios:
+  - nuevos modelos `FriendRequest` y `Friendship` con estados `PENDING`, `ACCEPTED`, `REJECTED` y `CANCELED`;
+  - APIs `/api/friends` y `/api/friend-requests` para listar amigos, enviar, aceptar, rechazar y cancelar solicitudes;
+  - `POST /api/spaces/:id/shares` ahora exige que el usuario destino sea amigo aceptado;
+  - sidebar agrega seccion `Amigos` con envio por correo exacto, lista de amigos y solicitudes enviadas;
+  - header agrega campanita con solicitudes pendientes y acciones aceptar/rechazar;
+  - modal `Compartir espacio` lista y filtra solo amigos aceptados;
+  - ADR 0028 documenta la decision.
+- Validaciones:
+  - `backend/npm run prisma:generate`;
+  - `backend/npm run build`;
+  - `backend/npm run prisma:migrate:deploy`;
+  - `backend/npx prisma migrate status`;
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: incluido en despliegue de produccion 2026-06-24.
+- Commit: pendiente.
+
 ### 2026-06-24 - Espacios compartidos con usuarios existentes
 
 - Objetivo: permitir compartir un espacio y sus hojas con otros usuarios sin exponer todo el workspace.

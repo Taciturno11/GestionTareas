@@ -6,6 +6,7 @@ const selectPublicUser = {
   email: true,
   name: true,
   role: true,
+  avatarUrl: true,
   createdAt: true,
   updatedAt: true,
 }

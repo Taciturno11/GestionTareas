@@ -1,3 +1,5 @@
+import type { PublicUser } from '@/api/users.api'
+
 export type WorkspacePageType = 'blank' | 'text' | 'board' | 'database' | 'tasks'
 
 export interface Workspace {
@@ -41,6 +43,7 @@ export interface SharedSpace {
   role: 'VIEWER' | 'EDITOR'
   rootSpaceId: string
   workspace: Workspace
+  createdBy: PublicUser
   spaces: WorkspaceSpace[]
   pages: WorkspacePageSummary[]
   createdAt: string
