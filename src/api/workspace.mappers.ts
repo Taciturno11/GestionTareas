@@ -73,6 +73,9 @@ export function normalizePage(value: unknown): WorkspacePage {
     title: String(page.title ?? 'Pagina sin titulo'),
     type: normalizePageType(page.type),
     content,
+    accessRole: page.accessRole === 'VIEWER' || page.accessRole === 'EDITOR' || page.accessRole === 'OWNER'
+      ? page.accessRole
+      : undefined,
     createdAt: fallbackDate(page.createdAt),
     updatedAt: fallbackDate(page.updatedAt),
   }

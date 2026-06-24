@@ -124,7 +124,12 @@ Privados:
 GET  /api/auth/me
 GET  /api/users/me
 GET  /api/workspaces
+GET  /api/shared-spaces
 GET  /api/spaces?workspaceId=
+GET  /api/spaces/:id/shares
+POST /api/spaces/:id/shares
+PATCH /api/spaces/:id/shares/:shareId
+DELETE /api/spaces/:id/shares/:shareId
 GET  /api/pages?workspaceId=&includeContent=false
 GET  /api/pages/:id
 PATCH /api/pages/:id
@@ -136,6 +141,7 @@ POST /api/projects/:id/archive
 POST /api/projects/:id/restore
 GET  /api/task-settings?workspaceId=
 GET  /api/admin/users/:userId/workspace
+GET  /api/users/search?query=
 ```
 
 Usan:

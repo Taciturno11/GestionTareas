@@ -19,3 +19,8 @@ export async function updateProfile(req: Request, res: Response) {
   const user = await usersService.updateProfile(requireUserId(req), dto)
   res.json(user)
 }
+
+export async function search(req: Request, res: Response) {
+  const query = typeof req.query.query === 'string' ? req.query.query : ''
+  res.json(await usersService.search(requireUserId(req), query))
+}

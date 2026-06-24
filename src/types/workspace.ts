@@ -33,4 +33,16 @@ export interface WorkspacePageSummary {
 
 export interface WorkspacePage extends WorkspacePageSummary {
   content: string
+  accessRole?: 'OWNER' | 'EDITOR' | 'VIEWER'
+}
+
+export interface SharedSpace {
+  id: string
+  role: 'VIEWER' | 'EDITOR'
+  rootSpaceId: string
+  workspace: Workspace
+  spaces: WorkspaceSpace[]
+  pages: WorkspacePageSummary[]
+  createdAt: string
+  updatedAt: string
 }

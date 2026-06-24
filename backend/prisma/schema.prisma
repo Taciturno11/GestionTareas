@@ -12,6 +12,11 @@ enum WorkspaceRole {
   MEMBER
 }
 
+enum SpaceShareRole {
+  VIEWER
+  EDITOR
+}
+
 enum PageType {
   BLANK
   TEXT
@@ -31,6 +36,8 @@ model User {
   updatedAt           DateTime          @updatedAt
   personalWorkspace   Workspace?        @relation("PersonalWorkspace", fields: [personalWorkspaceId], references: [id], onDelete: SetNull)
   memberships         WorkspaceMember[]
+  spaceShares         SpaceShare[]      @relation("SpaceShareUser")
+  spaceSharesCreated  SpaceShare[]      @relation("SpaceShareCreator")
   tasksCreated        Task[]            @relation("TaskCreatedBy")
   tasksAssigned       Task[]            @relation("TaskAssignedTo")
 }
@@ -96,9 +103,27 @@ model Space {
   parent      Space?    @relation("SpaceChildren", fields: [parentId], references: [id], onDelete: Cascade)
   children    Space[]   @relation("SpaceChildren")
   pages       Page[]
+  shares      SpaceShare[]
 
   @@index([workspaceId])
   @@index([parentId])
+}
+
+model SpaceShare {
+  id          String         @id @default(cuid())
+  spaceId     String
+  userId      String
+  role        SpaceShareRole @default(VIEWER)
+  createdById String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  space       Space          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user        User           @relation("SpaceShareUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy   User           @relation("SpaceShareCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([spaceId, userId])
+  @@index([userId])
+  @@index([spaceId])
 }
 
 model Page {

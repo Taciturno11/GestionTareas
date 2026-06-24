@@ -31,10 +31,14 @@ import {
   TrashIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { pagesApi } from '@/api/pages.api'
+import { sharedSpacesApi, type SpaceShareRole } from '@/api/shared-spaces.api'
+import { spacesApi } from '@/api/spaces.api'
+import { usersApi, type PublicUser } from '@/api/users.api'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   createWorkspaceSpace,
@@ -54,6 +58,8 @@ import type {
   WorkspaceSpace,
 } from '@/types/workspace'
 import { usePageCache, usePageSummaries } from '@/hooks/usePages'
+import { useRefreshSharedSpaces, useSharedSpaces } from '@/hooks/useSharedSpaces'
+import type { SharedSpace } from '@/types/workspace'
 
 const NAVIGATION = [
   { label: 'Inicio', icon: HomeIcon, to: '/' },
@@ -107,6 +113,155 @@ function getPageIcon(page: WorkspacePageSummary) {
   return DocumentTextIcon
 }
 
+function SharedSpaceTree({
+  shared,
+  space,
+  spaces,
+  pages,
+  level = 0,
+  onCreatePage,
+  onCreateSpace,
+  onDeletePage,
+  onDeleteSpace,
+}: {
+  shared: SharedSpace
+  space: WorkspaceSpace
+  spaces: WorkspaceSpace[]
+  pages: WorkspacePageSummary[]
+  level?: number
+  onCreatePage: (shared: SharedSpace, space: WorkspaceSpace, type: WorkspacePageType) => void
+  onCreateSpace: (shared: SharedSpace, space: WorkspaceSpace) => void
+  onDeletePage: (shared: SharedSpace, page: WorkspacePageSummary) => void
+  onDeleteSpace: (shared: SharedSpace, space: WorkspaceSpace) => void
+}) {
+  const children = spaces.filter(child => child.parentId === space.id)
+  const spacePages = pages.filter(page => page.spaceId === space.id)
+  const descendantIds = new Set([space.id])
+  let changed = true
+  while (changed) {
+    changed = false
+    spaces.forEach(candidate => {
+      if (candidate.parentId && descendantIds.has(candidate.parentId) && !descendantIds.has(candidate.id)) {
+        descendantIds.add(candidate.id)
+        changed = true
+      }
+    })
+  }
+  const firstPage = pages.find(page => descendantIds.has(page.spaceId))
+  const SpaceIcon = getSpaceIconOption(space.icon).icon
+  const canEdit = shared.role === 'EDITOR'
+
+  return (
+    <div className={level ? 'mt-0.5 pl-4' : 'mb-2'}>
+      <NavLink
+        to={firstPage ? `/p/${firstPage.id}` : '/'}
+        className={({ isActive }) => {
+          return `group/shared-space flex min-w-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-left text-[13px] transition-colors ${
+            isActive ? 'nav-active' : 'hover:bg-gray-100'
+          }`
+        }}
+        style={({ isActive }) => ({
+          color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+        })}
+      >
+        <SpaceIcon className="h-3.5 w-3.5 shrink-0" style={{ color: space.iconColor ?? '#6472EB' }} />
+        <span className="truncate">{space.name}</span>
+        {canEdit && (
+          <span className="ml-auto hidden shrink-0 items-center gap-1 group-hover/shared-space:flex">
+            <button
+              type="button"
+              onClick={event => {
+                event.preventDefault()
+                event.stopPropagation()
+                onCreateSpace(shared, space)
+              }}
+              className="rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+              title="Nuevo subespacio"
+            >
+              <FolderIcon className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={event => {
+                event.preventDefault()
+                event.stopPropagation()
+                onCreatePage(shared, space, 'text')
+              }}
+              className="rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+              title="Nueva hoja"
+            >
+              <PlusIcon className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={event => {
+                event.preventDefault()
+                event.stopPropagation()
+                onDeleteSpace(shared, space)
+              }}
+              className="rounded p-0.5 text-red-400 hover:bg-red-50 hover:text-red-600"
+              title="Borrar espacio"
+            >
+              <TrashIcon className="h-3.5 w-3.5" />
+            </button>
+          </span>
+        )}
+      </NavLink>
+
+      <div className="mt-0.5 pl-4">
+        {spacePages.map(page => {
+          const PageIcon = getPageIcon(page)
+          return (
+            <NavLink
+              key={page.id}
+              to={`/p/${page.id}`}
+              className={({ isActive }) => {
+                return `group/shared-page flex min-w-0 items-center gap-2 rounded-md px-3 py-1.5 text-[13px] transition-colors ${
+                  isActive ? 'nav-active' : 'hover:bg-gray-100'
+                }`
+              }}
+              style={({ isActive }) => ({
+                color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              })}
+            >
+              <PageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+              <span className="truncate">{page.title || 'Página sin título'}</span>
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={event => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    onDeletePage(shared, page)
+                  }}
+                  className="ml-auto hidden rounded p-0.5 text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/shared-page:block"
+                  title="Borrar hoja"
+                >
+                  <TrashIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </NavLink>
+          )
+        })}
+        {children.map(child => (
+          <SharedSpaceTree
+            key={child.id}
+            shared={shared}
+            space={child}
+            spaces={spaces}
+            pages={pages}
+            level={level + 1}
+            onCreatePage={onCreatePage}
+            onCreateSpace={onCreateSpace}
+            onDeletePage={onDeletePage}
+            onDeleteSpace={onDeleteSpace}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 interface SidebarProps {
   collapsed: boolean
 }
@@ -118,6 +273,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   const [spaces, setSpaces] = useState<WorkspaceSpace[]>(() => loadWorkspaceSpaces())
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => loadActiveWorkspaceId())
   const { data: pages = [] } = usePageSummaries(activeWorkspaceId)
+  const { data: sharedSpaces = [] } = useSharedSpaces()
+  const refreshSharedSpaces = useRefreshSharedSpaces()
   const { updateSummary, removePage } = usePageCache()
   const [isCreateSpaceOpen, setIsCreateSpaceOpen] = useState(false)
   const [creatingSpaceParentId, setCreatingSpaceParentId] = useState<string | null>(null)
@@ -146,6 +303,25 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   } | null>(null)
   const [editingPage, setEditingPage] = useState<WorkspacePageSummary | null>(null)
   const [pageDraftTitle, setPageDraftTitle] = useState('')
+  const [sharingSpace, setSharingSpace] = useState<WorkspaceSpace | null>(null)
+  const [shareSearch, setShareSearch] = useState('')
+  const [selectedShareUser, setSelectedShareUser] = useState<PublicUser | null>(null)
+  const [shareRole, setShareRole] = useState<SpaceShareRole>('VIEWER')
+
+  const { data: shareCandidates = [] } = useQuery({
+    queryKey: ['users-search', shareSearch],
+    queryFn: () => usersApi.search(shareSearch),
+    enabled: Boolean(sharingSpace && shareSearch.trim().length >= 2),
+    staleTime: 30 * 1000,
+  })
+  const {
+    data: sharingSpaceShares = [],
+    refetch: refetchSharingSpaceShares,
+  } = useQuery({
+    queryKey: ['space-shares', sharingSpace?.id],
+    queryFn: () => sharedSpacesApi.listShares(sharingSpace!.id),
+    enabled: Boolean(sharingSpace),
+  })
 
   useEffect(() => {
     const syncWorkspaceData = () => {
@@ -192,6 +368,85 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     const page = createWorkspacePage(activeWorkspace.id, type, spaceId)
     updateSummary(page)
     navigate(`/p/${page.id}`)
+  }
+
+  async function handleCreateSharedPage(shared: SharedSpace, space: WorkspaceSpace, type: WorkspacePageType) {
+    if (shared.role !== 'EDITOR') return
+    const normalizedType = type === 'blank' ? 'text' : type
+    const titleByType: Record<Exclude<WorkspacePageType, 'blank'>, string> = {
+      text: 'Nueva hoja de texto',
+      board: 'Nueva pizarra',
+      database: 'Nuevo diagrama BD',
+      tasks: 'Nueva hoja de tareas',
+    }
+    const page = await pagesApi.create({
+      workspaceId: space.workspaceId,
+      spaceId: space.id,
+      title: titleByType[normalizedType],
+      type: normalizedType,
+    })
+    refreshSharedSpaces()
+    navigate(`/p/${page.id}`)
+  }
+
+  async function handleCreateSharedSpace(shared: SharedSpace, parent: WorkspaceSpace) {
+    if (shared.role !== 'EDITOR') return
+    const name = window.prompt('Nombre del subespacio compartido')
+    if (!name?.trim()) return
+    await spacesApi.create({
+      workspaceId: parent.workspaceId,
+      parentId: parent.id,
+      name: name.trim(),
+      icon: 'folder',
+      iconColor: parent.iconColor ?? '#6472EB',
+    })
+    refreshSharedSpaces()
+  }
+
+  async function handleDeleteSharedPage(shared: SharedSpace, page: WorkspacePageSummary) {
+    if (shared.role !== 'EDITOR') return
+    if (!window.confirm(`¿Borrar la hoja "${page.title || 'Página sin título'}"?`)) return
+    await pagesApi.remove(page.id)
+    refreshSharedSpaces()
+    if (pathname === `/p/${page.id}`) navigate('/')
+  }
+
+  async function handleDeleteSharedSpace(shared: SharedSpace, space: WorkspaceSpace) {
+    if (shared.role !== 'EDITOR') return
+    if (!window.confirm(`¿Borrar el espacio "${space.name}" y su contenido?`)) return
+    await spacesApi.remove(space.id)
+    refreshSharedSpaces()
+    if (pathname === `/e/${space.id}` || pathname === `/s/${space.id}`) navigate('/')
+  }
+
+  function openShareSpace(space: WorkspaceSpace) {
+    setSharingSpace(space)
+    setShareSearch('')
+    setSelectedShareUser(null)
+    setShareRole('VIEWER')
+  }
+
+  async function handleCreateShare() {
+    if (!sharingSpace || !selectedShareUser) return
+    await sharedSpacesApi.createShare(sharingSpace.id, {
+      userId: selectedShareUser.id,
+      role: shareRole,
+    })
+    setShareSearch('')
+    setSelectedShareUser(null)
+    await refetchSharingSpaceShares()
+  }
+
+  async function handleUpdateShare(shareId: string, role: SpaceShareRole) {
+    if (!sharingSpace) return
+    await sharedSpacesApi.updateShare(sharingSpace.id, shareId, { role })
+    await refetchSharingSpaceShares()
+  }
+
+  async function handleRemoveShare(shareId: string) {
+    if (!sharingSpace) return
+    await sharedSpacesApi.removeShare(sharingSpace.id, shareId)
+    await refetchSharingSpaceShares()
   }
 
   function handleCreateSpace() {
@@ -612,6 +867,39 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             )
           })}
 
+          {sharedSpaces.length > 0 && (
+            <div className="mt-5">
+              <p
+                className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-widest"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                Compartidos conmigo
+              </p>
+              {sharedSpaces.map(shared => {
+                const rootSpace = shared.spaces.find(space => space.id === shared.rootSpaceId)
+                if (!rootSpace) return null
+
+                return (
+                  <div key={shared.id}>
+                    <div className="px-3 pb-1 text-[11px] text-gray-400">
+                      {shared.workspace.name} · {shared.role === 'EDITOR' ? 'Puede editar' : 'Solo lectura'}
+                    </div>
+                    <SharedSpaceTree
+                      shared={shared}
+                      space={rootSpace}
+                      spaces={shared.spaces}
+                      pages={shared.pages}
+                      onCreatePage={handleCreateSharedPage}
+                      onCreateSpace={handleCreateSharedSpace}
+                      onDeletePage={handleDeleteSharedPage}
+                      onDeleteSpace={handleDeleteSharedSpace}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
           <div className="mt-5">
             <p
               className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-widest"
@@ -806,6 +1094,17 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             <PencilSquareIcon className="h-4 w-4" />
             Editar
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              openShareSpace(spaceMenu.space)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <UserGroupIcon className="h-4 w-4" />
+            Compartir
+          </button>
           {spaceMenu.space.name !== 'General' && (
             <button
               type="button"
@@ -888,6 +1187,17 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           <button
             type="button"
             onClick={() => {
+              openShareSpace(subspaceMenu.space)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <UserGroupIcon className="h-4 w-4" />
+            Compartir
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               setDeletingSpace(subspaceMenu.space)
               setSubspaceMenu(null)
             }}
@@ -931,6 +1241,116 @@ export default function Sidebar({ collapsed }: SidebarProps) {
             <TrashIcon className="h-4 w-4" />
             Borrar
           </button>
+        </div>
+      )}
+
+      {sharingSpace && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/20 px-4">
+          <div className="w-full max-w-[460px] rounded-xl border border-gray-200 bg-white p-4 shadow-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-[14px] font-semibold text-gray-900">Compartir espacio</h3>
+                <p className="mt-1 text-[12px] text-gray-500">
+                  {sharingSpace.name} se compartirá con sus subespacios y hojas.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSharingSpace(null)}
+                className="rounded-md px-2 py-1 text-[13px] text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-gray-200 p-3">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Buscar usuario existente
+              </label>
+              <input
+                value={shareSearch}
+                onChange={event => {
+                  setShareSearch(event.target.value)
+                  setSelectedShareUser(null)
+                }}
+                placeholder="Nombre o correo"
+                className="cursor-text-dark h-9 w-full rounded-lg border border-gray-200 px-3 text-[13px] text-gray-800 caret-gray-900 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
+              />
+              {shareCandidates.length > 0 && !selectedShareUser && (
+                <div className="mt-2 max-h-36 overflow-y-auto rounded-lg border border-gray-100">
+                  {shareCandidates.map(user => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedShareUser(user)
+                        setShareSearch(`${user.name} · ${user.email}`)
+                      }}
+                      className="block w-full px-3 py-2 text-left text-[12px] hover:bg-gray-50"
+                    >
+                      <span className="font-semibold text-gray-800">{user.name}</span>
+                      <span className="ml-2 text-gray-400">{user.email}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 flex items-center gap-2">
+                <select
+                  value={shareRole}
+                  onChange={event => setShareRole(event.target.value as SpaceShareRole)}
+                  className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-700 outline-none"
+                >
+                  <option value="VIEWER">Puede ver</option>
+                  <option value="EDITOR">Puede editar</option>
+                </select>
+                <button
+                  type="button"
+                  disabled={!selectedShareUser}
+                  onClick={() => void handleCreateShare()}
+                  className="h-9 rounded-md bg-[#6472EB] px-3 text-[13px] font-semibold text-white hover:bg-[#5360D8] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Compartir
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-gray-400">
+                Personas con acceso
+              </h4>
+              {sharingSpaceShares.length ? (
+                <div className="space-y-2">
+                  {sharingSpaceShares.map(share => (
+                    <div key={share.id} className="flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold text-gray-800">{share.user.name}</p>
+                        <p className="truncate text-[11px] text-gray-400">{share.user.email}</p>
+                      </div>
+                      <select
+                        value={share.role}
+                        onChange={event => void handleUpdateShare(share.id, event.target.value as SpaceShareRole)}
+                        className="h-8 rounded-md border border-gray-200 bg-white px-2 text-[12px] text-gray-700 outline-none"
+                      >
+                        <option value="VIEWER">Puede ver</option>
+                        <option value="EDITOR">Puede editar</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => void handleRemoveShare(share.id)}
+                        className="rounded-md px-2 py-1 text-[12px] font-medium text-red-500 hover:bg-red-50"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-dashed border-gray-200 p-3 text-[12px] text-gray-400">
+                  Este espacio todavía no está compartido.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

@@ -27,6 +27,7 @@ const boardAssetStore: TLAssetStore = {
 
 interface BoardPageProps {
   page: WorkspacePage
+  readOnly?: boolean
 }
 
 interface TldrawIndexedDbDump {
@@ -136,7 +137,7 @@ function createSnapshotContent(editor: Editor) {
   })
 }
 
-export default function BoardPage({ page }: BoardPageProps) {
+export default function BoardPage({ page, readOnly = false }: BoardPageProps) {
   const initialSnapshot = useMemo(() => parseBoardSnapshot(page.content), [page.content])
   const licenseKey = getTldrawLicenseKey()
   const { queueSave, flush } = usePageSaveQueue({
@@ -145,6 +146,9 @@ export default function BoardPage({ page }: BoardPageProps) {
   })
 
   function handleMount(editor: Editor) {
+    editor.updateInstanceState({ isReadonly: readOnly })
+    if (readOnly) return
+
     let lastQueuedContent = page.content
     let saveTimer: number | undefined
     let hasPendingChanges = false

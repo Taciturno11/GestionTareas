@@ -17,6 +17,7 @@ interface TextPageProps {
   page: WorkspacePage
   onChange: (patch: Partial<WorkspacePage>) => void
   onSaveNow: () => Promise<void>
+  readOnly?: boolean
 }
 
 const TEXT_COLORS = ['#111827', '#6472EB', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#EC4899']
@@ -31,12 +32,14 @@ function parseContent(content: string): JSONContent | string {
   }
 }
 
-export default function TextPage({ page, onChange, onSaveNow }: TextPageProps) {
+export default function TextPage({ page, onChange, onSaveNow, readOnly = false }: TextPageProps) {
   const editor = useEditor({
     extensions: [StarterKit, TextStyle, Color, Underline],
     content: parseContent(page.content),
+    editable: !readOnly,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
+      if (readOnly) return
       onChange({ content: JSON.stringify(editor.getJSON()) })
     },
     onBlur: () => {
@@ -52,7 +55,7 @@ export default function TextPage({ page, onChange, onSaveNow }: TextPageProps) {
 
   return (
     <PageContainer size="wide">
-      <div className="sticky top-0 z-10 mb-6 flex w-fit max-w-[680px] flex-wrap items-center gap-1 rounded-xl border border-gray-200 bg-white/90 p-1.5 shadow-sm backdrop-blur">
+      {!readOnly && <div className="sticky top-0 z-10 mb-6 flex w-fit max-w-[680px] flex-wrap items-center gap-1 rounded-xl border border-gray-200 bg-white/90 p-1.5 shadow-sm backdrop-blur">
         <button
           type="button"
           onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -145,11 +148,14 @@ export default function TextPage({ page, onChange, onSaveNow }: TextPageProps) {
             />
           ))}
         </div>
-      </div>
+      </div>}
 
       <input
         value={page.title}
-        onChange={event => onChange({ title: event.target.value })}
+        readOnly={readOnly}
+        onChange={event => {
+          if (!readOnly) onChange({ title: event.target.value })
+        }}
         onBlur={() => void onSaveNow()}
         placeholder="Pagina sin titulo"
         className="cursor-text-dark mb-4 w-full border-none bg-transparent text-[34px] font-bold tracking-tight text-gray-900 caret-gray-900 outline-none placeholder:text-gray-300"

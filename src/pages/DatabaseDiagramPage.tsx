@@ -23,6 +23,7 @@ import type { WorkspacePage } from '@/types/workspace'
 interface DatabaseDiagramPageProps {
   page: WorkspacePage
   onChange: (patch: Partial<WorkspacePage>) => void
+  readOnly?: boolean
 }
 
 type TableField = {
@@ -131,7 +132,7 @@ const nodeTypes = {
   table: TableNode,
 }
 
-export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramPageProps) {
+export default function DatabaseDiagramPage({ page, onChange, readOnly = false }: DatabaseDiagramPageProps) {
   const [initialContent] = useState(() => parseDiagramContent(page.content))
   const onChangeRef = useRef(onChange)
   const hasMountedRef = useRef(false)
@@ -150,8 +151,8 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
       hasMountedRef.current = true
       return
     }
-    onChangeRef.current({ content: JSON.stringify({ nodes, edges }) })
-  }, [edges, nodes])
+    if (!readOnly) onChangeRef.current({ content: JSON.stringify({ nodes, edges }) })
+  }, [edges, nodes, readOnly])
 
   function handleConnect(connection: Connection) {
     setEdges(currentEdges => addEdge({
@@ -228,14 +229,14 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
     <div className="flex h-full min-h-0 bg-white">
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-4">
-          <button
+          {!readOnly && <button
             type="button"
             onClick={addTable}
             className="flex h-8 items-center gap-2 rounded-md bg-[#6472EB] px-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#5360D8]"
           >
             <PlusIcon className="h-4 w-4" />
             Tabla
-          </button>
+          </button>}
           <span className="text-[12px] text-gray-400">
             Conecta tablas arrastrando desde el punto derecho al izquierdo.
           </span>
@@ -248,8 +249,11 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onConnect={handleConnect}
+            onConnect={readOnly ? undefined : handleConnect}
             onNodeClick={(_, node) => setSelectedNodeId(node.id)}
+            nodesDraggable={!readOnly}
+            nodesConnectable={!readOnly}
+            elementsSelectable
             fitView
           >
             <Background />
@@ -264,14 +268,14 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-[13px] font-semibold text-gray-900">Tabla</h2>
-              <button
+              {!readOnly && <button
                 type="button"
                 onClick={deleteSelectedTable}
                 className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600"
                 title="Borrar tabla"
               >
                 <TrashIcon className="h-4 w-4" />
-              </button>
+              </button>}
             </div>
 
             <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
@@ -279,19 +283,22 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
             </label>
             <input
               value={selectedNode.data.name}
-              onChange={event => updateSelectedTable({ name: event.target.value })}
+              readOnly={readOnly}
+              onChange={event => {
+                if (!readOnly) updateSelectedTable({ name: event.target.value })
+              }}
               className="cursor-text-dark mb-4 h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-800 caret-gray-900 outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-200/60"
             />
 
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-[12px] font-semibold uppercase tracking-wide text-gray-400">Campos</h3>
-              <button
+              {!readOnly && <button
                 type="button"
                 onClick={addField}
                 className="rounded-md px-2 py-1 text-[12px] font-medium text-[#6472EB] hover:bg-[#6472EB]/10"
               >
                 Agregar
-              </button>
+              </button>}
             </div>
 
             <div className="space-y-2">
@@ -300,28 +307,37 @@ export default function DatabaseDiagramPage({ page, onChange }: DatabaseDiagramP
                   <div className="mb-2 flex items-center gap-2">
                     <input
                       value={field.name}
-                      onChange={event => updateField(field.id, { name: event.target.value })}
+                      readOnly={readOnly}
+                      onChange={event => {
+                        if (!readOnly) updateField(field.id, { name: event.target.value })
+                      }}
                       className="cursor-text-dark h-8 min-w-0 flex-1 rounded-md border border-gray-200 px-2 text-[12px] text-gray-800 caret-gray-900 outline-none"
                     />
-                    <button
+                    {!readOnly && <button
                       type="button"
                       onClick={() => deleteField(field.id)}
                       className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600"
                     >
                       <TrashIcon className="h-4 w-4" />
-                    </button>
+                    </button>}
                   </div>
                   <div className="flex items-center gap-2">
                     <input
                       value={field.type}
-                      onChange={event => updateField(field.id, { type: event.target.value })}
+                      readOnly={readOnly}
+                      onChange={event => {
+                        if (!readOnly) updateField(field.id, { type: event.target.value })
+                      }}
                       className="cursor-text-dark h-8 min-w-0 flex-1 rounded-md border border-gray-200 px-2 text-[12px] text-gray-800 caret-gray-900 outline-none"
                     />
                     <label className="flex items-center gap-1.5 text-[12px] text-gray-500">
                       <input
                         type="checkbox"
                         checked={Boolean(field.primary)}
-                        onChange={event => updateField(field.id, { primary: event.target.checked })}
+                        disabled={readOnly}
+                        onChange={event => {
+                          if (!readOnly) updateField(field.id, { primary: event.target.checked })
+                        }}
                       />
                       PK
                     </label>

@@ -66,6 +66,7 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
   const [editorRevision, setEditorRevision] = useState(0)
   const queuedInitialDraftRef = useRef(false)
   const isTextPage = page.type === 'blank' || page.type === 'text'
+  const readOnly = page.accessRole === 'VIEWER'
 
   const { queueSave, flush } = usePageSaveQueue({
     page,
@@ -80,6 +81,7 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
   }, [canApplyDraft, initialDraft, queueSave])
 
   function handleChange(patch: UpdatePageRequest) {
+    if (readOnly) return
     setPage(current => ({ ...current, ...patch }))
     queueSave(patch)
   }
@@ -115,6 +117,7 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
             page={page}
             onChange={handleChange}
             onSaveNow={flush}
+            readOnly={readOnly}
           />
         </Suspense>
       </>
@@ -124,7 +127,7 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
   if (page.type === 'board') {
     return (
       <Suspense fallback={<RouteFallback />}>
-        <BoardPage page={page} />
+        <BoardPage page={page} readOnly={readOnly} />
       </Suspense>
     )
   }
@@ -132,7 +135,7 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
   if (page.type === 'database') {
     return (
       <Suspense fallback={<RouteFallback />}>
-        <DatabaseDiagramPage page={page} onChange={handleChange} />
+        <DatabaseDiagramPage page={page} onChange={handleChange} readOnly={readOnly} />
       </Suspense>
     )
   }
@@ -144,6 +147,7 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
       </div>
       <input
         value={page.title}
+        readOnly={readOnly}
         onChange={event => handleChange({ title: event.target.value })}
         onBlur={() => void flush()}
         className="mb-3 w-full border-none bg-transparent text-[34px] font-bold tracking-tight text-gray-900 outline-none placeholder:text-gray-300"

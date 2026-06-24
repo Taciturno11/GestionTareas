@@ -31,6 +31,24 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-24 - Espacios compartidos con usuarios existentes
+
+- Objetivo: permitir compartir un espacio y sus hojas con otros usuarios sin exponer todo el workspace.
+- Cambios:
+  - nuevo modelo `SpaceShare` con roles `VIEWER` y `EDITOR`;
+  - permisos heredados para espacio, subespacios y hojas;
+  - APIs para listar compartidos, gestionar personas y buscar usuarios existentes;
+  - `PageView` respeta modo lectura para viewers;
+  - sidebar agrega `Compartir` y seccion `Compartidos conmigo`;
+  - ADR 0027 documenta la decision.
+- Validaciones:
+  - backend build;
+  - frontend build y lint;
+  - migracion local aplicada;
+  - prueba API local: viewer lee y recibe `403` al editar; editor edita y crea subespacio; al quitar acceso recibe `403`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-20 - Continuidad entre laptops y despliegue documentado
 
 - Objetivo: permitir clonar, continuar y desplegar el proyecto desde otra laptop sin versionar secretos.

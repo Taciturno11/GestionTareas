@@ -11,3 +11,7 @@ export async function getProfile(userId: string) {
 export function updateProfile(userId: string, dto: UpdateUserDto) {
   return usersRepository.update(userId, dto)
 }
+
+export function search(userId: string, query: string) {
+  return usersRepository.search(query, userId)
+}
