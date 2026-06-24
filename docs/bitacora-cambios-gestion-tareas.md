@@ -31,6 +31,28 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-24 - Despliegue produccion amigos, avatars y compartidos
+
+- Objetivo: publicar en produccion el bloque de amigos, solicitudes, avatars y mejoras de espacios compartidos.
+- Cambios:
+  - release de produccion `20260624152510`;
+  - backend desplegado en `/opt/gestion_tareas/current/backend`;
+  - frontend desplegado en `/var/www/gestion_tareas` preservando `config.js`;
+  - migraciones aplicadas en produccion: `20260624_friends`, `20260624_space_shares`, `20260624_user_avatar`;
+  - se ejecuto limpieza de retencion del servidor.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`;
+  - `backend/npx prisma validate`;
+  - backup PostgreSQL previo creado;
+  - health local servidor `http://127.0.0.1:4100/health`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - frontend publico `https://agenda.martinnauca.com`;
+  - servicio `gestion-tareas-backend` activo.
+- Despliegue: completado.
+- Commit: `e4aefca`.
+
 ### 2026-06-24 - Menu contextual para espacios compartidos
 
 - Objetivo: permitir crear pizarra y otras hojas desde carpetas compartidas con permiso de edicion.
