@@ -31,6 +31,26 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-25 - Despliegue produccion reporte de horas
+
+- Objetivo: publicar en produccion el nuevo tipo de pagina `Reporte de horas` y los ajustes recientes de UI/compartidos.
+- Cambios:
+  - se desplego el release `20260625093254` en `https://agenda.martinnauca.com`;
+  - se aplico la migracion Prisma `20260625_time_report_page_type`;
+  - se desplego backend y frontend preservando `config.js` de produccion;
+  - se genero backup PostgreSQL y backups de frontend/backend antes de publicar;
+  - se ejecuto limpieza de retencion si el script estaba disponible.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`;
+  - `backend/npx prisma generate`;
+  - health interno `http://127.0.0.1:4100/health`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - carga publica `https://agenda.martinnauca.com`.
+- Despliegue: completado.
+- Commit: `618a515`.
+
 ### 2026-06-25 - Centrado vertical en filas altas del reporte
 
 - Objetivo: mejorar la lectura de filas altas en `Reporte de horas` cuando `Actividad` u `Observaciones` crecen dinamicamente.
