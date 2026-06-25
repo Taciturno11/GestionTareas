@@ -206,6 +206,7 @@ export function createWorkspacePage(workspaceId: string, type: WorkspacePageType
     board: 'Nueva pizarra',
     database: 'Nuevo diagrama BD',
     tasks: 'Nueva hoja de tareas',
+    'time-report': 'Nuevo reporte de horas',
   }
   const page: WorkspacePageSummary = {
     id: createId('page'),

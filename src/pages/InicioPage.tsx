@@ -160,6 +160,18 @@ function timestamp(task: Task) {
   return Number.isFinite(date.getTime()) ? date.getTime() : 0
 }
 
+function formatRecentActivityDate(task: Task) {
+  const date = new Date(task.updatedAt ?? task.createdAt)
+  if (!Number.isFinite(date.getTime())) return 'Fecha no disponible'
+
+  return new Intl.DateTimeFormat('es', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
 function priorityMeta(priority: string | null | undefined) {
   const value = normalize(priority)
   if (value === 'alta' || value === 'high') return PRIORITY_LABEL.high
@@ -422,7 +434,7 @@ export default function InicioPage() {
                       <span className="truncate text-gray-500">"{task.title}"</span>
                     </p>
                     <p className="mt-0.5 text-[10px] text-gray-400">
-                      {new Intl.DateTimeFormat('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(task.updatedAt ?? task.createdAt))}
+                      {formatRecentActivityDate(task)}
                     </p>
                   </div>
                 </div>

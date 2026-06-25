@@ -8,6 +8,7 @@ import {
   ChartBarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  ClockIcon,
   ClipboardDocumentListIcon,
   CircleStackIcon,
   Cog6ToothIcon,
@@ -112,6 +113,7 @@ function getSpaceIconOption(icon?: string) {
 function getPageIcon(page: WorkspacePageSummary) {
   if (page.type === 'board') return PaintBrushIcon
   if (page.type === 'database') return CircleStackIcon
+  if (page.type === 'time-report') return ClockIcon
   return DocumentTextIcon
 }
 
@@ -153,22 +155,20 @@ function SharedSpaceTree({
   spaces,
   pages,
   level = 0,
-  onCreatePage,
-  onCreateSpace,
   onDeletePage,
-  onDeleteSpace,
   onOpenMenu,
+  onToggleSpace,
+  collapsedOverrides,
 }: {
   shared: SharedSpace
   space: WorkspaceSpace
   spaces: WorkspaceSpace[]
   pages: WorkspacePageSummary[]
   level?: number
-  onCreatePage: (shared: SharedSpace, space: WorkspaceSpace, type: WorkspacePageType) => void
-  onCreateSpace: (shared: SharedSpace, space: WorkspaceSpace) => void
   onDeletePage: (shared: SharedSpace, page: WorkspacePageSummary) => void
-  onDeleteSpace: (shared: SharedSpace, space: WorkspaceSpace) => void
   onOpenMenu: (shared: SharedSpace, space: WorkspaceSpace, x: number, y: number) => void
+  onToggleSpace: (space: WorkspaceSpace, collapsed: boolean) => void
+  collapsedOverrides: Record<string, boolean>
 }) {
   const children = spaces.filter(child => child.parentId === space.id)
   const spacePages = pages.filter(page => page.spaceId === space.id)
@@ -186,11 +186,17 @@ function SharedSpaceTree({
   const firstPage = pages.find(page => descendantIds.has(page.spaceId))
   const SpaceIcon = getSpaceIconOption(space.icon).icon
   const canEdit = shared.role === 'EDITOR'
+  const isCollapsed = collapsedOverrides[space.id] ?? Boolean(space.collapsed)
 
   return (
     <div className={level ? 'mt-0.5 pl-4' : 'mb-2'}>
       <NavLink
         to={firstPage ? `/p/${firstPage.id}` : '/'}
+        onClick={event => {
+          if (level !== 0) return
+          event.preventDefault()
+          onToggleSpace(space, isCollapsed)
+        }}
         onContextMenu={event => {
           if (!canEdit) return
           event.preventDefault()
@@ -206,101 +212,81 @@ function SharedSpaceTree({
         })}
       >
         {level === 0 && <SharedByAvatar user={shared.createdBy} />}
-        <SpaceIcon className="h-3.5 w-3.5 shrink-0" style={{ color: space.iconColor ?? '#6472EB' }} />
+        <span
+          className="relative h-3.5 w-3.5 shrink-0"
+          onClick={event => {
+            if (level === 0) return
+            event.preventDefault()
+            event.stopPropagation()
+            onToggleSpace(space, isCollapsed)
+          }}
+          title={isCollapsed ? 'Expandir espacio' : 'Colapsar espacio'}
+        >
+          <SpaceIcon
+            className="absolute inset-0 h-3.5 w-3.5 transition-opacity group-hover/shared-space:opacity-0"
+            style={{ color: space.iconColor ?? '#6472EB' }}
+          />
+          {isCollapsed ? (
+            <ChevronRightIcon className="absolute inset-0 h-3.5 w-3.5 text-gray-400 opacity-0 transition-opacity group-hover/shared-space:opacity-100" />
+          ) : (
+            <ChevronDownIcon className="absolute inset-0 h-3.5 w-3.5 text-gray-400 opacity-0 transition-opacity group-hover/shared-space:opacity-100" />
+          )}
+        </span>
         <span className="truncate">{space.name}</span>
-        {canEdit && (
-          <span className="ml-auto hidden shrink-0 items-center gap-1 group-hover/shared-space:flex">
-            <button
-              type="button"
-              onClick={event => {
-                event.preventDefault()
-                event.stopPropagation()
-                onCreateSpace(shared, space)
-              }}
-              className="rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-              title="Nuevo subespacio"
-            >
-              <FolderIcon className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={event => {
-                event.preventDefault()
-                event.stopPropagation()
-                onCreatePage(shared, space, 'text')
-              }}
-              className="rounded p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-              title="Nueva hoja"
-            >
-              <PlusIcon className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={event => {
-                event.preventDefault()
-                event.stopPropagation()
-                onDeleteSpace(shared, space)
-              }}
-              className="rounded p-0.5 text-red-400 hover:bg-red-50 hover:text-red-600"
-              title="Borrar espacio"
-            >
-              <TrashIcon className="h-3.5 w-3.5" />
-            </button>
-          </span>
-        )}
       </NavLink>
 
-      <div className="mt-0.5 pl-4">
-        {spacePages.map(page => {
-          const PageIcon = getPageIcon(page)
-          return (
-            <NavLink
-              key={page.id}
-              to={`/p/${page.id}`}
-              className={({ isActive }) => {
-                return `group/shared-page flex min-w-0 items-center gap-2 rounded-md px-3 py-1.5 text-[13px] transition-colors ${
-                  isActive ? 'nav-active' : 'hover:bg-gray-100'
-                }`
-              }}
-              style={({ isActive }) => ({
-                color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-              })}
-            >
-              <PageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-              <span className="truncate">{page.title || 'Página sin título'}</span>
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={event => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    onDeletePage(shared, page)
-                  }}
-                  className="ml-auto hidden rounded p-0.5 text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/shared-page:block"
-                  title="Borrar hoja"
-                >
-                  <TrashIcon className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </NavLink>
-          )
-        })}
-        {children.map(child => (
-          <SharedSpaceTree
-            key={child.id}
-            shared={shared}
-            space={child}
-            spaces={spaces}
-            pages={pages}
-            level={level + 1}
-            onCreatePage={onCreatePage}
-            onCreateSpace={onCreateSpace}
-            onDeletePage={onDeletePage}
-            onDeleteSpace={onDeleteSpace}
-            onOpenMenu={onOpenMenu}
-          />
-        ))}
-      </div>
+      {!isCollapsed && (
+        <div className="mt-0.5 pl-4">
+          {spacePages.map(page => {
+            const PageIcon = getPageIcon(page)
+            return (
+              <NavLink
+                key={page.id}
+                to={`/p/${page.id}`}
+                className={({ isActive }) => {
+                  return `group/shared-page flex min-w-0 items-center gap-2 rounded-md px-3 py-1.5 text-[13px] transition-colors ${
+                    isActive ? 'nav-active' : 'hover:bg-gray-100'
+                  }`
+                }}
+                style={({ isActive }) => ({
+                  color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                })}
+              >
+                <PageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                <span className="truncate">{page.title || 'Página sin título'}</span>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={event => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      onDeletePage(shared, page)
+                    }}
+                    className="ml-auto hidden rounded p-0.5 text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/shared-page:block"
+                    title="Borrar hoja"
+                  >
+                    <TrashIcon className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </NavLink>
+            )
+          })}
+          {children.map(child => (
+            <SharedSpaceTree
+              key={child.id}
+              shared={shared}
+              space={child}
+              spaces={spaces}
+              pages={pages}
+              level={level + 1}
+              onDeletePage={onDeletePage}
+              onOpenMenu={onOpenMenu}
+              onToggleSpace={onToggleSpace}
+              collapsedOverrides={collapsedOverrides}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -316,6 +302,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => loadWorkspaces())
   const [spaces, setSpaces] = useState<WorkspaceSpace[]>(() => loadWorkspaceSpaces())
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => loadActiveWorkspaceId())
+  const [sharedSpaceCollapsedOverrides, setSharedSpaceCollapsedOverrides] = useState<Record<string, boolean>>({})
   const { data: pages = [] } = usePageSummaries(activeWorkspaceId)
   const { data: sharedSpaces = [] } = useSharedSpaces(currentUserId)
   const refreshSharedSpaces = useRefreshSharedSpaces()
@@ -437,6 +424,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
       board: 'Nueva pizarra',
       database: 'Nuevo diagrama BD',
       tasks: 'Nueva hoja de tareas',
+      'time-report': 'Nuevo reporte de horas',
     }
     const page = await pagesApi.create({
       workspaceId: space.workspaceId,
@@ -578,6 +566,13 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
   function handleToggleSpace(space: WorkspaceSpace) {
     updateWorkspaceSpace(space.id, { collapsed: !space.collapsed })
     setSpaces(loadWorkspaceSpaces())
+  }
+
+  function handleToggleSharedSpace(space: WorkspaceSpace, collapsed: boolean) {
+    setSharedSpaceCollapsedOverrides(previous => ({
+      ...previous,
+      [space.id]: !collapsed,
+    }))
   }
 
   function openCreateSpace(parentId: string | null = null) {
@@ -947,11 +942,10 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                       space={rootSpace}
                       spaces={shared.spaces}
                       pages={shared.pages}
-                      onCreatePage={handleCreateSharedPage}
-                      onCreateSpace={handleCreateSharedSpace}
                       onDeletePage={handleDeleteSharedPage}
-                      onDeleteSpace={handleDeleteSharedSpace}
                       onOpenMenu={(sharedSpace, space, x, y) => setSharedSpaceMenu({ shared: sharedSpace, space, x, y })}
+                      onToggleSpace={handleToggleSharedSpace}
+                      collapsedOverrides={sharedSpaceCollapsedOverrides}
                     />
                   </div>
                 )
@@ -1026,7 +1020,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                 <PlusIcon className="h-4 w-4" />
                 Nueva hoja
               </PopoverTrigger>
-              <PopoverContent className="w-36 gap-1 p-1.5" align="start" sideOffset={4}>
+              <PopoverContent className="w-44 gap-1 p-1.5" align="start" sideOffset={4}>
                 <button
                   type="button"
                   onClick={() => handleCreatePage('text')}
@@ -1050,6 +1044,14 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                 >
                   <CircleStackIcon className="h-4 w-4" />
                   Diagrama BD
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCreatePage('time-report')}
+                  className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <ClockIcon className="h-4 w-4" />
+                  Reporte de horas
                 </button>
               </PopoverContent>
             </Popover>
@@ -1092,7 +1094,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
           style={{
             left: Math.min(spaceMenu.x, window.innerWidth - 188),
-            top: Math.min(spaceMenu.y, window.innerHeight - 202),
+            top: Math.min(spaceMenu.y, window.innerHeight - 234),
           }}
           onClick={event => event.stopPropagation()}
           onContextMenu={event => event.preventDefault()}
@@ -1140,6 +1142,17 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           >
             <CircleStackIcon className="h-4 w-4" />
             Agregar diagrama BD
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('time-report', spaceMenu.space.id)
+              setSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <ClockIcon className="h-4 w-4" />
+            Agregar reporte de horas
           </button>
           <div className="my-1 h-px bg-gray-100" />
           <button
@@ -1193,7 +1206,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
           style={{
             left: Math.min(subspaceMenu.x, window.innerWidth - 188),
-            top: Math.min(subspaceMenu.y, window.innerHeight - 170),
+            top: Math.min(subspaceMenu.y, window.innerHeight - 202),
           }}
           onClick={event => event.stopPropagation()}
           onContextMenu={event => event.preventDefault()}
@@ -1230,6 +1243,17 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           >
             <CircleStackIcon className="h-4 w-4" />
             Agregar diagrama BD
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleCreatePage('time-report', subspaceMenu.space.id)
+              setSubspaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <ClockIcon className="h-4 w-4" />
+            Agregar reporte de horas
           </button>
           <div className="my-1 h-px bg-gray-100" />
           <button
@@ -1273,7 +1297,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
           style={{
             left: Math.min(sharedSpaceMenu.x, window.innerWidth - 188),
-            top: Math.min(sharedSpaceMenu.y, window.innerHeight - 218),
+            top: Math.min(sharedSpaceMenu.y, window.innerHeight - 250),
           }}
           onClick={event => event.stopPropagation()}
           onContextMenu={event => event.preventDefault()}
@@ -1321,6 +1345,17 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           >
             <CircleStackIcon className="h-4 w-4" />
             Agregar diagrama BD
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void handleCreateSharedPage(sharedSpaceMenu.shared, sharedSpaceMenu.space, 'time-report')
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <ClockIcon className="h-4 w-4" />
+            Agregar reporte de horas
           </button>
           <div className="my-1 h-px bg-gray-100" />
           <button

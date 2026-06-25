@@ -30,6 +30,7 @@ enum PageType {
   BOARD
   DATABASE
   TASKS
+  TIME_REPORT
 }
 
 model User {

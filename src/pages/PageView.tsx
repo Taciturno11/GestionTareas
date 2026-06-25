@@ -16,6 +16,7 @@ import type { WorkspacePage } from '@/types/workspace'
 const BoardPage = lazy(() => import('./BoardPage'))
 const DatabaseDiagramPage = lazy(() => import('./DatabaseDiagramPage'))
 const TextPage = lazy(() => import('./TextPage'))
+const TimeReportPage = lazy(() => import('./TimeReportPage'))
 
 function PageDraftNotice({
   onRestore,
@@ -136,6 +137,14 @@ function LoadedPageView({ initialPage }: { initialPage: WorkspacePage }) {
     return (
       <Suspense fallback={<RouteFallback />}>
         <DatabaseDiagramPage page={page} onChange={handleChange} readOnly={readOnly} />
+      </Suspense>
+    )
+  }
+
+  if (page.type === 'time-report') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <TimeReportPage page={page} onChange={handleChange} onSaveNow={flush} readOnly={readOnly} />
       </Suspense>
     )
   }

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const pageTypeSchema = z.enum(['blank', 'text', 'board', 'database', 'tasks'])
+export const pageTypeSchema = z.enum(['blank', 'text', 'board', 'database', 'tasks', 'time-report'])
 
 export const listPagesQuerySchema = z.object({
   workspaceId: z.string().min(1),

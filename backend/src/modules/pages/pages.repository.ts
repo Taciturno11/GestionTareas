@@ -9,6 +9,7 @@ function toPrismaPageType(type: PageTypeDto) {
     board: PageType.BOARD,
     database: PageType.DATABASE,
     tasks: PageType.TASKS,
+    'time-report': PageType.TIME_REPORT,
   }
   return map[type]
 }

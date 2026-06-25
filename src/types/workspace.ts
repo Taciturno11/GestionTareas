@@ -1,6 +1,6 @@
 import type { PublicUser } from '@/api/users.api'
 
-export type WorkspacePageType = 'blank' | 'text' | 'board' | 'database' | 'tasks'
+export type WorkspacePageType = 'blank' | 'text' | 'board' | 'database' | 'tasks' | 'time-report'
 
 export interface Workspace {
   id: string

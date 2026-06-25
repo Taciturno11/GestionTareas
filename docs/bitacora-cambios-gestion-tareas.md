@@ -31,6 +31,158 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-25 - Centrado vertical en filas altas del reporte
+
+- Objetivo: mejorar la lectura de filas altas en `Reporte de horas` cuando `Actividad` u `Observaciones` crecen dinamicamente.
+- Cambios:
+  - las columnas `Fecha`, `HI`, `HF` y `TH` ahora se alinean verticalmente al centro de la celda;
+  - las columnas de texto largo mantienen alineacion superior para facilitar lectura/escritura.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Textareas autoajustables en reporte de horas
+
+- Objetivo: evitar scroll interno en las columnas `Actividad` y `Observaciones` del `Reporte de horas`.
+- Cambios:
+  - se agrego un textarea autoajustable dentro de `TimeReportPage`;
+  - `Actividad` y `Observaciones` empiezan con alto de una linea;
+  - al escribir contenido que ocupa mas lineas, la celda crece automaticamente;
+  - se retiro el resize manual y el scroll interno de esos campos.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Duracion de reporte en horas y minutos
+
+- Objetivo: mostrar `TH` y `Total de horas` en formato legible de horas y minutos.
+- Cambios:
+  - `TH` ahora se presenta como `X h Y min`, `X h`, `Y min` o `0 min`;
+  - `Total de horas` usa el mismo formato;
+  - el precio estimado mantiene el calculo interno en horas decimales para conservar la formula `total de horas x precio por hora`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - TimeInput compacto para HI y HF
+
+- Objetivo: mejorar la edicion de horas en `Reporte de horas` evitando el scroll vertical excesivo del selector visual.
+- Cambios:
+  - se reemplazo `TimePicker` por `TimeInput`;
+  - `HI` y `HF` ahora usan un input compacto con formato `HH:mm`;
+  - el input acepta escritura rapida como `830` y normaliza a `08:30` al perder foco;
+  - las horas invalidas se marcan visualmente y no participan en el calculo de horas.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - TimePicker visual para reporte de horas
+
+- Objetivo: reemplazar los inputs nativos de hora en `HI` y `HF` por un selector visual consistente con el sistema UI.
+- Cambios:
+  - se creo `src/components/ui/time-picker.tsx`;
+  - el selector usa `Popover` y opciones de hora en intervalos de 15 minutos;
+  - se agrego opcion `Limpiar hora`;
+  - `Reporte de horas` ahora usa `TimePicker` en las columnas `HI` y `HF`.
+- Nota: reemplazado por `TimeInput` compacto porque el selector visual exigia demasiado scroll vertical en tablas.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Mejora UI del reporte de horas
+
+- Objetivo: mejorar la experiencia de edicion del `Reporte de horas` para textos largos y fechas.
+- Cambios:
+  - las columnas `Actividad` y `Observaciones` ahora usan `textarea` para permitir varias lineas;
+  - la columna `Fecha` dejo de usar input nativo y reutiliza el `DatePicker` del sistema basado en `Calendar`;
+  - `DatePicker` acepta props opcionales para estado deshabilitado, blur, clase visual y formato de presentacion sin romper usos existentes;
+  - se ajustaron anchos de tabla para dar mas espacio a contenido descriptivo.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Reporte de horas como nuevo tipo de pagina
+
+- Objetivo: agregar una funcionalidad `Reporte de horas` siguiendo el mismo patron de hojas, pizarras y diagramas BD.
+- Cambios:
+  - se agrego el tipo de pagina `time-report` en frontend y `TIME_REPORT` en Prisma;
+  - se creo la migracion `20260625_time_report_page_type`;
+  - se agrego `TimeReportPage` con encabezado editable, tabla de actividades, calculo automatico de `TH`, total de horas y precio estimado;
+  - se integro la creacion del reporte en `Nueva hoja`, menus de espacios, subespacios y espacios compartidos;
+  - se reutilizo `PageView`, `usePageSaveQueue`, `PATCH /api/pages/:id` y permisos existentes;
+  - se creo el ADR `0029-reporte-de-horas-como-tipo-de-pagina`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`;
+  - `backend/npx prisma generate`;
+  - `backend/npx prisma migrate deploy` aplicado en base local.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Colapsar y expandir espacios compartidos
+
+- Objetivo: permitir colapsar y expandir carpetas en la seccion `Compartido`.
+- Cambios:
+  - `SharedSpaceTree` ahora respeta estado colapsado;
+  - se agrego toggle local para espacios compartidos sin depender de permisos de edicion;
+  - el espacio raiz compartido colapsa/expande con click;
+  - subespacios compartidos colapsan/expanden desde el icono, igual que los espacios normales.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Correccion fecha invalida en Inicio
+
+- Objetivo: evitar crash `RangeError: Invalid time value` en la tarjeta de actividad reciente.
+- Cambios:
+  - se agrego un formateador seguro para fechas de actividad reciente;
+  - si `updatedAt`/`createdAt` viene invalido, la UI muestra `Fecha no disponible` en lugar de romper la pagina.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Interaccion compartidos igual a espacios normales
+
+- Objetivo: unificar la interaccion de la seccion `Compartido` con los espacios propios.
+- Cambios:
+  - se quitaron los iconos de accion visibles en hover en espacios compartidos;
+  - las acciones de crear subespacio, texto, pizarra, diagrama y borrar quedan solo en el menu contextual por anticlick;
+  - se simplificaron props internas de `SharedSpaceTree` al centralizar acciones en el menu contextual.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-24 - Prompt para desplegar otro proyecto
+
+- Objetivo: crear una guia sencilla para entregar a otro chat de Codex y desplegar un proyecto distinto en el mismo servidor sin tocar `gestion_tareas`.
+- Cambios:
+  - se creo `docs/prompt-despliegue-nuevo-proyecto-servidor.md`;
+  - el prompt define rutas separadas por proyecto, preguntas previas, reglas de seguridad y flujo general de despliegue;
+  - se ajusto para usar el dominio `mundial.martinnauca.com` y evitar mencionar rutas especificas de otros proyectos.
+- Validaciones:
+  - revision documental.
+- Despliegue: no aplica.
+- Commit: pendiente.
+
 ### 2026-06-24 - Despliegue produccion amigos, avatars y compartidos
 
 - Objetivo: publicar en produccion el bloque de amigos, solicitudes, avatars y mejoras de espacios compartidos.

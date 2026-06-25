@@ -55,6 +55,7 @@ export function normalizePageType(type: unknown): WorkspacePageType {
   if (normalized === 'board') return 'board'
   if (normalized === 'database') return 'database'
   if (normalized === 'tasks') return 'tasks'
+  if (normalized === 'time-report' || normalized === 'time_report') return 'time-report'
   return 'text'
 }
 
