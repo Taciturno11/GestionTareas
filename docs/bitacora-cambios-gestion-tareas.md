@@ -31,6 +31,36 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Descarga Excel para reporte de horas
+
+- Objetivo: permitir exportar el `Reporte de horas` a un archivo compatible con Excel y con formato visual.
+- Cambios:
+  - se agrego boton `Descargar Excel` en `TimeReportPage`;
+  - la exportacion genera un archivo `.xls` desde una tabla HTML con estilos;
+  - el archivo incluye titulo, fecha de generacion, cliente, servicio, periodo, precio por hora, actividades, fechas, HI, HF, TH, observaciones, total de horas y precio estimado;
+  - se preservan saltos de linea en actividad y observaciones;
+  - se sanitiza el nombre del archivo a partir del titulo del reporte.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
+### 2026-06-25 - Menus contextuales en compartidos igual a espacios normales
+
+- Objetivo: alinear la interaccion de `Compartido` con los espacios normales.
+- Cambios:
+  - el anticlick sobre espacios compartidos con permiso `EDITOR` ahora muestra tambien `Editar`;
+  - las hojas/pizarras/diagramas/reportes dentro de espacios compartidos ahora tienen menu contextual por anticlick;
+  - se retiro el boton de borrar visible en hover para hojas compartidas;
+  - `Editar nombre` en hojas compartidas abre el mismo input inline del sidebar;
+  - al editar o borrar contenido compartido se refresca la seccion `Compartido`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-25 - Despliegue produccion reporte de horas
 
 - Objetivo: publicar en produccion el nuevo tipo de pagina `Reporte de horas` y los ajustes recientes de UI/compartidos.

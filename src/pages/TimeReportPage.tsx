@@ -1,4 +1,4 @@
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 
 import PageContainer from '@/components/PageContainer/PageContainer'
@@ -129,6 +129,28 @@ function formatCurrency(amount: number) {
   })
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+}
+
+function formatExcelText(value: string) {
+  return escapeHtml(value).replace(/\r?\n/g, '<br />')
+}
+
+function toSafeFilename(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+}
+
 function AutoResizeTextarea({
   value,
   disabled = false,
@@ -213,25 +235,195 @@ export default function TimeReportPage({
     })
   }
 
+  function downloadExcel() {
+    const generatedAt = new Date().toLocaleString('es-PE')
+    const safeTitle = toSafeFilename(page.title || 'reporte-de-horas') || 'reporte-de-horas'
+    const rowsHtml = report.rows.length
+      ? report.rows.map(row => `
+          <tr>
+            <td class="text-cell">${formatExcelText(row.activity)}</td>
+            <td class="center-cell">${escapeHtml(row.date)}</td>
+            <td class="center-cell">${escapeHtml(row.startTime)}</td>
+            <td class="center-cell">${escapeHtml(row.endTime)}</td>
+            <td class="center-cell total-cell">${formatDuration(getRowHours(row))}</td>
+            <td class="text-cell">${formatExcelText(row.observations)}</td>
+          </tr>
+        `).join('')
+      : `
+          <tr>
+            <td colspan="6" class="empty-cell">Sin actividades registradas</td>
+          </tr>
+        `
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              color: #111827;
+            }
+            table {
+              border-collapse: collapse;
+              width: 100%;
+            }
+            .title {
+              background: #6472EB;
+              color: #ffffff;
+              font-size: 20px;
+              font-weight: 700;
+              text-align: center;
+              padding: 14px;
+            }
+            .meta-label {
+              width: 160px;
+              background: #F3F4F6;
+              color: #6B7280;
+              font-weight: 700;
+            }
+            .meta-value {
+              background: #FFFFFF;
+              font-weight: 600;
+            }
+            .generated {
+              color: #6B7280;
+              font-size: 11px;
+              text-align: right;
+            }
+            th {
+              background: #EEF2FF;
+              color: #3730A3;
+              font-weight: 700;
+              text-align: center;
+            }
+            td,
+            th {
+              border: 1px solid #D1D5DB;
+              padding: 8px;
+              vertical-align: middle;
+            }
+            .text-cell {
+              vertical-align: top;
+              mso-data-placement: same-cell;
+              white-space: normal;
+            }
+            .center-cell {
+              text-align: center;
+            }
+            .total-cell {
+              background: #F9FAFB;
+              font-weight: 700;
+            }
+            .summary-label {
+              background: #F3F4F6;
+              color: #374151;
+              font-weight: 700;
+              text-align: right;
+            }
+            .summary-value {
+              background: #FFFFFF;
+              font-weight: 700;
+              text-align: center;
+            }
+            .price-value {
+              background: #ECFDF5;
+              color: #047857;
+              font-weight: 700;
+              text-align: center;
+            }
+            .empty-cell {
+              color: #6B7280;
+              font-style: italic;
+              text-align: center;
+            }
+          </style>
+        </head>
+        <body>
+          <table>
+            <tr>
+              <td colspan="6" class="title">${escapeHtml(page.title || 'Reporte de horas')}</td>
+            </tr>
+            <tr>
+              <td colspan="6" class="generated">Generado: ${escapeHtml(generatedAt)}</td>
+            </tr>
+            <tr>
+              <td class="meta-label">Cliente</td>
+              <td colspan="2" class="meta-value">${formatExcelText(report.client)}</td>
+              <td class="meta-label">Servicio</td>
+              <td colspan="2" class="meta-value">${formatExcelText(report.service)}</td>
+            </tr>
+            <tr>
+              <td class="meta-label">Periodo</td>
+              <td colspan="2" class="meta-value">${formatExcelText(report.period)}</td>
+              <td class="meta-label">Precio por hora</td>
+              <td colspan="2" class="meta-value">S/ ${formatCurrency(parseAmount(report.hourlyRate))}</td>
+            </tr>
+            <tr><td colspan="6"></td></tr>
+            <tr>
+              <th>Actividad</th>
+              <th>Fecha</th>
+              <th>HI</th>
+              <th>HF</th>
+              <th>TH</th>
+              <th>Observaciones</th>
+            </tr>
+            ${rowsHtml}
+            <tr>
+              <td colspan="4" class="summary-label">Total de horas</td>
+              <td class="summary-value">${formatDuration(totalHours)}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td colspan="4" class="summary-label">Precio estimado</td>
+              <td colspan="2" class="price-value">S/ ${formatCurrency(estimatedPrice)}</td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${safeTitle}.xls`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const inputClass = 'cursor-text-dark h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-[14px] text-gray-800 caret-gray-900 outline-none transition placeholder:text-gray-300 focus:border-gray-300 focus:ring-4 focus:ring-gray-200/60 disabled:bg-gray-50 disabled:text-gray-500'
   const tableTextareaClass = 'cursor-text-dark min-h-10 w-full resize-none overflow-hidden rounded-lg border border-transparent bg-transparent px-2 py-2 text-[13px] leading-5 text-gray-700 caret-gray-900 outline-none transition placeholder:text-gray-300 hover:border-gray-200 focus:border-gray-300 focus:bg-white focus:ring-2 focus:ring-gray-200/70 disabled:cursor-default disabled:text-gray-500'
 
   return (
     <PageContainer size="wide" className="space-y-6">
-      <div>
-        <input
-          value={page.title}
-          readOnly={readOnly}
-          onChange={event => {
-            if (!readOnly) onChange({ title: event.target.value })
-          }}
-          onBlur={() => void onSaveNow()}
-          placeholder="Reporte de horas sin titulo"
-          className="cursor-text-dark w-full border-none bg-transparent text-[34px] font-bold tracking-tight text-gray-900 caret-gray-900 outline-none placeholder:text-gray-300"
-        />
-        <p className="mt-2 text-[13px] text-gray-500">
-          Registra actividades, calcula horas trabajadas y estima el precio total del servicio.
-        </p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <input
+            value={page.title}
+            readOnly={readOnly}
+            onChange={event => {
+              if (!readOnly) onChange({ title: event.target.value })
+            }}
+            onBlur={() => void onSaveNow()}
+            placeholder="Reporte de horas sin titulo"
+            className="cursor-text-dark w-full border-none bg-transparent text-[34px] font-bold tracking-tight text-gray-900 caret-gray-900 outline-none placeholder:text-gray-300"
+          />
+          <p className="mt-2 text-[13px] text-gray-500">
+            Registra actividades, calcula horas trabajadas y estima el precio total del servicio.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={downloadExcel}
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
+        >
+          <ArrowDownTrayIcon className="h-4 w-4" />
+          Descargar Excel
+        </button>
       </div>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">

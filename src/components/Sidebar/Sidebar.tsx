@@ -155,20 +155,30 @@ function SharedSpaceTree({
   spaces,
   pages,
   level = 0,
-  onDeletePage,
   onOpenMenu,
+  onOpenPageMenu,
   onToggleSpace,
   collapsedOverrides,
+  editingPage,
+  pageDraftTitle,
+  onPageDraftTitleChange,
+  onSavePageEdit,
+  onCancelPageEdit,
 }: {
   shared: SharedSpace
   space: WorkspaceSpace
   spaces: WorkspaceSpace[]
   pages: WorkspacePageSummary[]
   level?: number
-  onDeletePage: (shared: SharedSpace, page: WorkspacePageSummary) => void
   onOpenMenu: (shared: SharedSpace, space: WorkspaceSpace, x: number, y: number) => void
+  onOpenPageMenu: (shared: SharedSpace, page: WorkspacePageSummary, x: number, y: number) => void
   onToggleSpace: (space: WorkspaceSpace, collapsed: boolean) => void
   collapsedOverrides: Record<string, boolean>
+  editingPage: WorkspacePageSummary | null
+  pageDraftTitle: string
+  onPageDraftTitleChange: (title: string) => void
+  onSavePageEdit: () => void
+  onCancelPageEdit: () => void
 }) {
   const children = spaces.filter(child => child.parentId === space.id)
   const spacePages = pages.filter(page => page.spaceId === space.id)
@@ -243,6 +253,11 @@ function SharedSpaceTree({
               <NavLink
                 key={page.id}
                 to={`/p/${page.id}`}
+                onContextMenu={event => {
+                  if (!canEdit) return
+                  event.preventDefault()
+                  onOpenPageMenu(shared, page, event.clientX, event.clientY)
+                }}
                 className={({ isActive }) => {
                   return `group/shared-page flex min-w-0 items-center gap-2 rounded-md px-3 py-1.5 text-[13px] transition-colors ${
                     isActive ? 'nav-active' : 'hover:bg-gray-100'
@@ -253,20 +268,28 @@ function SharedSpaceTree({
                 })}
               >
                 <PageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                <span className="truncate">{page.title || 'Página sin título'}</span>
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={event => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      onDeletePage(shared, page)
+                {editingPage?.id === page.id ? (
+                  <input
+                    autoFocus
+                    value={pageDraftTitle}
+                    onClick={event => event.preventDefault()}
+                    onFocus={event => event.currentTarget.select()}
+                    onChange={event => onPageDraftTitleChange(event.target.value)}
+                    onBlur={onSavePageEdit}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        onSavePageEdit()
+                      }
+                      if (event.key === 'Escape') {
+                        event.preventDefault()
+                        onCancelPageEdit()
+                      }
                     }}
-                    className="ml-auto hidden rounded p-0.5 text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/shared-page:block"
-                    title="Borrar hoja"
-                  >
-                    <TrashIcon className="h-3.5 w-3.5" />
-                  </button>
+                    className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
+                  />
+                ) : (
+                  <span className="truncate">{page.title || 'Página sin título'}</span>
                 )}
               </NavLink>
             )
@@ -279,10 +302,15 @@ function SharedSpaceTree({
               spaces={spaces}
               pages={pages}
               level={level + 1}
-              onDeletePage={onDeletePage}
               onOpenMenu={onOpenMenu}
+              onOpenPageMenu={onOpenPageMenu}
               onToggleSpace={onToggleSpace}
               collapsedOverrides={collapsedOverrides}
+              editingPage={editingPage}
+              pageDraftTitle={pageDraftTitle}
+              onPageDraftTitleChange={onPageDraftTitleChange}
+              onSavePageEdit={onSavePageEdit}
+              onCancelPageEdit={onCancelPageEdit}
             />
           ))}
         </div>
@@ -310,6 +338,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
   const [isCreateSpaceOpen, setIsCreateSpaceOpen] = useState(false)
   const [creatingSpaceParentId, setCreatingSpaceParentId] = useState<string | null>(null)
   const [editingSpace, setEditingSpace] = useState<WorkspaceSpace | null>(null)
+  const [editingSpaceShared, setEditingSpaceShared] = useState<SharedSpace | null>(null)
   const [deletingSpace, setDeletingSpace] = useState<WorkspaceSpace | null>(null)
   const [newSpaceName, setNewSpaceName] = useState('')
   const [newSpaceIcon, setNewSpaceIcon] = useState('folder')
@@ -335,10 +364,12 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
   } | null>(null)
   const [pageMenu, setPageMenu] = useState<{
     page: WorkspacePageSummary
+    shared?: SharedSpace
     x: number
     y: number
   } | null>(null)
   const [editingPage, setEditingPage] = useState<WorkspacePageSummary | null>(null)
+  const [editingPageShared, setEditingPageShared] = useState<SharedSpace | null>(null)
   const [pageDraftTitle, setPageDraftTitle] = useState('')
   const [sharingSpace, setSharingSpace] = useState<WorkspaceSpace | null>(null)
   const [shareSearch, setShareSearch] = useState('')
@@ -583,15 +614,17 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
     setIsCreateSpaceOpen(true)
   }
 
-  function openEditSpace(space: WorkspaceSpace) {
+  function openEditSpace(space: WorkspaceSpace, shared?: SharedSpace) {
     setEditingSpace(space)
+    setEditingSpaceShared(shared ?? null)
     setSpaceDraftName(space.name)
     setSpaceDraftIcon(space.icon ?? '')
     setSpaceDraftIconColor(space.iconColor ?? '#6472EB')
   }
 
-  function openEditPage(page: WorkspacePageSummary) {
+  function openEditPage(page: WorkspacePageSummary, shared?: SharedSpace) {
     setEditingPage(page)
+    setEditingPageShared(shared ?? null)
     setPageDraftTitle(page.title)
   }
 
@@ -599,28 +632,39 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
     if (!editingPage) return
     if (!pageDraftTitle.trim()) {
       setEditingPage(null)
+      setEditingPageShared(null)
       return
     }
 
     try {
       const summary = await pagesApi.update(editingPage.id, { title: pageDraftTitle.trim() })
       updateSummary(summary)
+      if (editingPageShared) refreshSharedSpaces()
       setEditingPage(null)
+      setEditingPageShared(null)
     } catch (error) {
       console.error('No se pudo actualizar el título de la página.', error)
     }
   }
 
-  function saveSpaceEdit() {
+  async function saveSpaceEdit() {
     if (!editingSpace || !spaceDraftName.trim()) return
 
-    updateWorkspaceSpace(editingSpace.id, {
+    const patch = {
       name: spaceDraftName.trim(),
       icon: spaceDraftIcon.trim() || 'folder',
       iconColor: spaceDraftIconColor,
-    })
-    setSpaces(loadWorkspaceSpaces())
+    }
+
+    if (editingSpaceShared) {
+      await spacesApi.update(editingSpace.id, patch)
+      refreshSharedSpaces()
+    } else {
+      updateWorkspaceSpace(editingSpace.id, patch)
+      setSpaces(loadWorkspaceSpaces())
+    }
     setEditingSpace(null)
+    setEditingSpaceShared(null)
   }
 
   return (
@@ -942,10 +986,18 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                       space={rootSpace}
                       spaces={shared.spaces}
                       pages={shared.pages}
-                      onDeletePage={handleDeleteSharedPage}
                       onOpenMenu={(sharedSpace, space, x, y) => setSharedSpaceMenu({ shared: sharedSpace, space, x, y })}
+                      onOpenPageMenu={(sharedSpace, page, x, y) => setPageMenu({ shared: sharedSpace, page, x, y })}
                       onToggleSpace={handleToggleSharedSpace}
                       collapsedOverrides={sharedSpaceCollapsedOverrides}
+                      editingPage={editingPage}
+                      pageDraftTitle={pageDraftTitle}
+                      onPageDraftTitleChange={setPageDraftTitle}
+                      onSavePageEdit={() => void savePageEdit()}
+                      onCancelPageEdit={() => {
+                        setEditingPage(null)
+                        setEditingPageShared(null)
+                      }}
                     />
                   </div>
                 )
@@ -1255,7 +1307,6 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
             <ClockIcon className="h-4 w-4" />
             Agregar reporte de horas
           </button>
-          <div className="my-1 h-px bg-gray-100" />
           <button
             type="button"
             onClick={() => {
@@ -1297,7 +1348,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           className="fixed z-[95] w-44 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl"
           style={{
             left: Math.min(sharedSpaceMenu.x, window.innerWidth - 188),
-            top: Math.min(sharedSpaceMenu.y, window.innerHeight - 250),
+            top: Math.min(sharedSpaceMenu.y, window.innerHeight - 282),
           }}
           onClick={event => event.stopPropagation()}
           onContextMenu={event => event.preventDefault()}
@@ -1361,6 +1412,17 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           <button
             type="button"
             onClick={() => {
+              openEditSpace(sharedSpaceMenu.space, sharedSpaceMenu.shared)
+              setSharedSpaceMenu(null)
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <PencilSquareIcon className="h-4 w-4" />
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               void handleDeleteSharedSpace(sharedSpaceMenu.shared, sharedSpaceMenu.space)
               setSharedSpaceMenu(null)
             }}
@@ -1385,7 +1447,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           <button
             type="button"
             onClick={() => {
-              openEditPage(pageMenu.page)
+              openEditPage(pageMenu.page, pageMenu.shared)
               setPageMenu(null)
             }}
             className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
@@ -1396,7 +1458,11 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
           <button
             type="button"
             onClick={() => {
-              handleDeletePage(pageMenu.page.id)
+              if (pageMenu.shared) {
+                void handleDeleteSharedPage(pageMenu.shared, pageMenu.page)
+              } else {
+                handleDeletePage(pageMenu.page.id)
+              }
               setPageMenu(null)
             }}
             className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-red-600 transition-colors hover:bg-red-50"
@@ -1712,7 +1778,10 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setEditingSpace(null)}
+                onClick={() => {
+                  setEditingSpace(null)
+                  setEditingSpaceShared(null)
+                }}
                 className="rounded-md px-3 py-1.5 text-[13px] font-medium text-gray-500 hover:bg-gray-100"
               >
                 Cancelar
