@@ -31,6 +31,23 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Despliegue frontend exportacion Excel y compartidos
+
+- Objetivo: publicar los ajustes de exportacion Excel del `Reporte de horas` y la alineacion de menus contextuales en `Compartido`.
+- Cambios:
+  - se desplego el release frontend `20260627184318` en `https://agenda.martinnauca.com`;
+  - se publico solo frontend porque no hubo cambios de backend ni migraciones;
+  - se preservo `config.js` de produccion;
+  - se creo backup del frontend anterior antes de reemplazarlo;
+  - se ejecuto limpieza de retencion si el script estaba disponible.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - carga publica `https://agenda.martinnauca.com`.
+- Despliegue: completado.
+- Commit: `93c3da0`.
+
 ### 2026-06-27 - Descarga Excel para reporte de horas
 
 - Objetivo: permitir exportar el `Reporte de horas` a un archivo compatible con Excel y con formato visual.
