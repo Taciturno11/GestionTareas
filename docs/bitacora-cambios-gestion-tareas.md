@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Descarga directa de PDF en reporte de horas
+
+- Objetivo: hacer que el boton `Generar PDF` descargue literalmente un archivo `.pdf`, sin depender del dialogo de impresion del navegador.
+- Cambios:
+  - se agregaron `jspdf` y `jspdf-autotable` para generar el PDF desde el frontend;
+  - `Generar PDF` ahora crea y descarga un archivo `.pdf` con cabecera, datos del reporte, tabla de actividades, total de horas y precio estimado;
+  - se mantuvo la descarga Excel existente;
+  - no se incluyo ningun archivo `.xls` generado localmente.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: `474aa83`.
+
 ### 2026-06-27 - Despliegue frontend PDF reporte de horas
 
 - Objetivo: publicar el campo `Trabajador` y la generacion de PDF en `Reporte de horas`.

@@ -238,8 +238,7 @@ export default function TimeReportPage({
     })
   }
 
-  function buildExportHtml(generatedAt: string, mode: 'excel' | 'pdf') {
-    const isPdf = mode === 'pdf'
+  function buildExportHtml(generatedAt: string) {
     const rowsHtml = report.rows.length
       ? report.rows.map(row => `
           <tr>
@@ -271,7 +270,7 @@ export default function TimeReportPage({
             body {
               font-family: Arial, sans-serif;
               color: #111827;
-              margin: ${isPdf ? '0' : '8px'};
+              margin: 8px;
             }
             table {
               border-collapse: collapse;
@@ -395,7 +394,6 @@ export default function TimeReportPage({
               <td colspan="2" class="price-value">S/ ${formatCurrency(estimatedPrice)}</td>
             </tr>
           </table>
-          ${isPdf ? '<p class="print-note">Para guardar este reporte, selecciona "Guardar como PDF" en el cuadro de impresion.</p>' : ''}
         </body>
       </html>
     `
@@ -404,7 +402,7 @@ export default function TimeReportPage({
   function downloadExcel() {
     const generatedAt = new Date().toLocaleString('es-PE')
     const safeTitle = toSafeFilename(page.title || 'reporte-de-horas') || 'reporte-de-horas'
-    const html = buildExportHtml(generatedAt, 'excel')
+    const html = buildExportHtml(generatedAt)
     const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -416,22 +414,128 @@ export default function TimeReportPage({
     URL.revokeObjectURL(url)
   }
 
-  function generatePdf() {
+  async function generatePdf() {
     const generatedAt = new Date().toLocaleString('es-PE')
-    const html = buildExportHtml(generatedAt, 'pdf')
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
-      window.alert('No se pudo abrir la ventana de impresión. Revisa si el navegador bloqueó ventanas emergentes.')
-      return
-    }
+    const safeTitle = toSafeFilename(page.title || 'reporte-de-horas') || 'reporte-de-horas'
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ])
+    const autoTable = autoTableModule.default
+    const document = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+    const pageWidth = document.internal.pageSize.getWidth()
+    const marginX = 12
+    let cursorY = 12
 
-    printWindow.document.open()
-    printWindow.document.write(html)
-    printWindow.document.close()
-    printWindow.focus()
-    window.setTimeout(() => {
-      printWindow.print()
-    }, 250)
+    document.setFillColor(100, 114, 235)
+    document.rect(marginX, cursorY, pageWidth - marginX * 2, 12, 'F')
+    document.setTextColor(255, 255, 255)
+    document.setFont('helvetica', 'bold')
+    document.setFontSize(15)
+    document.text(page.title || 'Reporte de horas', pageWidth / 2, cursorY + 8, { align: 'center' })
+
+    cursorY += 18
+    document.setTextColor(107, 114, 128)
+    document.setFont('helvetica', 'normal')
+    document.setFontSize(8)
+    document.text(`Generado: ${generatedAt}`, pageWidth - marginX, cursorY, { align: 'right' })
+
+    cursorY += 5
+    autoTable(document, {
+      startY: cursorY,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 9,
+        cellPadding: 2.5,
+        lineColor: [209, 213, 219],
+        lineWidth: 0.2,
+        valign: 'middle',
+      },
+      columnStyles: {
+        0: { fillColor: [243, 244, 246], textColor: [107, 114, 128], fontStyle: 'bold', cellWidth: 28 },
+        1: { fontStyle: 'bold', cellWidth: 73 },
+        2: { fillColor: [243, 244, 246], textColor: [107, 114, 128], fontStyle: 'bold', cellWidth: 28 },
+        3: { fontStyle: 'bold', cellWidth: 73 },
+        4: { fillColor: [243, 244, 246], textColor: [107, 114, 128], fontStyle: 'bold', cellWidth: 32 },
+        5: { fontStyle: 'bold' },
+      },
+      body: [
+        ['Cliente', report.client, 'Servicio', report.service, '', ''],
+        ['Trabajador', report.worker, 'Periodo', report.period, 'Precio por hora', `S/ ${formatCurrency(parseAmount(report.hourlyRate))}`],
+      ],
+      didParseCell: hookData => {
+        if (hookData.row.index === 0 && hookData.column.index === 4) {
+          hookData.cell.styles.fillColor = [255, 255, 255]
+          hookData.cell.styles.lineColor = [255, 255, 255]
+        }
+        if (hookData.row.index === 0 && hookData.column.index === 5) {
+          hookData.cell.styles.lineColor = [255, 255, 255]
+        }
+      },
+    })
+
+    cursorY = (document as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 16
+    cursorY += 7
+
+    autoTable(document, {
+      startY: cursorY,
+      theme: 'grid',
+      head: [['Actividad', 'Fecha', 'HI', 'HF', 'TH', 'Observaciones']],
+      body: report.rows.length
+        ? report.rows.map(row => [
+            row.activity,
+            row.date,
+            row.startTime,
+            row.endTime,
+            formatDuration(getRowHours(row)),
+            row.observations,
+          ])
+        : [['Sin actividades registradas', '', '', '', '', '']],
+      foot: [
+        ['', '', '', 'Total de horas', formatDuration(totalHours), ''],
+        ['', '', '', 'Precio estimado', `S/ ${formatCurrency(estimatedPrice)}`, ''],
+      ],
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 2.5,
+        lineColor: [209, 213, 219],
+        lineWidth: 0.2,
+        valign: 'middle',
+      },
+      headStyles: {
+        fillColor: [238, 242, 255],
+        textColor: [55, 48, 163],
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      footStyles: {
+        fillColor: [249, 250, 251],
+        textColor: [17, 24, 39],
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { cellWidth: 76, valign: 'top' },
+        1: { cellWidth: 27, halign: 'center' },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 27, halign: 'center', fontStyle: 'bold' },
+        5: { cellWidth: 83, valign: 'top' },
+      },
+      didParseCell: hookData => {
+        if (hookData.section === 'foot' && hookData.column.index < 3) {
+          hookData.cell.styles.lineColor = [255, 255, 255]
+          hookData.cell.styles.fillColor = [255, 255, 255]
+        }
+        if (hookData.section === 'foot' && hookData.row.index === 1 && hookData.column.index >= 3) {
+          hookData.cell.styles.fillColor = [236, 253, 245]
+          hookData.cell.styles.textColor = [4, 120, 87]
+        }
+      },
+    })
+
+    document.save(`${safeTitle}.pdf`)
   }
 
   const inputClass = 'cursor-text-dark h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-[14px] text-gray-800 caret-gray-900 outline-none transition placeholder:text-gray-300 focus:border-gray-300 focus:ring-4 focus:ring-gray-200/60 disabled:bg-gray-50 disabled:text-gray-500'
@@ -466,7 +570,7 @@ export default function TimeReportPage({
           </button>
           <button
             type="button"
-            onClick={generatePdf}
+            onClick={() => void generatePdf()}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#6472EB] px-3 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#5360D8]"
           >
             <DocumentArrowDownIcon className="h-4 w-4" />
