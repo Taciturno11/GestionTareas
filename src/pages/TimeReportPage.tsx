@@ -434,7 +434,7 @@ export default function TimeReportPage({
     document.setFontSize(15)
     document.text(page.title || 'Reporte de horas', pageWidth / 2, cursorY + 8, { align: 'center' })
 
-    cursorY += 18
+    cursorY += 16
     document.setTextColor(107, 114, 128)
     document.setFont('helvetica', 'normal')
     document.setFontSize(8)
@@ -447,32 +447,21 @@ export default function TimeReportPage({
       styles: {
         font: 'helvetica',
         fontSize: 9,
-        cellPadding: 2.5,
-        lineColor: [209, 213, 219],
-        lineWidth: 0.2,
+        cellPadding: { top: 3, right: 3, bottom: 3, left: 3 },
+        lineColor: [226, 232, 240],
+        lineWidth: 0.15,
         valign: 'middle',
       },
       columnStyles: {
-        0: { fillColor: [243, 244, 246], textColor: [107, 114, 128], fontStyle: 'bold', cellWidth: 28 },
-        1: { fontStyle: 'bold', cellWidth: 73 },
-        2: { fillColor: [243, 244, 246], textColor: [107, 114, 128], fontStyle: 'bold', cellWidth: 28 },
-        3: { fontStyle: 'bold', cellWidth: 73 },
-        4: { fillColor: [243, 244, 246], textColor: [107, 114, 128], fontStyle: 'bold', cellWidth: 32 },
-        5: { fontStyle: 'bold' },
+        0: { fillColor: [248, 250, 252], textColor: [100, 116, 139], fontStyle: 'bold', cellWidth: 30 },
+        1: { fontStyle: 'bold', cellWidth: 106 },
+        2: { fillColor: [248, 250, 252], textColor: [100, 116, 139], fontStyle: 'bold', cellWidth: 30 },
+        3: { fontStyle: 'bold', cellWidth: 107 },
       },
       body: [
-        ['Cliente', report.client, 'Servicio', report.service, '', ''],
-        ['Trabajador', report.worker, 'Periodo', report.period, 'Precio por hora', `S/ ${formatCurrency(parseAmount(report.hourlyRate))}`],
+        ['Cliente', report.client, 'Servicio', report.service],
+        ['Trabajador', report.worker, 'Periodo', report.period],
       ],
-      didParseCell: hookData => {
-        if (hookData.row.index === 0 && hookData.column.index === 4) {
-          hookData.cell.styles.fillColor = [255, 255, 255]
-          hookData.cell.styles.lineColor = [255, 255, 255]
-        }
-        if (hookData.row.index === 0 && hookData.column.index === 5) {
-          hookData.cell.styles.lineColor = [255, 255, 255]
-        }
-      },
     })
 
     cursorY = (document as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 16
@@ -516,12 +505,12 @@ export default function TimeReportPage({
         fontStyle: 'bold',
       },
       columnStyles: {
-        0: { cellWidth: 76, valign: 'top' },
-        1: { cellWidth: 27, halign: 'center' },
-        2: { cellWidth: 20, halign: 'center' },
-        3: { cellWidth: 20, halign: 'center' },
-        4: { cellWidth: 27, halign: 'center', fontStyle: 'bold' },
-        5: { cellWidth: 83, valign: 'top' },
+        0: { cellWidth: 105, valign: 'top' },
+        1: { cellWidth: 21, halign: 'center' },
+        2: { cellWidth: 16, halign: 'center' },
+        3: { cellWidth: 16, halign: 'center' },
+        4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+        5: { cellWidth: 95, valign: 'top' },
       },
       didParseCell: hookData => {
         if (hookData.section === 'foot' && hookData.column.index < 3) {

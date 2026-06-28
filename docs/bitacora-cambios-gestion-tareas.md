@@ -31,6 +31,21 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Mejora visual del PDF de reporte de horas
+
+- Objetivo: mejorar la parte superior del PDF y dar mas protagonismo a `Actividad` y `Observaciones`.
+- Cambios:
+  - se simplifico la cabecera del PDF quitando `Precio por hora` del bloque superior;
+  - se mantuvo el calculo de precio estimado en el resumen final;
+  - se reorganizaron los metadatos superiores en dos filas mas limpias;
+  - se redujo el ancho de `Fecha`, `HI`, `HF` y `TH`;
+  - se amplio el ancho de `Actividad` y `Observaciones`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Descarga directa de PDF en reporte de horas
 
 - Objetivo: hacer que el boton `Generar PDF` descargue literalmente un archivo `.pdf`, sin depender del dialogo de impresion del navegador.
