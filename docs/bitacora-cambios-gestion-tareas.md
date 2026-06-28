@@ -42,7 +42,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `de9b585`.
 
 ### 2026-06-27 - Correccion de texto en observaciones del PDF
 
