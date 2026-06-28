@@ -31,6 +31,21 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - PDF y trabajador en reporte de horas
+
+- Objetivo: ampliar el `Reporte de horas` con campo `Trabajador` y exportacion en PDF.
+- Cambios:
+  - se agrego el campo `Trabajador` en la cabecera del reporte;
+  - la cabecera ahora queda en dos lineas: `Cliente`/`Servicio` y luego `Trabajador`/`Periodo`/`Precio por hora`;
+  - se agrego el boton `Generar PDF` al costado de `Descargar Excel`;
+  - la exportacion Excel incluye tambien `Trabajador`;
+  - el PDF usa una vista imprimible con formato y abre el dialogo del navegador para guardar como PDF.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Despliegue frontend exportacion Excel y compartidos
 
 - Objetivo: publicar los ajustes de exportacion Excel del `Reporte de horas` y la alineacion de menus contextuales en `Compartido`.

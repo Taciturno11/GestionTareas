@@ -1,4 +1,4 @@
-import { ArrowDownTrayIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, DocumentArrowDownIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 
 import PageContainer from '@/components/PageContainer/PageContainer'
@@ -25,6 +25,7 @@ interface TimeReportRow {
 interface TimeReportContent {
   client: string
   service: string
+  worker: string
   period: string
   hourlyRate: string
   rows: TimeReportRow[]
@@ -42,6 +43,7 @@ interface AutoResizeTextareaProps {
 const DEFAULT_CONTENT: TimeReportContent = {
   client: '',
   service: '',
+  worker: '',
   period: '',
   hourlyRate: '',
   rows: [],
@@ -60,6 +62,7 @@ function normalizeContent(value: unknown): TimeReportContent {
   return {
     client: typeof candidate.client === 'string' ? candidate.client : '',
     service: typeof candidate.service === 'string' ? candidate.service : '',
+    worker: typeof candidate.worker === 'string' ? candidate.worker : '',
     period: typeof candidate.period === 'string' ? candidate.period : '',
     hourlyRate: typeof candidate.hourlyRate === 'string'
       ? candidate.hourlyRate
@@ -235,9 +238,8 @@ export default function TimeReportPage({
     })
   }
 
-  function downloadExcel() {
-    const generatedAt = new Date().toLocaleString('es-PE')
-    const safeTitle = toSafeFilename(page.title || 'reporte-de-horas') || 'reporte-de-horas'
+  function buildExportHtml(generatedAt: string, mode: 'excel' | 'pdf') {
+    const isPdf = mode === 'pdf'
     const rowsHtml = report.rows.length
       ? report.rows.map(row => `
           <tr>
@@ -255,19 +257,26 @@ export default function TimeReportPage({
           </tr>
         `
 
-    const html = `
+    return `
       <!doctype html>
       <html>
         <head>
           <meta charset="UTF-8" />
+          <title>${escapeHtml(page.title || 'Reporte de horas')}</title>
           <style>
+            @page {
+              size: A4 landscape;
+              margin: 12mm;
+            }
             body {
               font-family: Arial, sans-serif;
               color: #111827;
+              margin: ${isPdf ? '0' : '8px'};
             }
             table {
               border-collapse: collapse;
               width: 100%;
+              table-layout: fixed;
             }
             .title {
               background: #6472EB;
@@ -278,7 +287,6 @@ export default function TimeReportPage({
               padding: 14px;
             }
             .meta-label {
-              width: 160px;
               background: #F3F4F6;
               color: #6B7280;
               font-weight: 700;
@@ -338,6 +346,11 @@ export default function TimeReportPage({
               font-style: italic;
               text-align: center;
             }
+            .print-note {
+              margin-top: 10px;
+              color: #6B7280;
+              font-size: 11px;
+            }
           </style>
         </head>
         <body>
@@ -355,10 +368,12 @@ export default function TimeReportPage({
               <td colspan="2" class="meta-value">${formatExcelText(report.service)}</td>
             </tr>
             <tr>
+              <td class="meta-label">Trabajador</td>
+              <td class="meta-value">${formatExcelText(report.worker)}</td>
               <td class="meta-label">Periodo</td>
-              <td colspan="2" class="meta-value">${formatExcelText(report.period)}</td>
+              <td class="meta-value">${formatExcelText(report.period)}</td>
               <td class="meta-label">Precio por hora</td>
-              <td colspan="2" class="meta-value">S/ ${formatCurrency(parseAmount(report.hourlyRate))}</td>
+              <td class="meta-value">S/ ${formatCurrency(parseAmount(report.hourlyRate))}</td>
             </tr>
             <tr><td colspan="6"></td></tr>
             <tr>
@@ -380,10 +395,16 @@ export default function TimeReportPage({
               <td colspan="2" class="price-value">S/ ${formatCurrency(estimatedPrice)}</td>
             </tr>
           </table>
+          ${isPdf ? '<p class="print-note">Para guardar este reporte, selecciona "Guardar como PDF" en el cuadro de impresion.</p>' : ''}
         </body>
       </html>
     `
+  }
 
+  function downloadExcel() {
+    const generatedAt = new Date().toLocaleString('es-PE')
+    const safeTitle = toSafeFilename(page.title || 'reporte-de-horas') || 'reporte-de-horas'
+    const html = buildExportHtml(generatedAt, 'excel')
     const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -393,6 +414,24 @@ export default function TimeReportPage({
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  function generatePdf() {
+    const generatedAt = new Date().toLocaleString('es-PE')
+    const html = buildExportHtml(generatedAt, 'pdf')
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      window.alert('No se pudo abrir la ventana de impresión. Revisa si el navegador bloqueó ventanas emergentes.')
+      return
+    }
+
+    printWindow.document.open()
+    printWindow.document.write(html)
+    printWindow.document.close()
+    printWindow.focus()
+    window.setTimeout(() => {
+      printWindow.print()
+    }, 250)
   }
 
   const inputClass = 'cursor-text-dark h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-[14px] text-gray-800 caret-gray-900 outline-none transition placeholder:text-gray-300 focus:border-gray-300 focus:ring-4 focus:ring-gray-200/60 disabled:bg-gray-50 disabled:text-gray-500'
@@ -416,14 +455,24 @@ export default function TimeReportPage({
             Registra actividades, calcula horas trabajadas y estima el precio total del servicio.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={downloadExcel}
-          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
-        >
-          <ArrowDownTrayIcon className="h-4 w-4" />
-          Descargar Excel
-        </button>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={downloadExcel}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4" />
+            Descargar Excel
+          </button>
+          <button
+            type="button"
+            onClick={generatePdf}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#6472EB] px-3 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#5360D8]"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" />
+            Generar PDF
+          </button>
+        </div>
       </div>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -451,6 +500,21 @@ export default function TimeReportPage({
               onChange={event => updateField('service', event.target.value)}
               onBlur={() => void onSaveNow()}
               placeholder="Servicio realizado"
+              className={inputClass}
+            />
+          </label>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Trabajador
+            </span>
+            <input
+              value={report.worker}
+              disabled={readOnly}
+              onChange={event => updateField('worker', event.target.value)}
+              onBlur={() => void onSaveNow()}
+              placeholder="Nombre del trabajador"
               className={inputClass}
             />
           </label>
