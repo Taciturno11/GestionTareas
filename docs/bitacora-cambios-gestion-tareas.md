@@ -44,7 +44,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run build`;
   - verificacion local del contenido transformado para PDF.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `9daee8e`.
 
 ### 2026-06-27 - Correccion de comas artificiales en PDF de reporte de horas
 
