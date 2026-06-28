@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Resumen PDF solo al final del reporte de horas
+
+- Objetivo: evitar que `Total de horas` y `Precio estimado` se repitan en cada pagina del PDF.
+- Cambios:
+  - se retiro el resumen del `foot` repetible de la tabla PDF;
+  - se agrego un bloque de resumen independiente que se dibuja una sola vez al final;
+  - si el resumen no entra en la ultima pagina, se mueve completo a una pagina nueva.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Mejora visual del PDF de reporte de horas
 
 - Objetivo: mejorar la parte superior del PDF y dar mas protagonismo a `Actividad` y `Observaciones`.

@@ -424,6 +424,7 @@ export default function TimeReportPage({
     const autoTable = autoTableModule.default
     const document = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
     const pageWidth = document.internal.pageSize.getWidth()
+    const pageHeight = document.internal.pageSize.getHeight()
     const marginX = 12
     let cursorY = 12
 
@@ -481,10 +482,6 @@ export default function TimeReportPage({
             row.observations,
           ])
         : [['Sin actividades registradas', '', '', '', '', '']],
-      foot: [
-        ['', '', '', 'Total de horas', formatDuration(totalHours), ''],
-        ['', '', '', 'Precio estimado', `S/ ${formatCurrency(estimatedPrice)}`, ''],
-      ],
       styles: {
         font: 'helvetica',
         fontSize: 8,
@@ -499,11 +496,6 @@ export default function TimeReportPage({
         fontStyle: 'bold',
         halign: 'center',
       },
-      footStyles: {
-        fillColor: [249, 250, 251],
-        textColor: [17, 24, 39],
-        fontStyle: 'bold',
-      },
       columnStyles: {
         0: { cellWidth: 105, valign: 'top' },
         1: { cellWidth: 21, halign: 'center' },
@@ -512,12 +504,39 @@ export default function TimeReportPage({
         4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
         5: { cellWidth: 95, valign: 'top' },
       },
+    })
+
+    const tableEndY = (document as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY
+    const summaryStartY = tableEndY + 7
+    const summaryY = summaryStartY > pageHeight - 28 ? marginX : summaryStartY
+
+    if (summaryStartY > pageHeight - 28) {
+      document.addPage()
+    }
+
+    autoTable(document, {
+      startY: summaryY,
+      theme: 'grid',
+      margin: { left: pageWidth - marginX - 88 },
+      tableWidth: 88,
+      body: [
+        ['Total de horas', formatDuration(totalHours)],
+        ['Precio estimado', `S/ ${formatCurrency(estimatedPrice)}`],
+      ],
+      styles: {
+        font: 'helvetica',
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [209, 213, 219],
+        lineWidth: 0.2,
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { cellWidth: 45, fillColor: [249, 250, 251], textColor: [17, 24, 39] },
+        1: { cellWidth: 43, halign: 'right', textColor: [17, 24, 39] },
+      },
       didParseCell: hookData => {
-        if (hookData.section === 'foot' && hookData.column.index < 3) {
-          hookData.cell.styles.lineColor = [255, 255, 255]
-          hookData.cell.styles.fillColor = [255, 255, 255]
-        }
-        if (hookData.section === 'foot' && hookData.row.index === 1 && hookData.column.index >= 3) {
+        if (hookData.row.index === 1) {
           hookData.cell.styles.fillColor = [236, 253, 245]
           hookData.cell.styles.textColor = [4, 120, 87]
         }
