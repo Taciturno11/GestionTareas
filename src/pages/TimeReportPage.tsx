@@ -136,6 +136,12 @@ function formatPdfText(value: string) {
   return value
     .replace(/\r\n?/g, '\n')
     .replace(/\u00A0/g, ' ')
+    .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '-')
+    .replace(/[→⇒]/g, '->')
+    .replace(/[←⇐]/g, '<-')
+    .replace(/[–—]/g, '-')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
     .trim()
 }
 

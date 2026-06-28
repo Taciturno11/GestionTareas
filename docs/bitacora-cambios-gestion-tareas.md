@@ -31,6 +31,21 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Correccion definitiva de desborde en observaciones PDF
+
+- Objetivo: evitar que los textos de `Observaciones` se espacien o se salgan de la celda en el PDF.
+- Cambios:
+  - se mantuvo el envio de texto como string normal para no reintroducir comas artificiales;
+  - se reemplazan solo simbolos incompatibles con la fuente PDF basica, como flechas y bullets especiales;
+  - las flechas `→` se exportan como `->` en PDF sin modificar el contenido guardado del reporte;
+  - se valido el reporte local para confirmar que no quedan dobles comas ni flechas Unicode en el texto enviado al PDF.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion local del contenido transformado para PDF.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Correccion de comas artificiales en PDF de reporte de horas
 
 - Objetivo: hacer que `Actividad` y `Observaciones` del PDF respeten el texto del reporte sin agregar comas artificiales.
