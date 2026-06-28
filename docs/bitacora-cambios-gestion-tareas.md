@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Titulo limpio en PDF de reporte de horas
+
+- Objetivo: ajustar la cabecera del PDF para que no use el titulo editable de la hoja ni muestre la fecha de generacion.
+- Cambios:
+  - el PDF ahora muestra siempre `Reporte de horas` como titulo principal;
+  - se retiro la linea `Generado: ...` de la descarga PDF;
+  - el titulo real de la hoja en la app no se modifica;
+  - la exportacion Excel conserva su comportamiento previo.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Precio por hora solo en resumen final PDF
 
 - Objetivo: retirar `Precio por hora` del resumen final visible del reporte y dejarlo solo en el resumen final del PDF.

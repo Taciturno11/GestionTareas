@@ -428,7 +428,6 @@ export default function TimeReportPage({
   }
 
   async function generatePdf() {
-    const generatedAt = new Date().toLocaleString('es-PE')
     const safeTitle = toSafeFilename(page.title || 'reporte-de-horas') || 'reporte-de-horas'
     const [{ jsPDF }, autoTableModule] = await Promise.all([
       import('jspdf'),
@@ -446,15 +445,9 @@ export default function TimeReportPage({
     document.setTextColor(255, 255, 255)
     document.setFont('helvetica', 'bold')
     document.setFontSize(15)
-    document.text(page.title || 'Reporte de horas', pageWidth / 2, cursorY + 8, { align: 'center' })
+    document.text('Reporte de horas', pageWidth / 2, cursorY + 8, { align: 'center' })
 
-    cursorY += 16
-    document.setTextColor(107, 114, 128)
-    document.setFont('helvetica', 'normal')
-    document.setFontSize(8)
-    document.text(`Generado: ${generatedAt}`, pageWidth - marginX, cursorY, { align: 'right' })
-
-    cursorY += 5
+    cursorY += 17
     autoTable(document, {
       startY: cursorY,
       theme: 'grid',
