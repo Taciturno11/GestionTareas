@@ -132,6 +132,37 @@ function formatCurrency(amount: number) {
   })
 }
 
+function normalizePdfText(value: string) {
+  return value
+    .replace(/\r\n?/g, '\n')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '-')
+    .replace(/[→⇒]/g, '->')
+    .replace(/[←⇐]/g, '<-')
+    .replace(/[–—]/g, '-')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[ \t]+/g, ' ')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .trim()
+}
+
+function splitPdfCellText(
+  document: { splitTextToSize: (text: string, maxWidth: number) => string[] },
+  value: string,
+  maxWidth: number,
+) {
+  const normalized = normalizePdfText(value)
+  if (!normalized) return ''
+
+  return normalized
+    .split('\n')
+    .flatMap((line, index, lines) => {
+      const wrapped = document.splitTextToSize(line || ' ', maxWidth)
+      return index < lines.length - 1 ? [...wrapped, ''] : wrapped
+    })
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -474,12 +505,12 @@ export default function TimeReportPage({
       head: [['Actividad', 'Fecha', 'HI', 'HF', 'TH', 'Observaciones']],
       body: report.rows.length
         ? report.rows.map(row => [
-            row.activity,
+            splitPdfCellText(document, row.activity, 99),
             row.date,
             row.startTime,
             row.endTime,
             formatDuration(getRowHours(row)),
-            row.observations,
+            splitPdfCellText(document, row.observations, 89),
           ])
         : [['Sin actividades registradas', '', '', '', '', '']],
       styles: {
@@ -488,6 +519,7 @@ export default function TimeReportPage({
         cellPadding: 2.5,
         lineColor: [209, 213, 219],
         lineWidth: 0.2,
+        overflow: 'linebreak',
         valign: 'middle',
       },
       headStyles: {
@@ -497,12 +529,12 @@ export default function TimeReportPage({
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 105, valign: 'top' },
+        0: { cellWidth: 105, halign: 'left', valign: 'top' },
         1: { cellWidth: 21, halign: 'center' },
         2: { cellWidth: 16, halign: 'center' },
         3: { cellWidth: 16, halign: 'center' },
         4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-        5: { cellWidth: 95, valign: 'top' },
+        5: { cellWidth: 95, halign: 'left', valign: 'top' },
       },
     })
 

@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Correccion de texto en observaciones del PDF
+
+- Objetivo: corregir palabras mal renderizadas o espaciadas en la columna `Observaciones` del PDF de reporte de horas.
+- Cambios:
+  - se normaliza texto antes de enviarlo al PDF para reemplazar caracteres problematicos como flechas, bullets y guiones especiales;
+  - se controlan manualmente los saltos de linea en `Actividad` y `Observaciones`;
+  - se fuerza `overflow: linebreak` y alineacion izquierda en columnas largas.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Resumen PDF solo al final del reporte de horas
 
 - Objetivo: evitar que `Total de horas` y `Precio estimado` se repitan en cada pagina del PDF.
