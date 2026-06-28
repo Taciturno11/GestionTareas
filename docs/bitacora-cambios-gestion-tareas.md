@@ -43,7 +43,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `f866d08`.
 
 ### 2026-06-27 - Precio por hora solo en resumen final PDF
 
