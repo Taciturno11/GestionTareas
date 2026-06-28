@@ -403,6 +403,10 @@ export default function TimeReportPage({
               <td></td>
             </tr>
             <tr>
+              <td colspan="4" class="summary-label">Precio por hora</td>
+              <td colspan="2" class="summary-value">S/ ${formatCurrency(parseAmount(report.hourlyRate))}</td>
+            </tr>
+            <tr>
               <td colspan="4" class="summary-label">Precio estimado</td>
               <td colspan="2" class="price-value">S/ ${formatCurrency(estimatedPrice)}</td>
             </tr>
@@ -522,9 +526,9 @@ export default function TimeReportPage({
 
     const tableEndY = (document as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY
     const summaryStartY = tableEndY + 7
-    const summaryY = summaryStartY > pageHeight - 28 ? marginX : summaryStartY
+    const summaryY = summaryStartY > pageHeight - 35 ? marginX : summaryStartY
 
-    if (summaryStartY > pageHeight - 28) {
+    if (summaryStartY > pageHeight - 35) {
       document.addPage()
     }
 
@@ -535,6 +539,7 @@ export default function TimeReportPage({
       tableWidth: 88,
       body: [
         ['Total de horas', formatDuration(totalHours)],
+        ['Precio por hora', `S/ ${formatCurrency(parseAmount(report.hourlyRate))}`],
         ['Precio estimado', `S/ ${formatCurrency(estimatedPrice)}`],
       ],
       styles: {
@@ -550,7 +555,7 @@ export default function TimeReportPage({
         1: { cellWidth: 43, halign: 'right', textColor: [17, 24, 39] },
       },
       didParseCell: hookData => {
-        if (hookData.row.index === 1) {
+        if (hookData.row.index === 2) {
           hookData.cell.styles.fillColor = [236, 253, 245]
           hookData.cell.styles.textColor = [4, 120, 87]
         }
@@ -796,10 +801,14 @@ export default function TimeReportPage({
         </div>
       </section>
 
-      <section className="ml-auto grid w-full max-w-[520px] gap-3 sm:grid-cols-2">
+      <section className="ml-auto grid w-full max-w-[780px] gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Total de horas</p>
           <p className="mt-2 text-[26px] font-bold text-gray-900">{formatDuration(totalHours)}</p>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Precio por hora</p>
+          <p className="mt-2 text-[26px] font-bold text-gray-900">S/ {formatCurrency(parseAmount(report.hourlyRate))}</p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Precio estimado</p>

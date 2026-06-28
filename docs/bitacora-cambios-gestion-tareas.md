@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Precio por hora en resumen final de reporte de horas
+
+- Objetivo: mostrar `Precio por hora` entre `Total de horas` y `Precio estimado` en la parte final del reporte.
+- Cambios:
+  - se agrego `Precio por hora` al resumen final visible de la pagina;
+  - se agrego `Precio por hora` al resumen final del PDF;
+  - se agrego `Precio por hora` al resumen final de la exportacion Excel;
+  - el orden final queda `Total de horas`, `Precio por hora`, `Precio estimado`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Correccion definitiva de desborde en observaciones PDF
 
 - Objetivo: evitar que los textos de `Observaciones` se espacien o se salgan de la celda en el PDF.
