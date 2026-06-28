@@ -43,7 +43,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: `474aa83`.
+- Commit: `a6845ab`.
 
 ### 2026-06-27 - Despliegue frontend PDF reporte de horas
 
