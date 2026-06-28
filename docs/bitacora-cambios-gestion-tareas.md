@@ -43,7 +43,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `7dd1901`.
 
 ### 2026-06-27 - Correccion definitiva de desborde en observaciones PDF
 
