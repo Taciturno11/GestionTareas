@@ -132,35 +132,11 @@ function formatCurrency(amount: number) {
   })
 }
 
-function normalizePdfText(value: string) {
+function formatPdfText(value: string) {
   return value
     .replace(/\r\n?/g, '\n')
     .replace(/\u00A0/g, ' ')
-    .replace(/[\u2022\u2023\u25E6\u2043\u2219]/g, '-')
-    .replace(/[→⇒]/g, '->')
-    .replace(/[←⇐]/g, '<-')
-    .replace(/[–—]/g, '-')
-    .replace(/[“”]/g, '"')
-    .replace(/[‘’]/g, "'")
-    .replace(/[ \t]+/g, ' ')
-    .replace(/[ \t]*\n[ \t]*/g, '\n')
     .trim()
-}
-
-function splitPdfCellText(
-  document: { splitTextToSize: (text: string, maxWidth: number) => string[] },
-  value: string,
-  maxWidth: number,
-) {
-  const normalized = normalizePdfText(value)
-  if (!normalized) return ''
-
-  return normalized
-    .split('\n')
-    .flatMap((line, index, lines) => {
-      const wrapped = document.splitTextToSize(line || ' ', maxWidth)
-      return index < lines.length - 1 ? [...wrapped, ''] : wrapped
-    })
 }
 
 function escapeHtml(value: string) {
@@ -505,12 +481,12 @@ export default function TimeReportPage({
       head: [['Actividad', 'Fecha', 'HI', 'HF', 'TH', 'Observaciones']],
       body: report.rows.length
         ? report.rows.map(row => [
-            splitPdfCellText(document, row.activity, 99),
+            formatPdfText(row.activity),
             row.date,
             row.startTime,
             row.endTime,
             formatDuration(getRowHours(row)),
-            splitPdfCellText(document, row.observations, 89),
+            formatPdfText(row.observations),
           ])
         : [['Sin actividades registradas', '', '', '', '', '']],
       styles: {

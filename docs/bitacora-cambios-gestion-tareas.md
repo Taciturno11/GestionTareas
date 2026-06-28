@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Correccion de comas artificiales en PDF de reporte de horas
+
+- Objetivo: hacer que `Actividad` y `Observaciones` del PDF respeten el texto del reporte sin agregar comas artificiales.
+- Cambios:
+  - se elimino el envio de arreglos de lineas a `jspdf-autotable`;
+  - `Actividad` y `Observaciones` vuelven a enviarse como strings normales;
+  - se mantiene solo una normalizacion minima de saltos de linea y espacios no separables.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Correccion de texto en observaciones del PDF
 
 - Objetivo: corregir palabras mal renderizadas o espaciadas en la columna `Observaciones` del PDF de reporte de horas.
