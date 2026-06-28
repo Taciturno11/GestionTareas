@@ -31,6 +31,23 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Despliegue frontend PDF reporte de horas
+
+- Objetivo: publicar el campo `Trabajador` y la generacion de PDF en `Reporte de horas`.
+- Cambios:
+  - se desplego el release frontend `20260627194707` en `https://agenda.martinnauca.com`;
+  - se publico solo frontend porque no hubo cambios de backend ni migraciones;
+  - se preservo `config.js` de produccion;
+  - se creo backup del frontend anterior antes de reemplazarlo;
+  - no se subieron archivos `.xls` generados localmente.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - carga publica `https://agenda.martinnauca.com`.
+- Despliegue: completado.
+- Commit: `d380943`.
+
 ### 2026-06-27 - PDF y trabajador en reporte de horas
 
 - Objetivo: ampliar el `Reporte de horas` con campo `Trabajador` y exportacion en PDF.
