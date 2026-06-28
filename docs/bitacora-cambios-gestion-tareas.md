@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-27 - Precio por hora solo en resumen final PDF
+
+- Objetivo: retirar `Precio por hora` del resumen final visible del reporte y dejarlo solo en el resumen final del PDF.
+- Cambios:
+  - se elimino la tarjeta final `Precio por hora` de la vista del reporte;
+  - se elimino `Precio por hora` del resumen final de la exportacion Excel;
+  - se mantuvo `Precio por hora` en el resumen final de la descarga PDF;
+  - el campo superior `Precio por hora` se conserva para calcular el precio estimado.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Precio por hora en resumen final de reporte de horas
 
 - Objetivo: mostrar `Precio por hora` entre `Total de horas` y `Precio estimado` en la parte final del reporte.
