@@ -31,6 +31,28 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Despliegue produccion mejoras UI y F2
+
+- Objetivo: publicar en produccion las mejoras recientes de UI y atajos del sidebar.
+- Cambios:
+  - release de produccion `20260630013030`;
+  - se desplegaron frontend y backend preservando `config.js` de produccion;
+  - se creo backup PostgreSQL `gestion_tareas_before_20260630013030.dump`;
+  - se crearon backups de frontend y backend antes de reemplazar archivos;
+  - se aplico en produccion la migracion pendiente `20260629_add_task_archived_at`;
+  - se ejecuto limpieza de retencion del servidor si el script estaba disponible.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`;
+  - servidor `npx prisma generate`;
+  - servidor `npm run prisma:migrate:deploy`;
+  - health local servidor `http://127.0.0.1:4100/health`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - home publica `https://agenda.martinnauca.com`.
+- Despliegue: completado en produccion.
+- Commit: pendiente.
+
 ### 2026-06-30 - Renombrar elementos del sidebar con F2
 
 - Objetivo: permitir renombrar carpetas, subcarpetas y hojas desde el sidebar usando la tecla `F2`.
