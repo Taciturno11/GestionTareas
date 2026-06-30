@@ -49,7 +49,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `feb06ee`.
 
 ### 2026-06-27 - Titulo limpio en PDF de reporte de horas
 
