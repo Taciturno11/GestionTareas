@@ -31,6 +31,18 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Contador fuera de filtros archivados
+
+- Objetivo: reducir el alto visual de la barra de filtros de `/archivo/tareas`.
+- Cambios:
+  - el texto `Mostrando X de Y tareas archivadas` ahora aparece fuera del card de filtros;
+  - el card de filtros queda dedicado solo a busqueda, selectores y limpieza.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-30 - Simplificacion de filtros en tareas archivadas
 
 - Objetivo: simplificar la barra de filtros de `/archivo/tareas`.

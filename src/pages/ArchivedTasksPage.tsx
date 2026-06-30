@@ -87,7 +87,7 @@ export default function ArchivedTasksPage() {
         </button>
       </div>
 
-      <section className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <section className="mb-2 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,1fr))_auto]">
           <input
             value={searchTerm}
@@ -132,11 +132,11 @@ export default function ArchivedTasksPage() {
             Limpiar filtros
           </button>
         </div>
-
-        <p className="mt-3 text-[12px] text-gray-500">
-          Mostrando {filteredTasks.length} de {archivedTasks.length} tareas archivadas
-        </p>
       </section>
+
+      <p className="mb-5 px-1 text-[12px] text-gray-500">
+        Mostrando {filteredTasks.length} de {archivedTasks.length} tareas archivadas
+      </p>
 
       {archivedTasks.length > 0 && filteredTasks.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white/60 p-8 text-center">
