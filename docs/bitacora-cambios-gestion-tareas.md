@@ -46,7 +46,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run build`;
   - `backend/npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `2cfd5bc`.
 
 ### 2026-06-29 - Card de tareas archivadas en Archivo
 
