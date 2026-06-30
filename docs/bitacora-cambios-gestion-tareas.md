@@ -31,6 +31,22 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-29 - Card de tareas archivadas en Archivo
+
+- Objetivo: ordenar el modulo `Archivo` para que las tareas archivadas vivan dentro de una card y una vista dedicada.
+- Cambios:
+  - `/archivo` ya no lista todas las tareas archivadas directamente;
+  - se agrego una card `Tareas archivadas` con contador y accion `Ver tareas`;
+  - se agrego la ruta `/archivo/tareas` con listado completo de tareas archivadas;
+  - la vista dedicada permite restaurar tareas y volver a `Archivo`;
+  - se reutiliza la API existente de tareas archivadas, sin cambios de backend ni Prisma.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-29 - Archivado manual de tareas completadas
 
 - Objetivo: limpiar la columna `Hecho` del Kanban sin borrar tareas ni perder historial.

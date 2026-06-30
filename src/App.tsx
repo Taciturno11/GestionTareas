@@ -6,6 +6,7 @@ import RouteFallback from './components/RouteFallback/RouteFallback'
 import { getAuthToken } from './services/auth-token'
 
 const AjustesPage = lazy(() => import('./pages/AjustesPage'))
+const ArchivedTasksPage = lazy(() => import('./pages/ArchivedTasksPage'))
 const ArchivePage = lazy(() => import('./pages/ArchivePage'))
 const CalendarPage = lazy(() => import('./pages/CalendarPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/calendario" element={<CalendarPage />} />
             <Route path="/amigos" element={<FriendsPage />} />
             <Route path="/archivo" element={<ArchivePage />} />
+            <Route path="/archivo/tareas" element={<ArchivedTasksPage />} />
             <Route path="/ajustes/*" element={<AjustesPage />} />
             <Route path="/p/:pageId" element={<PageView />} />
             <Route path="/e/:spaceId" element={<SubspaceView />} />
