@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Renombrar elementos del sidebar con F2
+
+- Objetivo: permitir renombrar carpetas, subcarpetas y hojas desde el sidebar usando la tecla `F2`.
+- Cambios:
+  - se recuerda el ultimo elemento clickeado o abierto por menu contextual en el sidebar;
+  - `F2` abre el mismo flujo que `Editar nombre` para espacios y hojas;
+  - el atajo ignora inputs, textareas, selects, contenido editable, modales abiertos y sidebar colapsado;
+  - en espacios compartidos se respeta el permiso `EDITOR`; usuarios `VIEWER` no activan renombrado.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-30 - Fondo anterior en toolbar de texto
 
 - Objetivo: conservar el fondo visual anterior de la toolbar de hojas de texto.

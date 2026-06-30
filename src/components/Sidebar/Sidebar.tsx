@@ -149,6 +149,10 @@ function SharedByAvatar({ user }: { user: PublicUser }) {
   )
 }
 
+type RenameTarget =
+  | { type: 'space'; space: WorkspaceSpace; shared?: SharedSpace }
+  | { type: 'page'; page: WorkspacePageSummary; shared?: SharedSpace }
+
 function SharedSpaceTree({
   shared,
   space,
@@ -158,6 +162,7 @@ function SharedSpaceTree({
   onOpenMenu,
   onOpenPageMenu,
   onToggleSpace,
+  onSelectRenameTarget,
   collapsedOverrides,
   editingPage,
   pageDraftTitle,
@@ -173,6 +178,7 @@ function SharedSpaceTree({
   onOpenMenu: (shared: SharedSpace, space: WorkspaceSpace, x: number, y: number) => void
   onOpenPageMenu: (shared: SharedSpace, page: WorkspacePageSummary, x: number, y: number) => void
   onToggleSpace: (space: WorkspaceSpace, collapsed: boolean) => void
+  onSelectRenameTarget: (target: RenameTarget) => void
   collapsedOverrides: Record<string, boolean>
   editingPage: WorkspacePageSummary | null
   pageDraftTitle: string
@@ -203,6 +209,7 @@ function SharedSpaceTree({
       <NavLink
         to={firstPage ? `/p/${firstPage.id}` : '/'}
         onClick={event => {
+          if (canEdit) onSelectRenameTarget({ type: 'space', space, shared })
           if (level !== 0) return
           event.preventDefault()
           onToggleSpace(space, isCollapsed)
@@ -210,6 +217,7 @@ function SharedSpaceTree({
         onContextMenu={event => {
           if (!canEdit) return
           event.preventDefault()
+          onSelectRenameTarget({ type: 'space', space, shared })
           onOpenMenu(shared, space, event.clientX, event.clientY)
         }}
         className={({ isActive }) => {
@@ -228,6 +236,7 @@ function SharedSpaceTree({
             if (level === 0) return
             event.preventDefault()
             event.stopPropagation()
+            if (canEdit) onSelectRenameTarget({ type: 'space', space, shared })
             onToggleSpace(space, isCollapsed)
           }}
           title={isCollapsed ? 'Expandir espacio' : 'Colapsar espacio'}
@@ -253,9 +262,13 @@ function SharedSpaceTree({
               <NavLink
                 key={page.id}
                 to={`/p/${page.id}`}
+                onClick={() => {
+                  if (canEdit) onSelectRenameTarget({ type: 'page', page, shared })
+                }}
                 onContextMenu={event => {
                   if (!canEdit) return
                   event.preventDefault()
+                  onSelectRenameTarget({ type: 'page', page, shared })
                   onOpenPageMenu(shared, page, event.clientX, event.clientY)
                 }}
                 className={({ isActive }) => {
@@ -305,6 +318,7 @@ function SharedSpaceTree({
               onOpenMenu={onOpenMenu}
               onOpenPageMenu={onOpenPageMenu}
               onToggleSpace={onToggleSpace}
+              onSelectRenameTarget={onSelectRenameTarget}
               collapsedOverrides={collapsedOverrides}
               editingPage={editingPage}
               pageDraftTitle={pageDraftTitle}
@@ -368,6 +382,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
     x: number
     y: number
   } | null>(null)
+  const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null)
   const [editingPage, setEditingPage] = useState<WorkspacePageSummary | null>(null)
   const [editingPageShared, setEditingPageShared] = useState<SharedSpace | null>(null)
   const [pageDraftTitle, setPageDraftTitle] = useState('')
@@ -628,6 +643,54 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
     setPageDraftTitle(page.title)
   }
 
+  useEffect(() => {
+    function shouldIgnoreF2(event: KeyboardEvent) {
+      if (event.key !== 'F2') return true
+      if (collapsed || !renameTarget) return true
+      if (isCreateSpaceOpen || editingSpace || deletingSpace || sharingSpace || editingPage) return true
+
+      const target = event.target
+      if (!(target instanceof HTMLElement)) return false
+
+      const tagName = target.tagName.toLowerCase()
+      return (
+        tagName === 'input' ||
+        tagName === 'textarea' ||
+        tagName === 'select' ||
+        target.isContentEditable ||
+        Boolean(target.closest('[contenteditable="true"]'))
+      )
+    }
+
+    function handleRenameShortcut(event: KeyboardEvent) {
+      if (shouldIgnoreF2(event)) return
+
+      event.preventDefault()
+      setSpaceMenu(null)
+      setSubspaceMenu(null)
+      setSharedSpaceMenu(null)
+      setPageMenu(null)
+
+      if (renameTarget?.type === 'space') {
+        openEditSpace(renameTarget.space, renameTarget.shared)
+      }
+      if (renameTarget?.type === 'page') {
+        openEditPage(renameTarget.page, renameTarget.shared)
+      }
+    }
+
+    window.addEventListener('keydown', handleRenameShortcut)
+    return () => window.removeEventListener('keydown', handleRenameShortcut)
+  }, [
+    collapsed,
+    deletingSpace,
+    editingPage,
+    editingSpace,
+    isCreateSpaceOpen,
+    renameTarget,
+    sharingSpace,
+  ])
+
   async function savePageEdit() {
     if (!editingPage) return
     if (!pageDraftTitle.trim()) {
@@ -762,9 +825,13 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                 <div className="group/space relative flex items-center">
                   <button
                     type="button"
-                    onClick={() => handleToggleSpace(space)}
+                    onClick={() => {
+                      setRenameTarget({ type: 'space', space })
+                      handleToggleSpace(space)
+                    }}
                     onContextMenu={event => {
                       event.preventDefault()
+                      setRenameTarget({ type: 'space', space })
                       setSpaceMenu({
                         space,
                         x: event.clientX,
@@ -800,8 +867,10 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                           <div className="group/subspace relative flex items-center">
                             <NavLink
                               to={`/s/${subspace.id}`}
+                              onClick={() => setRenameTarget({ type: 'space', space: subspace })}
                               onContextMenu={event => {
                                 event.preventDefault()
+                                setRenameTarget({ type: 'space', space: subspace })
                                 setSubspaceMenu({
                                   space: subspace,
                                   x: event.clientX,
@@ -849,54 +918,56 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
 
                                 return (
                                   <div key={page.id} className="group/page relative mb-0.5 flex items-center">
-                                  <NavLink
-                                    to={`/p/${page.id}`}
-                                    onContextMenu={event => {
-                                      event.preventDefault()
-                                      setPageMenu({
-                                        page,
-                                        x: event.clientX,
-                                        y: event.clientY,
-                                      })
-                                    }}
-                                    className={({ isActive }) => {
-                                      return `flex min-w-0 flex-1 items-center gap-2 rounded-md px-3 py-1.5 pr-8 text-[13px] transition-colors ${
-                                        isActive ? 'nav-active' : 'hover:bg-gray-100'
-                                      }`
-                                    }}
-                                    style={({ isActive }) => {
-                                      return {
-                                        color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                                      }
-                                    }}
-                                  >
-                                    <PageIcon className="h-4 w-4 shrink-0" />
-                                    {editingPage?.id === page.id ? (
-                                      <input
-                                        autoFocus
-                                        value={pageDraftTitle}
-                                        onClick={event => event.preventDefault()}
-                                        onFocus={event => event.currentTarget.select()}
-                                        onChange={event => setPageDraftTitle(event.target.value)}
-                                        onBlur={savePageEdit}
-                                        onKeyDown={event => {
-                                          if (event.key === 'Enter') {
-                                            event.preventDefault()
-                                            savePageEdit()
-                                          }
-                                          if (event.key === 'Escape') {
-                                            event.preventDefault()
-                                            setEditingPage(null)
-                                          }
-                                        }}
-                                        className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
-                                      />
-                                    ) : (
-                                      <span className="truncate">{page.title || 'Página sin título'}</span>
-                                    )}
-                                  </NavLink>
+                                    <NavLink
+                                      to={`/p/${page.id}`}
+                                      onContextMenu={event => {
+                                        event.preventDefault()
+                                        setRenameTarget({ type: 'page', page })
+                                        setPageMenu({
+                                          page,
+                                          x: event.clientX,
+                                          y: event.clientY,
+                                        })
+                                      }}
+                                      className={({ isActive }) => {
+                                        return `flex min-w-0 flex-1 items-center gap-2 rounded-md px-3 py-1.5 pr-8 text-[13px] transition-colors ${
+                                          isActive ? 'nav-active' : 'hover:bg-gray-100'
+                                        }`
+                                      }}
+                                      onClick={() => setRenameTarget({ type: 'page', page })}
+                                      style={({ isActive }) => {
+                                        return {
+                                          color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                                        }
+                                      }}
+                                    >
+                                      <PageIcon className="h-4 w-4 shrink-0" />
+                                      {editingPage?.id === page.id ? (
+                                        <input
+                                          autoFocus
+                                          value={pageDraftTitle}
+                                          onClick={event => event.preventDefault()}
+                                          onFocus={event => event.currentTarget.select()}
+                                          onChange={event => setPageDraftTitle(event.target.value)}
+                                          onBlur={savePageEdit}
+                                          onKeyDown={event => {
+                                            if (event.key === 'Enter') {
+                                              event.preventDefault()
+                                              savePageEdit()
+                                            }
+                                            if (event.key === 'Escape') {
+                                              event.preventDefault()
+                                              setEditingPage(null)
+                                            }
+                                          }}
+                                          className="cursor-text-dark min-w-0 flex-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[13px] text-gray-800 caret-gray-900 outline-none"
+                                        />
+                                      ) : (
+                                        <span className="truncate">{page.title || 'Página sin título'}</span>
+                                      )}
+                                    </NavLink>
 
-                                </div>
+                                  </div>
                                 )
                               })}
 
@@ -915,6 +986,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                           to={`/p/${page.id}`}
                           onContextMenu={event => {
                             event.preventDefault()
+                            setRenameTarget({ type: 'page', page })
                             setPageMenu({
                               page,
                               x: event.clientX,
@@ -926,6 +998,7 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                               isActive ? 'nav-active' : 'hover:bg-gray-100'
                             }`
                           }}
+                          onClick={() => setRenameTarget({ type: 'page', page })}
                           style={({ isActive }) => {
                             return {
                               color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
@@ -966,7 +1039,6 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
               </div>
             )
           })}
-
           {sharedSpaces.length > 0 && (
             <div className="mt-5">
               <p
@@ -986,9 +1058,16 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                       space={rootSpace}
                       spaces={shared.spaces}
                       pages={shared.pages}
-                      onOpenMenu={(sharedSpace, space, x, y) => setSharedSpaceMenu({ shared: sharedSpace, space, x, y })}
-                      onOpenPageMenu={(sharedSpace, page, x, y) => setPageMenu({ shared: sharedSpace, page, x, y })}
+                      onOpenMenu={(sharedSpace, space, x, y) => {
+                        setRenameTarget({ type: 'space', space, shared: sharedSpace })
+                        setSharedSpaceMenu({ shared: sharedSpace, space, x, y })
+                      }}
+                      onOpenPageMenu={(sharedSpace, page, x, y) => {
+                        setRenameTarget({ type: 'page', page, shared: sharedSpace })
+                        setPageMenu({ shared: sharedSpace, page, x, y })
+                      }}
                       onToggleSpace={handleToggleSharedSpace}
+                      onSelectRenameTarget={setRenameTarget}
                       collapsedOverrides={sharedSpaceCollapsedOverrides}
                       editingPage={editingPage}
                       pageDraftTitle={pageDraftTitle}
@@ -1019,8 +1098,10 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
                 <div key={page.id} className="group/page relative mb-0.5 flex items-center">
                 <NavLink
                   to={`/p/${page.id}`}
+                  onClick={() => setRenameTarget({ type: 'page', page })}
                   onContextMenu={event => {
                     event.preventDefault()
+                    setRenameTarget({ type: 'page', page })
                     setPageMenu({
                       page,
                       x: event.clientX,
