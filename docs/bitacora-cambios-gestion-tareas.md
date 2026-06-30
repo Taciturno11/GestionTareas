@@ -31,6 +31,21 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Toolbar de hojas de texto como segundo header
+
+- Objetivo: mejorar la barra de formato de hojas de texto para que se vea como un segundo header debajo del header principal.
+- Cambios:
+  - se reemplazo la toolbar pequena/flotante por una barra sticky de ancho completo dentro del area de contenido;
+  - se mantuvieron acciones de encabezados, negrita, cursiva, subrayado, listas y colores;
+  - se agruparon controles con separadores y estados activos mas visibles;
+  - la toolbar conserva scroll horizontal en pantallas pequenas;
+  - en modo lectura la toolbar no se muestra.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-30 - Contador fuera de filtros archivados
 
 - Objetivo: reducir el alto visual de la barra de filtros de `/archivo/tareas`.
