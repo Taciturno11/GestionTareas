@@ -41,7 +41,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `2347c7e`.
 
 ### 2026-06-30 - Simplificacion de filtros en tareas archivadas
 
