@@ -70,19 +70,20 @@ function toCreateRequest(task: LocalTaskLike, workspaceId: string, position: num
 interface UseTasksOptions<T> {
   workspaceId?: string
   pageId?: string
+  includeArchived?: boolean
   fromApi?: (tasks: Task[]) => T
   toApi?: (task: unknown) => LocalTaskLike
 }
 
 export function useTasks<T>(fallback: T, options: UseTasksOptions<T> = {}) {
-  const { workspaceId, pageId, fromApi, toApi } = options
+  const { workspaceId, pageId, includeArchived = false, fromApi, toApi } = options
   const queryClient = useQueryClient()
   const [localTasks, setLocalTasks] = useState<T>(() => loadLocalTasks(fallback))
   const [mutationError, setMutationError] = useState<unknown>(null)
   const queryKey = ['tasks', workspaceId, pageId ?? null] as const
   const tasksQuery = useQuery<Task[], Error, T>({
     queryKey,
-    queryFn: () => tasksApi.list(workspaceId!, pageId),
+    queryFn: () => tasksApi.list(workspaceId!, pageId, includeArchived),
     enabled: Boolean(workspaceId && getAuthToken()),
     select: remoteTasks => fromApi ? fromApi(remoteTasks) : remoteTasks as T,
   })
@@ -142,6 +143,7 @@ export function useTasks<T>(fallback: T, options: UseTasksOptions<T> = {}) {
           color: body.color ?? null,
           notes: body.notes ?? '',
           position,
+          archivedAt: existing?.archivedAt ?? null,
           createdAt: existing?.createdAt ?? now,
           updatedAt: now,
         } satisfies Task
@@ -193,9 +195,43 @@ export function useTasks<T>(fallback: T, options: UseTasksOptions<T> = {}) {
     }
   }
 
+  async function archiveTasks(taskIds: string[]) {
+    const taskIdSet = new Set(taskIds)
+    const currentTasks = isTaskArray(tasks)
+      ? tasks
+      : []
+    const nextTasks = currentTasks.filter(task => !taskIdSet.has(task.id))
+
+    setLocalTasks(nextTasks as T)
+    saveLocalTasks(nextTasks as T)
+
+    if (workspaceId && getAuthToken()) {
+      try {
+        await Promise.all(taskIds.map(taskId => tasksApi.archive(taskId)))
+        queryClient.setQueryData<Task[]>(queryKey, cachedTasks =>
+          cachedTasks?.filter(task => !taskIdSet.has(task.id)) ?? []
+        )
+        setMutationError(null)
+        void queryClient.invalidateQueries({ queryKey })
+      } catch (error) {
+        setLocalTasks(currentTasks as T)
+        saveLocalTasks(currentTasks as T)
+        setMutationError(error)
+        queryClient.invalidateQueries({ queryKey })
+        throw error
+      }
+    }
+  }
+
+  function archiveTask(taskId: string) {
+    return archiveTasks([taskId])
+  }
+
   return {
     tasks,
     setTasks,
+    archiveTask,
+    archiveTasks,
     error: mutationError ?? tasksQuery.error,
     refresh: tasksQuery.refetch,
   }

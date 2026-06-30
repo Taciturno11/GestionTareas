@@ -14,7 +14,7 @@ function requireUserId(req: Request) {
 // llamar al servicio correspondiente y enviar la respuesta adecuada.
 export async function list(req: Request, res: Response) {
   const query = validateQuery(req, listTasksQuerySchema)
-  res.json(await tasksService.list(requireUserId(req), query.workspaceId, query.pageId))
+  res.json(await tasksService.list(requireUserId(req), query.workspaceId, query.pageId, query.includeArchived))
 }
 
 export async function create(req: Request, res: Response) {
@@ -30,4 +30,12 @@ export async function update(req: Request, res: Response) {
 export async function remove(req: Request, res: Response) {
   await tasksService.remove(requireUserId(req), getParam(req, 'id'))
   res.status(204).send()
+}
+
+export async function archive(req: Request, res: Response) {
+  res.json(await tasksService.archive(requireUserId(req), getParam(req, 'id')))
+}
+
+export async function restore(req: Request, res: Response) {
+  res.json(await tasksService.restore(requireUserId(req), getParam(req, 'id')))
 }

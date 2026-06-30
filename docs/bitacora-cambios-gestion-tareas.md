@@ -31,6 +31,26 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-29 - Archivado manual de tareas completadas
+
+- Objetivo: limpiar la columna `Hecho` del Kanban sin borrar tareas ni perder historial.
+- Cambios:
+  - se agrego `Task.archivedAt` con migracion Prisma `20260629_add_task_archived_at`;
+  - `GET /api/tasks` oculta tareas archivadas por defecto y soporta `includeArchived=true`;
+  - se agregaron endpoints `POST /api/tasks/:id/archive` y `POST /api/tasks/:id/restore`;
+  - `Mis tareas` permite archivar tareas hechas individualmente y con `Archivar hechas`;
+  - `Archivo` muestra `Tareas archivadas` y permite restaurarlas;
+  - Inicio y Calendario quedan usando el listado normal de tareas no archivadas.
+- Validaciones:
+  - `backend/npm run prisma:migrate:deploy`;
+  - `backend/npm run prisma:generate`;
+  - `backend/npm run build`;
+  - `backend/npx prisma migrate status`;
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-27 - Titulo limpio en PDF de reporte de horas
 
 - Objetivo: ajustar la cabecera del PDF para que no use el titulo editable de la hoja ni muestre la fecha de generacion.

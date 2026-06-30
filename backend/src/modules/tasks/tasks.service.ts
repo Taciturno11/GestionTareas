@@ -13,9 +13,9 @@ async function assertValidProject(workspaceId: string, projectId: string | null 
   if (!project) throw new HttpError(400, 'Project does not belong to this workspace')
 }
 
-export async function list(userId: string, workspaceId: string, pageId?: string) {
+export async function list(userId: string, workspaceId: string, pageId?: string, includeArchived = false) {
   await assertWorkspaceMember(userId, workspaceId)
-  return tasksRepository.findMany(workspaceId, pageId)
+  return tasksRepository.findMany(workspaceId, pageId, includeArchived)
 }
 
 export async function create(userId: string, dto: CreateTaskDto) {
@@ -37,4 +37,18 @@ export async function remove(userId: string, taskId: string) {
   if (!task) throw new HttpError(404, 'Task not found')
   await assertWorkspaceMember(userId, task.workspaceId)
   return tasksRepository.remove(taskId)
+}
+
+export async function archive(userId: string, taskId: string) {
+  const task = await tasksRepository.findById(taskId)
+  if (!task) throw new HttpError(404, 'Task not found')
+  await assertWorkspaceMember(userId, task.workspaceId)
+  return tasksRepository.archive(taskId)
+}
+
+export async function restore(userId: string, taskId: string) {
+  const task = await tasksRepository.findById(taskId)
+  if (!task) throw new HttpError(404, 'Task not found')
+  await assertWorkspaceMember(userId, task.workspaceId)
+  return tasksRepository.restore(taskId)
 }

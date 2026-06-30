@@ -20,6 +20,7 @@ export interface Task {
   endDate: string | null
   createdAt: string
   updatedAt?: string
+  archivedAt?: string | null
   tag: string
   assignee?: string
   assigneeId?: string | null

@@ -5,9 +5,13 @@ function toDate(value: string | null | undefined) {
   return value ? new Date(`${value.slice(0, 10)}T12:00:00.000Z`) : null
 }
 
-export function findMany(workspaceId: string, pageId?: string) {
+export function findMany(workspaceId: string, pageId?: string, includeArchived = false) {
   return prisma.task.findMany({
-    where: { workspaceId, ...(pageId ? { pageId } : {}) },
+    where: {
+      workspaceId,
+      ...(pageId ? { pageId } : {}),
+      ...(includeArchived ? {} : { archivedAt: null }),
+    },
     include: { project: true },
     orderBy: [
       { position: 'asc' },
@@ -61,4 +65,20 @@ export function update(id: string, data: UpdateTaskDto) {
 
 export function remove(id: string) {
   return prisma.task.delete({ where: { id } })
+}
+
+export function archive(id: string) {
+  return prisma.task.update({
+    where: { id },
+    data: { archivedAt: new Date() },
+    include: { project: true },
+  })
+}
+
+export function restore(id: string) {
+  return prisma.task.update({
+    where: { id },
+    data: { archivedAt: null },
+    include: { project: true },
+  })
 }

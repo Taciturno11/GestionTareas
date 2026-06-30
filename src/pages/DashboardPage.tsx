@@ -12,6 +12,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   SwatchIcon,
+  ArchiveBoxIcon,
 } from '@heroicons/react/24/outline'
 import { Squares2X2Icon, TableCellsIcon, ListBulletIcon } from '@heroicons/react/24/outline'
 import { useRef, useState } from 'react'
@@ -65,6 +66,7 @@ interface BoardTask {
   projectId: string
   color?: string
   notes?: string
+  archivedAt?: string | null
 }
 
 type EditableTaskField = keyof Pick<
@@ -127,6 +129,15 @@ function taskDraftSignature(task: Partial<BoardTask>) {
   })
 }
 
+function isDoneStatusId(statusId: string, statuses: BoardColumn[]) {
+  const normalizedId = statusId.toLowerCase().trim()
+  const statusLabel = statuses.find(status => status.id === statusId)?.label.toLowerCase().trim() ?? ''
+
+  return [normalizedId, statusLabel].some(value =>
+    ['hecho', 'done', 'completed', 'completado', 'completada', 'finalizado', 'finalizada'].includes(value)
+  )
+}
+
 function fromApiTasks(tasks: Task[]): BoardTask[] {
   return tasks.map(task => ({
     id: task.id,
@@ -140,6 +151,7 @@ function fromApiTasks(tasks: Task[]): BoardTask[] {
     projectId: task.projectId ?? '',
     color: task.color ?? undefined,
     notes: task.notes ?? '',
+    archivedAt: task.archivedAt ?? null,
   }))
 }
 
@@ -362,10 +374,12 @@ function KanbanTaskCard({
   projectColors,
   onOpen,
   onDelete,
+  onArchive,
   onColorChange,
   projectOptions,
   tagOptions,
   priorityOptions,
+  canArchive,
   onFieldChange,
 }: {
   task: BoardTask
@@ -377,10 +391,12 @@ function KanbanTaskCard({
   projectColors: Record<string, string>
   onOpen: (task: BoardTask) => void
   onDelete: (taskId: string) => void
+  onArchive: (taskId: string) => void
   onColorChange: (taskId: string, color: string) => void
   projectOptions: { value: string; label: string }[]
   tagOptions: { value: string; label: string }[]
   priorityOptions: { value: string; label: string }[]
+  canArchive: boolean
   onFieldChange: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
     taskId: string,
     field: K,
@@ -459,6 +475,20 @@ function KanbanTaskCard({
         >
           <PencilSquareIcon className="h-3.5 w-3.5" />
         </button>
+        {canArchive && (
+          <button
+            type="button"
+            onPointerDown={event => event.stopPropagation()}
+            onClick={event => {
+              event.stopPropagation()
+              onArchive(task.id)
+            }}
+            className="rounded-md bg-white/90 p-1 text-gray-400 shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-amber-50 hover:text-amber-600"
+            title="Archivar tarea"
+          >
+            <ArchiveBoxIcon className="h-3.5 w-3.5" />
+          </button>
+        )}
         <button
           type="button"
           onPointerDown={event => event.stopPropagation()}
@@ -504,6 +534,8 @@ function KanbanColumn({
   newTaskTitle,
   onOpenTask,
   onDeleteTask,
+  onArchiveTask,
+  onArchiveColumnTasks,
   onColorTask,
   projectOptions,
   tagOptions,
@@ -528,6 +560,8 @@ function KanbanColumn({
   newTaskTitle: string
   onOpenTask: (task: BoardTask) => void
   onDeleteTask: (taskId: string) => void
+  onArchiveTask: (taskId: string) => void
+  onArchiveColumnTasks: (colId: string) => void
   onColorTask: (taskId: string, color: string) => void
   projectOptions: { value: string; label: string }[]
   tagOptions: { value: string; label: string }[]
@@ -544,6 +578,7 @@ function KanbanColumn({
 }) {
   const { setNodeRef } = useDroppable({ id: col.id })
   const isOver = activeDropColId === col.id
+  const isDoneColumn = isDoneStatusId(col.id, [col])
 
   return (
     <div
@@ -560,6 +595,16 @@ function KanbanColumn({
         </div>
 
         <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover/col:opacity-100">
+          {isDoneColumn && tasks.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onArchiveColumnTasks(col.id)}
+              className="rounded px-1.5 py-1 text-[11px] font-semibold text-amber-600 transition-colors hover:bg-amber-50"
+              title="Archivar tareas hechas"
+            >
+              Archivar hechas
+            </button>
+          )}
           <button
             onClick={() => onStartAdd(col.id)}
             className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
@@ -591,10 +636,12 @@ function KanbanColumn({
               projectColors={projectColors}
               onOpen={onOpenTask}
               onDelete={onDeleteTask}
+              onArchive={onArchiveTask}
               onColorChange={onColorTask}
               projectOptions={projectOptions}
               tagOptions={tagOptions}
               priorityOptions={priorityOptions}
+              canArchive={isDoneColumn}
               onFieldChange={onFieldChange}
             />
           ))}
@@ -651,7 +698,7 @@ export default function DashboardPage() {
   const { settings: taskSettings, setSettings: setTaskSettings } = useTaskSettings(activeWorkspaceId)
   const { projects, createProject } = useProjects(activeWorkspaceId, true)
   const activeProjects = projects.filter(project => !project.archivedAt)
-  const { tasks, setTasks } = useTasks<BoardTask[]>(TASKS, {
+  const { tasks, setTasks, archiveTask, archiveTasks } = useTasks<BoardTask[]>(TASKS, {
     workspaceId: activeWorkspaceId,
     fromApi: fromApiTasks,
     toApi: toApiTask,
@@ -957,6 +1004,15 @@ export default function DashboardPage() {
     setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
+  const archiveSingleTask = (taskId: string) => {
+    void archiveTask(taskId)
+  }
+
+  const archiveColumnTasks = (colId: string) => {
+    const tasksToArchive = filteredTasks.filter(task => task.colId === colId)
+    void archiveTasks(tasksToArchive.map(task => task.id))
+  }
+
   const updateTaskColor = (taskId: string, color: string) => {
     setTasks(prev => prev.map(task =>
       task.id === taskId ? { ...task, color } : task
@@ -1125,6 +1181,8 @@ export default function DashboardPage() {
                     openTaskPanel(task.colId, task)
                   }}
                   onDeleteTask={deleteTask}
+                  onArchiveTask={archiveSingleTask}
+                  onArchiveColumnTasks={archiveColumnTasks}
                   onColorTask={updateTaskColor}
                   projectOptions={projectOptions}
                   tagOptions={tagOptions}

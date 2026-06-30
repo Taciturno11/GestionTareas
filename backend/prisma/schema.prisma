@@ -200,6 +200,7 @@ model Task {
   color       String?
   notes       String    @default("")
   position    Int       @default(0)
+  archivedAt  DateTime?
   createdById String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -211,6 +212,7 @@ model Task {
 
   @@index([workspaceId])
   @@index([workspaceId, status, position])
+  @@index([workspaceId, archivedAt])
   @@index([projectId, workspaceId])
   @@index([pageId])
   @@index([assigneeId])
