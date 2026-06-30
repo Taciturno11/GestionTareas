@@ -51,7 +51,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - health publico `https://agenda.martinnauca.com/health`;
   - home publica `https://agenda.martinnauca.com`.
 - Despliegue: completado en produccion.
-- Commit: pendiente.
+- Commit: `5f9e827`.
 
 ### 2026-06-30 - Renombrar elementos del sidebar con F2
 
