@@ -45,7 +45,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run build`;
   - `backend/npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `8f5de79`.
 
 ### 2026-06-29 - Archivado manual de tareas completadas
 
