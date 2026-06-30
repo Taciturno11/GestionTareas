@@ -44,7 +44,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `84623ab`.
 
 ### 2026-06-30 - Contador fuera de filtros archivados
 
