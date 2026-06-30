@@ -31,6 +31,18 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Fondo anterior en toolbar de texto
+
+- Objetivo: conservar el fondo visual anterior de la toolbar de hojas de texto.
+- Cambios:
+  - la nueva toolbar tipo segundo header mantiene `bg-white/90` con blur;
+  - se conserva el comportamiento sticky y la distribucion horizontal.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-30 - Toolbar de hojas de texto como segundo header
 
 - Objetivo: mejorar la barra de formato de hojas de texto para que se vea como un segundo header debajo del header principal.

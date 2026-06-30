@@ -52,7 +52,7 @@ function ToolbarDivider() {
 function TextEditorToolbar({ editor }: { editor: TextEditor }) {
   return (
     <div
-      className="sticky top-0 z-20 border-b border-[#E8E7E3] bg-[#F7F6F3]/95 backdrop-blur"
+      className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur"
       aria-label="Barra de herramientas de texto"
     >
       <div className="mx-auto flex h-11 max-w-[1400px] items-center overflow-x-auto px-4">
