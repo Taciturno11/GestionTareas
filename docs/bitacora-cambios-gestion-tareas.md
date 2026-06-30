@@ -31,6 +31,23 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Filtros en tareas archivadas
+
+- Objetivo: agregar filtros locales en `/archivo/tareas` para encontrar tareas archivadas rapidamente.
+- Cambios:
+  - se agrego busqueda por titulo;
+  - se agregaron filtros por proyecto, etiqueta, prioridad y estado;
+  - se agrego contador `Mostrando X de Y tareas archivadas`;
+  - se agrego boton `Limpiar filtros`;
+  - se agrego estado vacio cuando no hay resultados por filtros;
+  - el filtrado es local y no modifica backend ni Prisma.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - `backend/npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-29 - Card de tareas archivadas en Archivo
 
 - Objetivo: ordenar el modulo `Archivo` para que las tareas archivadas vivan dentro de una card y una vista dedicada.
