@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-06-30 - Simplificacion de filtros en tareas archivadas
+
+- Objetivo: simplificar la barra de filtros de `/archivo/tareas`.
+- Cambios:
+  - se retiro el filtro de estado;
+  - los selectores ahora muestran textos mas breves: `Proyectos`, `Etiqueta` y `Prioridad`;
+  - se mantuvo busqueda por titulo, contador, limpieza de filtros y filtrado local.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-06-30 - Filtros en tareas archivadas
 
 - Objetivo: agregar filtros locales en `/archivo/tareas` para encontrar tareas archivadas rapidamente.

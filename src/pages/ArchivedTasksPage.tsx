@@ -19,7 +19,6 @@ export default function ArchivedTasksPage() {
   const [projectFilter, setProjectFilter] = useState('all')
   const [tagFilter, setTagFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
   const { projects } = useProjects(activeWorkspaceId, true)
   const { settings } = useTaskSettings(activeWorkspaceId)
   const archivedTasksQuery = useQuery({
@@ -44,16 +43,14 @@ export default function ArchivedTasksPage() {
     const matchesProject = projectFilter === 'all' || (projectFilter === 'none' ? !task.projectId : task.projectId === projectFilter)
     const matchesTag = tagFilter === 'all' || task.tag === tagFilter
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter
-    const matchesStatus = statusFilter === 'all' || task.status === statusFilter
 
-    return matchesSearch && matchesProject && matchesTag && matchesPriority && matchesStatus
+    return matchesSearch && matchesProject && matchesTag && matchesPriority
   })
   const hasActiveFilters = Boolean(
     normalizedSearch
       || projectFilter !== 'all'
       || tagFilter !== 'all'
-      || priorityFilter !== 'all'
-      || statusFilter !== 'all',
+      || priorityFilter !== 'all',
   )
   const selectTriggerClass = 'h-10 w-full rounded-xl text-[13px] shadow-sm'
 
@@ -62,7 +59,6 @@ export default function ArchivedTasksPage() {
     setProjectFilter('all')
     setTagFilter('all')
     setPriorityFilter('all')
-    setStatusFilter('all')
   }
 
   async function restoreTask(taskId: string) {
@@ -92,7 +88,7 @@ export default function ArchivedTasksPage() {
       </div>
 
       <section className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1.4fr)_repeat(4,minmax(150px,1fr))_auto]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(150px,1fr))_auto]">
           <input
             value={searchTerm}
             onChange={event => setSearchTerm(event.target.value)}
@@ -102,7 +98,7 @@ export default function ArchivedTasksPage() {
           <TaskSelect
             value={projectFilter}
             options={[
-              { value: 'all', label: 'Todos los proyectos' },
+              { value: 'all', label: 'Proyectos' },
               { value: 'none', label: 'Sin proyecto' },
               ...projects.map(project => ({ value: project.id, label: project.name })),
             ]}
@@ -112,7 +108,7 @@ export default function ArchivedTasksPage() {
           <TaskSelect
             value={tagFilter}
             options={[
-              { value: 'all', label: 'Todas las etiquetas' },
+              { value: 'all', label: 'Etiqueta' },
               ...settings.labels.map(label => ({ value: label.id, label: label.label })),
             ]}
             onChange={setTagFilter}
@@ -121,19 +117,10 @@ export default function ArchivedTasksPage() {
           <TaskSelect
             value={priorityFilter}
             options={[
-              { value: 'all', label: 'Todas las prioridades' },
+              { value: 'all', label: 'Prioridad' },
               ...settings.priorities.map(priority => ({ value: priority.id, label: priority.label })),
             ]}
             onChange={setPriorityFilter}
-            triggerClassName={selectTriggerClass}
-          />
-          <TaskSelect
-            value={statusFilter}
-            options={[
-              { value: 'all', label: 'Todos los estados' },
-              ...settings.statuses.map(status => ({ value: status.id, label: status.label })),
-            ]}
-            onChange={setStatusFilter}
             triggerClassName={selectTriggerClass}
           />
           <button
