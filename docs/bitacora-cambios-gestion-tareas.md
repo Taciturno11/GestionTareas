@@ -41,7 +41,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: pendiente.
-- Commit: pendiente.
+- Commit: `dfb2ec9`.
 
 ### 2026-06-30 - Toolbar de hojas de texto como segundo header
 
