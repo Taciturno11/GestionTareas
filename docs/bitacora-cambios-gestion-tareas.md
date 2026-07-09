@@ -44,7 +44,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - `npm run lint`;
   - `npm run build`.
 - Despliegue: no realizado.
-- Commit: `e2cd871`.
+- Commit: `6ef8d6a`.
 
 ### 2026-07-09 - Despliegue frontend correccion centro del toggle
 
