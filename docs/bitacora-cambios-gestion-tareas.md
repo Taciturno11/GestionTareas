@@ -31,6 +31,26 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Despliegue frontend correccion centro del toggle
+
+- Objetivo: publicar en produccion la correccion para que la transicion circular de tema nazca desde el centro real de la pantalla.
+- Cambios:
+  - se desplego el release frontend `20260709022517` en `https://agenda.martinnauca.com`;
+  - se publico solo frontend porque no hubo cambios de backend ni migraciones Prisma;
+  - se preservo `/var/www/gestion_tareas/config.js` de produccion;
+  - se creo backup del frontend anterior en `/var/www/gestion_tareas_backup_20260709022517`;
+  - se verifico que produccion sirve `assets/index-Bmzx9pfg.js`;
+  - se verifico que el bundle publicado contiene `50vw`, `150vmax` y ya no contiene `circle(0px)`;
+  - se ejecuto limpieza de retencion del servidor.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - carga publica `https://agenda.martinnauca.com`;
+  - servicio backend `gestion-tareas-backend` activo.
+- Despliegue: completado.
+- Commit: `32ed189`.
+
 ### 2026-07-09 - Ajuste centro real en transicion de tema
 
 - Objetivo: corregir que el circulo del cambio de tema no se perciba naciendo desde el centro exacto de la pantalla.
@@ -41,8 +61,8 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 - Validaciones:
   - `npm run lint`;
   - `npm run build`.
-- Despliegue: no realizado.
-- Commit: pendiente.
+- Despliegue: completado en release frontend `20260709022517`.
+- Commit: `32ed189`.
 
 ### 2026-07-09 - Documentar patron seguro PowerShell SSH Bash
 
@@ -54,7 +74,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 - Validaciones:
   - revision documental.
 - Despliegue: no aplica; cambio documental local.
-- Commit: pendiente.
+- Commit: `0d29eb1`.
 
 ### 2026-07-09 - Despliegue frontend tema oscuro y particulas
 
