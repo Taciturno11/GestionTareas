@@ -53,6 +53,7 @@ Construir el frontend de una aplicacion de gestion de tareas. La app debe permit
 - No escribir secretos, tokens, contrasenas ni claves sensibles en la bitacora.
 - No reemplazar el `.env` del servidor ni `config.js` de produccion durante un despliegue.
 - Antes de desplegar, exigir working tree limpio, build, backup, migraciones y health checks.
+- Al ejecutar scripts Bash remotos desde PowerShell por SSH, evitar comandos largos dentro de comillas dobles porque PowerShell interpola variables como `$PACKAGE`, `$STAGING` o `$DATABASE_URL` antes de enviarlas al servidor. Usar un here-string de PowerShell y enviarlo por stdin con `ssh root@72.60.138.218 "bash -s -- ARG"`; dentro del script Bash leer argumentos como `$1`, `$2`, etc.
 - Leer ADRs antes de cambiar decisiones de arquitectura.
 - Crear ADR nuevo si una decision aprobada cambia o aparece una decision tecnica relevante.
 - No editar ADR antiguo para ocultar historia; solo corregir typos o enlaces.

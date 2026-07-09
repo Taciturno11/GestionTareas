@@ -231,6 +231,51 @@ tar -czf "$env:TEMP\gestion_tareas_$Release.tar.gz" -C $Package .
 scp "$env:TEMP\gestion_tareas_$Release.tar.gz" root@72.60.138.218:/tmp/
 ```
 
+### Nota importante: PowerShell + Bash por SSH
+
+Cuando se ejecuten comandos Bash remotos desde PowerShell, no enviar scripts
+largos dentro de una sola cadena con comillas dobles, por ejemplo:
+
+```powershell
+ssh root@72.60.138.218 "set -e; PACKAGE="/tmp/gestion_tareas_${RELEASE}.tar.gz"; test -f "$PACKAGE""
+```
+
+Ese patron es propenso a fallar porque PowerShell puede interpolar variables
+como `$PACKAGE`, `$STAGING`, `$DATABASE_URL` o `$RELEASE` antes de que el script
+llegue al servidor. El sintoma tipico es un error raro de Bash como:
+
+```text
+bash: line X: -f: command not found
+```
+
+El patron recomendado es enviar el script por stdin usando un here-string de
+PowerShell y pasar solo los argumentos necesarios:
+
+```powershell
+$Release = Get-Date -Format "yyyyMMddHHmmss"
+
+$Script = @'
+set -euo pipefail
+RELEASE="$1"
+PACKAGE="/tmp/gestion_tareas_${RELEASE}.tar.gz"
+STAGING="/opt/gestion_tareas/releases/${RELEASE}"
+
+test -f "$PACKAGE"
+mkdir -p "$STAGING"
+tar -xzf "$PACKAGE" -C "$STAGING"
+'@
+
+$Script | ssh root@72.60.138.218 "bash -s -- $Release"
+```
+
+Reglas practicas:
+
+- usar `@' ... '@` para que PowerShell no interpole variables internas del script;
+- pasar valores externos como argumentos (`$1`, `$2`, etc.);
+- dejar que Bash resuelva variables remotas como `$PACKAGE`, `$STAGING` y `$DATABASE_URL`;
+- nunca imprimir secretos ni ejecutar `cat /etc/gestion_tareas/backend.env`;
+- preferir este patron para backups, deploy, migraciones, health checks y limpieza.
+
 ### C. Crear backup antes de tocar produccion
 
 Entrar al servidor:

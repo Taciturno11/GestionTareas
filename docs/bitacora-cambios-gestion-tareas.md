@@ -31,6 +31,18 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Documentar patron seguro PowerShell SSH Bash
+
+- Objetivo: evitar errores recurrentes de despliegue por interpolacion de variables al ejecutar Bash remoto desde PowerShell.
+- Cambios:
+  - se agrego una regla en `AGENTS.md` para no enviar scripts remotos largos dentro de comillas dobles;
+  - se documento en `docs/guia-continuidad-y-despliegue-produccion.md` el patron recomendado con here-string de PowerShell y `ssh "bash -s -- ARG"`;
+  - se explico el sintoma tipico `bash: line X: -f: command not found` y la causa: PowerShell interpola variables Bash antes de enviarlas al servidor.
+- Validaciones:
+  - revision documental.
+- Despliegue: no aplica; cambio documental local.
+- Commit: pendiente.
+
 ### 2026-07-09 - Despliegue frontend tema oscuro y particulas
 
 - Objetivo: publicar en produccion el sistema de tema claro/oscuro, particulas en modo oscuro y la transicion circular del toggle.
