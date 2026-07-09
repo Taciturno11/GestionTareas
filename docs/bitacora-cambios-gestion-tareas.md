@@ -31,6 +31,29 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Despliegue frontend transicion de tema suavizada
+
+- Objetivo: publicar en produccion la transicion de tema basada en mascara SVG difuminada.
+- Cambios:
+  - se desplego el release frontend `20260709023913` en `https://agenda.martinnauca.com`;
+  - se publico solo frontend porque no hubo cambios de backend ni migraciones Prisma;
+  - se preservo `/var/www/gestion_tareas/config.js` de produccion;
+  - se creo backup del frontend anterior en `/var/www/gestion_tareas_backup_20260709023913`;
+  - se verifico que produccion sirve `assets/index-BV6xIPPh.js` y `assets/index-CFVLAYDg.css`;
+  - se verifico que el bundle publicado contiene `theme-transition-circle`;
+  - se verifico que el CSS publicado contiene la mascara y `theme-circle-reveal`;
+  - se verifico que el JS publicado ya no contiene el `clipPath` anterior;
+  - se ejecuto limpieza de retencion del servidor;
+  - no se subio el archivo no trackeado `ops/apply-tldraw-bypass.sh`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - carga publica `https://agenda.martinnauca.com`;
+  - servicio backend `gestion-tareas-backend` activo.
+- Despliegue: completado.
+- Commit: `6ef8d6a` y `9bb8e33`.
+
 ### 2026-07-09 - Transicion de tema con mascara SVG difuminada
 
 - Objetivo: hacer que el cambio claro/oscuro se sienta mas natural, similar a la referencia `theme-toggle.rdsx.dev`.
@@ -43,7 +66,7 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 - Validaciones:
   - `npm run lint`;
   - `npm run build`.
-- Despliegue: no realizado.
+- Despliegue: completado en release frontend `20260709023913`.
 - Commit: `6ef8d6a`.
 
 ### 2026-07-09 - Despliegue frontend correccion centro del toggle
