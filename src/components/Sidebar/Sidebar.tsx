@@ -737,7 +737,9 @@ export default function Sidebar({ collapsed, currentUserId = null }: SidebarProp
         width: collapsed ? 0 : 240,
         opacity: collapsed ? 0 : 1,
         background: 'var(--color-bg-sidebar)',
-        borderColor: 'var(--color-border)',
+        borderColor: 'var(--sidebar-shell-border)',
+        backdropFilter: 'blur(2px) saturate(1.08)',
+        WebkitBackdropFilter: 'blur(2px) saturate(1.08)',
       }}
     >
       <div

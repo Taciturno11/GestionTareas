@@ -45,7 +45,14 @@ import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useTasks } from '@/hooks/useTasks'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
 import { useProjects } from '@/hooks/useProjects'
+import { useTheme } from '@/theme/theme-context'
 import { formatTaskDateRange } from '@/utils/date.utils'
+import {
+  getDynamicChipStyle,
+  getSoftDynamicPair,
+  getTaskCardBackground,
+  getTaskCardSwatchBackground,
+} from '@/utils/theme-colors'
 import type { Task } from '@/types/task'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -177,21 +184,19 @@ function ProjectPill({
   projectId,
   projectLabels,
   projectColors,
+  resolvedTheme,
 }: {
   projectId: string
   projectLabels: Record<string, string>
   projectColors: Record<string, string>
+  resolvedTheme: 'light' | 'dark'
 }) {
   const color = projectId ? projectColors[projectId] ?? '#64748B' : '#94A3B8'
 
   return (
     <span
       className="inline-flex max-w-full items-center gap-1.5 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-      style={{
-        background: `${color}14`,
-        borderColor: `${color}33`,
-        color,
-      }}
+      style={getDynamicChipStyle(color, resolvedTheme)}
     >
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
       <span className="truncate">
@@ -212,6 +217,7 @@ function TaskCardContent({
   projectOptions = [],
   tagOptions = [],
   priorityOptions = [],
+  resolvedTheme,
   onFieldChange,
 }: {
   task: BoardTask
@@ -224,18 +230,23 @@ function TaskCardContent({
   projectOptions?: { value: string; label: string }[]
   tagOptions?: { value: string; label: string }[]
   priorityOptions?: { value: string; label: string }[]
+  resolvedTheme: 'light' | 'dark'
   onFieldChange?: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
     field: K,
     value: BoardTask[K],
   ) => void
 }) {
-  const tagCfg = tagColors[task.tag] ?? { bg: '#F8FAFC', text: '#94A3B8' }
-  const priCfg = priorityColors[task.priority] ?? { bg: '#F8FAFC', text: '#94A3B8' }
-  const aCfg = assigneeColors[task.assignee] ?? {
+  const tagCfg = getSoftDynamicPair(tagColors[task.tag] ?? { bg: '#F8FAFC', text: '#94A3B8' }, resolvedTheme)
+  const priCfg = getSoftDynamicPair(priorityColors[task.priority] ?? { bg: '#F8FAFC', text: '#94A3B8' }, resolvedTheme)
+  const assigneeCfg = assigneeColors[task.assignee] ?? {
     bg: '#F3F4F6',
     text: '#374151',
     fullName: 'Desconocido',
     initials: getInitials(task.assignee),
+  }
+  const aCfg = {
+    ...assigneeCfg,
+    ...getSoftDynamicPair(assigneeCfg, resolvedTheme),
   }
   const dateLabel = formatTaskDateRange(task.startDate, task.endDate)
 
@@ -267,9 +278,7 @@ function TaskCardContent({
                 showIcon={false}
                 triggerClassName="h-6 w-auto max-w-[150px] justify-start gap-0 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-none hover:brightness-95 focus-visible:ring-2"
                 triggerStyle={{
-                  background: `${projectColors[task.projectId] ?? '#64748B'}14`,
-                  borderColor: `${projectColors[task.projectId] ?? '#64748B'}33`,
-                  color: projectColors[task.projectId] ?? '#64748B',
+                  ...getDynamicChipStyle(projectColors[task.projectId] ?? '#64748B', resolvedTheme),
                 }}
               />
             </div>
@@ -278,6 +287,7 @@ function TaskCardContent({
               projectId={task.projectId}
               projectLabels={projectLabels}
               projectColors={projectColors}
+              resolvedTheme={resolvedTheme}
             />
           )
         )}
@@ -296,9 +306,7 @@ function TaskCardContent({
                 showIcon={false}
                 triggerClassName="h-6 w-auto max-w-[130px] justify-start gap-0 rounded border px-2 py-0.5 text-[11px] font-semibold shadow-none hover:brightness-95 focus-visible:ring-2"
                 triggerStyle={{
-                  background: tagCfg.bg,
-                  borderColor: `${tagCfg.text}24`,
-                  color: tagCfg.text,
+                  ...getDynamicChipStyle(tagColors[task.tag]?.text ?? '#94A3B8', resolvedTheme, { bg: tagCfg.bg }),
                 }}
               />
             </div>
@@ -314,9 +322,7 @@ function TaskCardContent({
                 showIcon={false}
                 triggerClassName="h-6 w-auto max-w-[110px] justify-start gap-0 rounded border px-2 py-0.5 text-[11px] font-semibold shadow-none hover:brightness-95 focus-visible:ring-2"
                 triggerStyle={{
-                  background: priCfg.bg,
-                  borderColor: `${priCfg.text}24`,
-                  color: priCfg.text,
+                  ...getDynamicChipStyle(priorityColors[task.priority]?.text ?? '#94A3B8', resolvedTheme, { bg: priCfg.bg }),
                 }}
               />
             </div>
@@ -326,9 +332,7 @@ function TaskCardContent({
             <span
               className="rounded border px-2 py-0.5 text-[11px] font-semibold"
               style={{
-                background: tagCfg.bg,
-                borderColor: `${tagCfg.text}24`,
-                color: tagCfg.text,
+                ...getDynamicChipStyle(tagColors[task.tag]?.text ?? '#94A3B8', resolvedTheme, { bg: tagCfg.bg }),
               }}
             >
               {task.tag}
@@ -336,9 +340,7 @@ function TaskCardContent({
             <span
               className="rounded border px-2 py-0.5 text-[11px] font-semibold"
               style={{
-                background: priCfg.bg,
-                borderColor: `${priCfg.text}24`,
-                color: priCfg.text,
+                ...getDynamicChipStyle(priorityColors[task.priority]?.text ?? '#94A3B8', resolvedTheme, { bg: priCfg.bg }),
               }}
             >
               {task.priority}
@@ -380,6 +382,7 @@ function KanbanTaskCard({
   tagOptions,
   priorityOptions,
   canArchive,
+  resolvedTheme,
   onFieldChange,
 }: {
   task: BoardTask
@@ -397,6 +400,7 @@ function KanbanTaskCard({
   tagOptions: { value: string; label: string }[]
   priorityOptions: { value: string; label: string }[]
   canArchive: boolean
+  resolvedTheme: 'light' | 'dark'
   onFieldChange: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
     taskId: string,
     field: K,
@@ -429,7 +433,7 @@ function KanbanTaskCard({
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        background: task.color ?? '#FFFFFF',
+        background: getTaskCardBackground(task.color, resolvedTheme),
       }}
     >
       <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover/task:opacity-100">
@@ -454,8 +458,8 @@ function KanbanTaskCard({
                   }}
                   className="h-6 w-6 rounded-md border border-gray-200 transition-transform hover:scale-110"
                   style={{
-                    background: color,
-                    boxShadow: (task.color ?? '#FFFFFF') === color ? '0 0 0 2px #4F46E5' : undefined,
+                    background: getTaskCardSwatchBackground(color, resolvedTheme),
+                    boxShadow: (task.color ?? '#FFFFFF') === color ? '0 0 0 2px var(--primary-active)' : undefined,
                   }}
                   title="Aplicar color"
                 />
@@ -513,6 +517,7 @@ function KanbanTaskCard({
         projectOptions={projectOptions}
         tagOptions={tagOptions}
         priorityOptions={priorityOptions}
+        resolvedTheme={resolvedTheme}
         onFieldChange={(field, value) => onFieldChange(task.id, field, value)}
       />
     </div>
@@ -540,6 +545,7 @@ function KanbanColumn({
   projectOptions,
   tagOptions,
   priorityOptions,
+  resolvedTheme,
   onFieldChange,
   onStartAdd,
   onNewTaskTitleChange,
@@ -566,6 +572,7 @@ function KanbanColumn({
   projectOptions: { value: string; label: string }[]
   tagOptions: { value: string; label: string }[]
   priorityOptions: { value: string; label: string }[]
+  resolvedTheme: 'light' | 'dark'
   onFieldChange: <K extends Extract<EditableTaskField, 'projectId' | 'tag' | 'priority'>>(
     taskId: string,
     field: K,
@@ -642,6 +649,7 @@ function KanbanColumn({
               tagOptions={tagOptions}
               priorityOptions={priorityOptions}
               canArchive={isDoneColumn}
+              resolvedTheme={resolvedTheme}
               onFieldChange={onFieldChange}
             />
           ))}
@@ -651,7 +659,7 @@ function KanbanColumn({
           <div
             className="rounded-lg p-3"
             style={{
-              background: 'white',
+              background: 'var(--surface)',
               border: `1.5px solid ${col.dot}`,
               boxShadow: `0 0 0 3px ${col.dot}18`,
             }}
@@ -693,6 +701,7 @@ function KanbanColumn({
 /* ─────────────────────── Component ─────────────────────── */
 export default function DashboardPage() {
   const location = useLocation()
+  const { resolvedTheme } = useTheme()
   const currentWorkspace = new URLSearchParams(location.search).get('w')
   const { activeWorkspaceId } = useWorkspaces()
   const { settings: taskSettings, setSettings: setTaskSettings } = useTaskSettings(activeWorkspaceId)
@@ -1026,7 +1035,7 @@ export default function DashboardPage() {
     <div
       className="flex flex-col h-full"
       style={{
-        background: '#F7F6F3',
+        background: 'transparent',
         cursor: activeTask ? 'grabbing' : undefined,
       }}
     >
@@ -1187,6 +1196,7 @@ export default function DashboardPage() {
                   projectOptions={projectOptions}
                   tagOptions={tagOptions}
                   priorityOptions={priorityOptions}
+                  resolvedTheme={resolvedTheme}
                   onFieldChange={updateTaskField}
                   onStartAdd={setAddingToCol}
                   onNewTaskTitleChange={setNewTaskTitle}
@@ -1222,7 +1232,10 @@ export default function DashboardPage() {
               {activeTask ? (
                 <div
                   className="w-[330px] rotate-[0.5deg] cursor-grabbing rounded-xl bg-white p-4 shadow-xl"
-                  style={{ border: '1px solid #D1D5DB' }}
+                  style={{
+                    background: getTaskCardBackground(activeTask.color, resolvedTheme),
+                    border: '1px solid var(--border-strong)',
+                  }}
                 >
                   <TaskCardContent
                     task={activeTask}
@@ -1232,6 +1245,7 @@ export default function DashboardPage() {
                     assigneeColors={assigneeColors}
                     projectLabels={projectLabels}
                     projectColors={projectColors}
+                    resolvedTheme={resolvedTheme}
                   />
                 </div>
               ) : null}
@@ -1248,7 +1262,7 @@ export default function DashboardPage() {
           >
             <table className="border-collapse text-[13px] table-fixed w-max">
               <thead>
-                <tr style={{ background: '#F3F4F6', borderBottom: '1px solid #E5E7EB' }}>
+                <tr style={{ background: 'var(--surface-muted)', borderBottom: '1px solid var(--border)' }}>
                   {[
                     { label: 'Proyecto', Icon: BriefcaseIcon, w: 180 },
                     { label: 'Nombre de la tarea', Icon: DocumentTextIcon, w: 350 },
@@ -1273,16 +1287,21 @@ export default function DashboardPage() {
               <tbody>
                 {filteredTasks.map((task, i) => {
                   const col    = cols.find(c => c.id === task.colId)
-                  const priCfg = priorityColors[task.priority] ?? { bg: '#F8FAFC', text: '#94A3B8' }
-                  const aCfg   = assigneeColors[task.assignee] ?? { bg: '#F3F4F6', text: '#374151', fullName: 'Desconocido' }
+                  const priorityBase = priorityColors[task.priority] ?? { bg: '#F8FAFC', text: '#94A3B8' }
+                  const priCfg = getSoftDynamicPair(priorityBase, resolvedTheme)
+                  const assigneeBase = assigneeColors[task.assignee] ?? { bg: '#F3F4F6', text: '#374151', fullName: 'Desconocido' }
+                  const aCfg = {
+                    ...assigneeBase,
+                    ...getSoftDynamicPair(assigneeBase, resolvedTheme),
+                  }
                   const dateLabel = formatTaskDateRange(task.startDate, task.endDate)
                   return (
                     <tr
                       key={task.id}
                       className="hover:bg-gray-50 transition-colors"
                       style={{
-                        background: 'white',
-                        borderBottom: i < filteredTasks.length - 1 ? '1px solid #F3F4F6' : 'none',
+                        background: 'var(--surface)',
+                        borderBottom: i < filteredTasks.length - 1 ? '1px solid var(--border-muted)' : 'none',
                       }}
                     >
                       <td className="px-4 py-3 border-r border-gray-200">
@@ -1290,6 +1309,7 @@ export default function DashboardPage() {
                           projectId={task.projectId}
                           projectLabels={projectLabels}
                           projectColors={projectColors}
+                          resolvedTheme={resolvedTheme}
                         />
                       </td>
                       <td 
@@ -1367,9 +1387,7 @@ export default function DashboardPage() {
                           <span
                             className="rounded border px-1.5 py-0.5 text-[11px] font-medium"
                             style={{
-                              background: priCfg.bg,
-                              borderColor: `${priCfg.text}24`,
-                              color: priCfg.text,
+                              ...getDynamicChipStyle(priorityBase.text, resolvedTheme, { bg: priCfg.bg }),
                             }}
                           >
                             {task.priority || 'Seleccionar prioridad'}
@@ -1534,7 +1552,7 @@ export default function DashboardPage() {
       <div className="fixed bottom-6 right-6">
         <button
           className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
-          style={{ border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
           title="Ayuda"
         >
           <QuestionMarkCircleIcon className="h-4 w-4" />

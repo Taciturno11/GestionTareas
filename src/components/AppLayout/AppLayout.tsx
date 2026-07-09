@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from '../Header/Header'
+import ParticleBackground from '../ParticleBackground/ParticleBackground'
 import Sidebar from '../Sidebar/Sidebar'
 import { getAuthToken } from '@/services/auth-token'
 import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
@@ -42,12 +43,16 @@ export default function AppLayout() {
 
   return (
     <div
-      className="flex h-screen overflow-hidden font-sans text-[14px]"
-      style={{ background: 'var(--color-bg-app)' }}
+      className="relative isolate flex h-screen overflow-hidden font-sans text-[14px]"
+      style={{ background: 'var(--background-app)' }}
     >
-      <Sidebar collapsed={collapsed} currentUserId={user?.id ?? null} />
+      <ParticleBackground />
 
-      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="relative z-10 flex shrink-0">
+        <Sidebar collapsed={collapsed} currentUserId={user?.id ?? null} />
+      </div>
+
+      <main className="relative z-10 flex-1 flex flex-col overflow-hidden min-w-0">
         <Header
           collapsed={collapsed}
           onToggleSidebar={() => setCollapsed(prev => !prev)}

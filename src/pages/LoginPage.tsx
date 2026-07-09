@@ -8,9 +8,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { authApi, type AuthResponse } from '@/api/auth.api'
 import { saveAuthToken } from '@/services/auth-token'
 import { syncBackendWorkspaceDataToLocalStorage } from '@/services/backend-sync'
+import { useTheme } from '@/theme/theme-context'
 import coverImage from '../assets/portada_gestion.avif'
 
-function CurvedDivider() {
+function CurvedDivider({ fill }: { fill: string }) {
   const width = 320
   const height = 1000
   const baseX = 235
@@ -35,12 +36,13 @@ function CurvedDivider() {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <path d={path} fill="#f5f5f7" />
+      <path d={path} fill={fill} />
     </svg>
   )
 }
 
 export default function LoginPage() {
+  const { resolvedTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/'
@@ -77,8 +79,10 @@ export default function LoginPage() {
     }
   }
 
+  const loginBackground = resolvedTheme === 'dark' ? '#121212' : '#f5f5f7'
+
   return (
-    <main className="h-screen overflow-hidden bg-[#f5f5f7] text-slate-900">
+    <main className="h-screen overflow-hidden bg-[#f5f5f7] text-slate-900" style={{ background: 'var(--login-background)' }}>
       <div className="grid h-full lg:grid-cols-[1.08fr_0.92fr]">
         <section className="relative hidden h-full overflow-hidden lg:block">
           <img
@@ -105,9 +109,9 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="relative flex h-full items-center justify-center bg-[#f5f5f7] px-8 py-10 sm:px-12 lg:px-14 xl:px-20">
+        <section className="relative flex h-full items-center justify-center bg-[#f5f5f7] px-8 py-10 sm:px-12 lg:px-14 xl:px-20" style={{ background: 'var(--login-background)' }}>
           <div className="pointer-events-none absolute inset-y-0 left-0 hidden -translate-x-[76%] lg:block xl:-translate-x-[79%]">
-            <CurvedDivider />
+            <CurvedDivider fill={loginBackground} />
           </div>
 
           <div className="relative z-10 w-full max-w-[530px]">

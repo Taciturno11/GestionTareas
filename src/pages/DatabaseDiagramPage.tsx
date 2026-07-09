@@ -18,6 +18,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { useEffect, useRef, useState } from 'react'
 
+import { useTheme } from '@/theme/theme-context'
 import type { WorkspacePage } from '@/types/workspace'
 
 interface DatabaseDiagramPageProps {
@@ -133,6 +134,7 @@ const nodeTypes = {
 }
 
 export default function DatabaseDiagramPage({ page, onChange, readOnly = false }: DatabaseDiagramPageProps) {
+  const { resolvedTheme } = useTheme()
   const [initialContent] = useState(() => parseDiagramContent(page.content))
   const onChangeRef = useRef(onChange)
   const hasMountedRef = useRef(false)
@@ -255,10 +257,33 @@ export default function DatabaseDiagramPage({ page, onChange, readOnly = false }
             nodesConnectable={!readOnly}
             elementsSelectable
             fitView
+            colorMode={resolvedTheme}
+            defaultEdgeOptions={{
+              style: { stroke: resolvedTheme === 'dark' ? '#7E8794' : '#94A3B8' },
+              labelStyle: { fill: resolvedTheme === 'dark' ? '#C1C7D0' : '#475569' },
+            }}
           >
-            <Background />
-            <Controls />
-            <MiniMap pannable zoomable />
+            <Background
+              color={resolvedTheme === 'dark' ? '#3D3D3D' : '#CBD5E1'}
+              bgColor={resolvedTheme === 'dark' ? '#151515' : '#FFFFFF'}
+            />
+            <Controls
+              style={{
+                background: 'var(--surface-popover)',
+                borderColor: 'var(--border)',
+                boxShadow: 'var(--shadow-card)',
+              }}
+            />
+            <MiniMap
+              pannable
+              zoomable
+              maskColor={resolvedTheme === 'dark' ? 'rgb(15 17 21 / 70%)' : 'rgb(248 250 252 / 70%)'}
+              nodeColor={resolvedTheme === 'dark' ? '#38414D' : '#CBD5E1'}
+              style={{
+                background: 'var(--surface-popover)',
+                border: '1px solid var(--border)',
+              }}
+            />
           </ReactFlow>
         </div>
       </div>

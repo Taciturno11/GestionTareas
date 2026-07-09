@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   Tldraw,
   getSnapshot,
@@ -12,6 +12,7 @@ import 'tldraw/tldraw.css'
 
 import { usePageSaveQueue } from '@/hooks/usePageSaveQueue'
 import { getTldrawLicenseKey } from '@/lib/runtimeConfig'
+import { useTheme } from '@/theme/theme-context'
 import type { WorkspacePage } from '@/types/workspace'
 
 const BOARD_SAVE_DEBOUNCE_MS = 1500
@@ -140,14 +141,26 @@ function createSnapshotContent(editor: Editor) {
 export default function BoardPage({ page, readOnly = false }: BoardPageProps) {
   const initialSnapshot = useMemo(() => parseBoardSnapshot(page.content), [page.content])
   const licenseKey = getTldrawLicenseKey()
+  const { resolvedTheme } = useTheme()
+  const editorRef = useRef<Editor | null>(null)
   const { queueSave, flush } = usePageSaveQueue({
     page,
     delay: 0,
   })
 
+  useEffect(() => {
+    editorRef.current?.user.updateUserPreferences({ colorScheme: resolvedTheme })
+  }, [resolvedTheme])
+
   function handleMount(editor: Editor) {
+    editorRef.current = editor
     editor.updateInstanceState({ isReadonly: readOnly })
-    if (readOnly) return
+    editor.user.updateUserPreferences({ colorScheme: resolvedTheme })
+    if (readOnly) {
+      return () => {
+        editorRef.current = null
+      }
+    }
 
     let lastQueuedContent = page.content
     let saveTimer: number | undefined
@@ -170,6 +183,7 @@ export default function BoardPage({ page, readOnly = false }: BoardPageProps) {
     const unlisten = editor.store.listen(scheduleSave, { source: 'user', scope: 'document' })
 
     return () => {
+      editorRef.current = null
       unlisten()
       window.clearTimeout(saveTimer)
       if (hasPendingChanges) queueCurrentSnapshot()
@@ -183,6 +197,7 @@ export default function BoardPage({ page, readOnly = false }: BoardPageProps) {
         key={page.id}
         snapshot={initialSnapshot}
         onMount={handleMount}
+        inferDarkMode={false}
         licenseKey={licenseKey}
         assets={boardAssetStore}
       />

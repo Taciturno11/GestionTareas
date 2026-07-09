@@ -18,7 +18,9 @@ import { useProjects } from '@/hooks/useProjects'
 import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useTasks } from '@/hooks/useTasks'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
+import { useTheme } from '@/theme/theme-context'
 import type { Task } from '@/types/task'
+import { getDynamicChipStyle, getSoftDynamicPair } from '@/utils/theme-colors'
 
 const AVATAR: Record<string, { bg: string; text: string }> = {
   MN: { bg: '#EDE9FE', text: '#5B21B6' },
@@ -56,7 +58,7 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
   return (
     <div
       className={`overflow-hidden rounded-xl bg-white ${className}`}
-      style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
+      style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
     >
       {children}
     </div>
@@ -180,6 +182,7 @@ function priorityMeta(priority: string | null | undefined) {
 }
 
 export default function InicioPage() {
+  const { resolvedTheme } = useTheme()
   const { user } = useCurrentUser()
   const { activeWorkspaceId } = useWorkspaces()
   const { settings } = useTaskSettings(activeWorkspaceId)
@@ -247,6 +250,9 @@ export default function InicioPage() {
 
     return [...grouped.values()].slice(0, 6)
   }, [workspaceProjects, settings.statuses, tasks])
+  const chartText = resolvedTheme === 'dark' ? '#C1C7D0' : '#6B7280'
+  const chartMutedText = resolvedTheme === 'dark' ? '#8E97A5' : '#9CA3AF'
+  const chartLabelText = resolvedTheme === 'dark' ? '#F4F6F8' : '#374151'
 
   return (
     <PageContainer size="fluid" align="start" className="!px-4 md:!px-6 2xl:!px-10">
@@ -271,11 +277,11 @@ export default function InicioPage() {
             <div
               key={stat.label}
               className="flex items-center gap-3.5 rounded-xl bg-white px-4 py-3"
-              style={{ border: '1px solid #E5E7EB', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+              style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
             >
               <span
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                style={{ background: stat.bgColor, color: stat.color }}
+                style={getDynamicChipStyle(stat.color, resolvedTheme, { bg: stat.bgColor })}
               >
                 <Icon className="h-5 w-5" />
               </span>
@@ -306,6 +312,7 @@ export default function InicioPage() {
                 const assignee = task.assignee ?? settings.assignees.find(item => item.id === task.assigneeId)?.fullName ?? userInitials
                 const assigneeInitials = initials(assignee)
                 const avatar = AVATAR[assigneeInitials] ?? { bg: '#F3F4F6', text: '#374151' }
+                const avatarStyle = getSoftDynamicPair(avatar, resolvedTheme)
 
                 return (
                   <div
@@ -316,12 +323,12 @@ export default function InicioPage() {
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dot }} />
                     <p className="flex-1 truncate text-[12.5px] font-medium text-gray-800">{task.title}</p>
                     <span className="shrink-0 rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700">{task.tag || 'General'}</span>
-                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: prio.bg, color: prio.text }}>{prio.label}</span>
+                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold" style={getDynamicChipStyle(prio.text, resolvedTheme, { bg: prio.bg })}>{prio.label}</span>
                     <span className="flex shrink-0 items-center gap-0.5 text-[10px] text-gray-400">
                       <CalendarIcon className="h-2.5 w-2.5" />
                       {formatShortDate(task.endDate)}
                     </span>
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: avatar.bg, color: avatar.text }}>
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: avatarStyle.bg, color: avatarStyle.text }}>
                       {assigneeInitials}
                     </div>
                   </div>
@@ -345,6 +352,7 @@ export default function InicioPage() {
                 const assignee = task.assignee ?? settings.assignees.find(option => option.id === task.assigneeId)?.fullName ?? userInitials
                 const assigneeInitials = initials(assignee)
                 const avatar = AVATAR[assigneeInitials] ?? { bg: '#F3F4F6', text: '#374151' }
+                const avatarStyle = getSoftDynamicPair(avatar, resolvedTheme)
 
                 return (
                   <div
@@ -354,8 +362,8 @@ export default function InicioPage() {
                   >
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color.dot }} />
                     <p className="flex-1 truncate text-[12.5px] font-medium text-gray-800">{task.title}</p>
-                    <span className="shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold" style={{ background: color.bg, color: color.text }}>{dueLabel(task.endDate, today)}</span>
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: avatar.bg, color: avatar.text }}>
+                    <span className="shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold" style={getDynamicChipStyle(color.text, resolvedTheme, { bg: color.bg })}>{dueLabel(task.endDate, today)}</span>
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: avatarStyle.bg, color: avatarStyle.text }}>
                       {assigneeInitials}
                     </div>
                   </div>
@@ -381,13 +389,13 @@ export default function InicioPage() {
               {projects.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart data={projects} margin={{ top: 28, right: 10, left: -25, bottom: 0 }}>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6B7280' }} dy={10} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: chartText }} dy={10} />
                     <YAxis
                       allowDecimals={false}
                       domain={[0, (dataMax: number) => Math.max(dataMax, 1)]}
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                      tick={{ fontSize: 11, fill: chartMutedText }}
                     />
                     <Bar dataKey="completedTasks" name="Hecho" radius={[4, 4, 0, 0]} barSize={34}>
                       {projects.map((entry, index) => (
@@ -396,7 +404,7 @@ export default function InicioPage() {
                       <LabelList
                         dataKey="completedTasks"
                         position="top"
-                        fill="#374151"
+                        fill={chartLabelText}
                         fontSize={12}
                         fontWeight={700}
                       />
@@ -424,7 +432,7 @@ export default function InicioPage() {
                   className="flex items-start gap-2.5 px-4 py-2.5"
                   style={{ borderBottom: i < Math.min(recentTasks.length, 4) - 1 ? '1px solid #F9FAFB' : 'none' }}
                 >
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: '#F3F4F6', color: '#374151' }}>
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: 'var(--surface-muted)', color: 'var(--text-secondary)' }}>
                     {userInitials}
                   </div>
                   <div className="min-w-0 flex-1">

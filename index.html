@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestion de tareas</title>
     <link rel="icon" type="image/svg+xml" href="public/logo12.png" />
+    <script>
+      (function () {
+        try {
+          var theme = window.localStorage.getItem('agenda-theme') || 'system'
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          var resolvedTheme = theme === 'dark' || (theme === 'system' && prefersDark) ? 'dark' : 'light'
+          document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+          document.documentElement.dataset.theme = resolvedTheme
+          document.documentElement.style.colorScheme = resolvedTheme
+        } catch (error) {
+          document.documentElement.dataset.theme = 'light'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

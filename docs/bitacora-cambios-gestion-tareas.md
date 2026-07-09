@@ -31,6 +31,241 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Exclusion de archivos locales antes de despliegue
+
+- Objetivo: evitar que archivos locales no deseados se suban al repositorio o al servidor.
+- Cambios:
+  - se saco del seguimiento de Git `nuevo-reporte-de-horas.xls`;
+  - se saco del seguimiento de Git `opencode.json`;
+  - se agregaron ambos archivos a `.gitignore` para prevenir que vuelvan a incluirse por accidente.
+- Validaciones:
+  - verificacion de estado Git pendiente antes de commit/despliegue.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Particulas solo en oscuro y transicion circular de tema
+
+- Objetivo: quitar las particulas del modo claro y mejorar el cambio de tema con View Transitions API.
+- Cambios:
+  - `ParticleBackground` ahora no renderiza canvas ni inicializa `particles.js` en modo claro;
+  - se conserva la configuracion de particulas solo para modo oscuro;
+  - el toggle del header usa `document.startViewTransition`;
+  - el cambio de tema se envuelve en `flushSync` de `react-dom`;
+  - se aplica una animacion circular `clip-path` desde el centro de la pantalla;
+  - se agrego CSS base para neutralizar la animacion default de View Transitions;
+  - se genero captura local en `docs/theme-screenshots/theme-toggle-circle-dark-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless: en claro no hay canvas, el toggle cambia a oscuro, `agenda-theme = dark`, canvas activo en oscuro y sin excepciones JS.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Particulas plomo en modo claro
+
+- Objetivo: mejorar el color de las particulas en modo claro para que no compitan con la identidad indigo de la UI.
+- Cambios:
+  - se cambio el color de puntos claros a `#64748B`;
+  - se cambio el color de lineas claras a `#94A3B8`;
+  - se mantuvieron opacidad, densidad y tamano del ajuste visible anterior;
+  - se genero captura local en `docs/theme-screenshots/particles-light-slate-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless en modo claro: canvas presente, `pJSDom = 1`, colores plomo aplicados y sin excepciones JS.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Mayor visibilidad de particulas en modo claro
+
+- Objetivo: hacer que las particulas del modo claro sean claramente visibles.
+- Cambios:
+  - se ajusto el color claro hacia un indigo mas definido;
+  - se aumento la cantidad base de particulas claras a `78`;
+  - se aumento la opacidad de particulas claras a `0.42` y lineas a `0.24`;
+  - se aumento levemente el tamano de particulas claras a `2`;
+  - se genero captura local en `docs/theme-screenshots/particles-light-visible-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless en modo claro: canvas presente, `pJSDom = 1`, `particleOpacity = 0.42`, `lineOpacity = 0.24` y muestras dibujadas elevadas.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Particulas visibles y sutiles en modo claro
+
+- Objetivo: hacer que el fondo de particulas se perciba tambien en modo claro sin ensuciar la lectura.
+- Cambios:
+  - se ajusto el color claro de particulas y lineas hacia indigo suave;
+  - se aumento la cantidad de particulas claras de `44` a `52`;
+  - se aumento la opacidad de particulas claras a `0.26` y lineas a `0.14`;
+  - se genero captura local en `docs/theme-screenshots/particles-light-balanced-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless en modo claro: canvas presente, `pJSDom = 1`, opacidades nuevas aplicadas y muestras dibujadas.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Toggle rapido de tema en header
+
+- Objetivo: permitir alternar rapido entre fondo claro y noche desde el header.
+- Cambios:
+  - se agrego un boton iconico junto a notificaciones;
+  - el boton muestra luna en claro y sol en oscuro;
+  - el toggle usa `useTheme` y persiste la preferencia como `light` o `dark`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless: cambio de `dark` a `light`, persistencia en `agenda-theme` y actualizacion de `aria-label`.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Empuje suave de particulas al mouse
+
+- Objetivo: hacer que el movimiento de repulsion de las particulas se sienta mas natural y menos brusco.
+- Cambios:
+  - se sobrescribio el `repulseParticle` nativo de `particles.js` despues de inicializar la instancia;
+  - se reemplazo el salto fuerte por una fuerza progresiva basada en cercania al mouse;
+  - se redujo el radio de repulsion en oscuro a `105`;
+  - se agregaron tipos locales para representar la instancia runtime de `particles.js`;
+  - se genero captura local en `docs/theme-screenshots/particles-smooth-repulse-dark-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless: canvas activo, `hoverMode = repulse`, `repulseDistance = 105`, `smoothPatch = true` y sin excepciones JS.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Particulas mas densas e interactivas al mouse
+
+- Objetivo: aumentar la presencia del fondo de particulas y activar movimiento al pasar el mouse.
+- Cambios:
+  - se aumento la cantidad de particulas en tema oscuro y claro;
+  - se aumento ligeramente la velocidad de movimiento;
+  - se activo `onhover.mode = repulse` con deteccion sobre `window`;
+  - se mantuvo el canvas como `pointer-events: none` para no bloquear clicks de la app;
+  - se genero captura local en `docs/theme-screenshots/particles-repulse-dark-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless: `detect_on = window`, `hoverMode = repulse`, `mouseStatus = mousemove`, `pJSDom = 1` y canvas activo.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Mayor paso visual de particulas en sidebar y header
+
+- Objetivo: hacer que las particulas atraviesen de forma claramente visible el sidebar y el header en modo oscuro.
+- Cambios:
+  - se bajo el fondo oscuro del sidebar a `rgb(18 18 18 / 22%)`;
+  - se bajo el fondo oscuro del header a `rgb(18 18 18 / 18%)`;
+  - se redujo el blur de ambos contenedores a `2px`;
+  - se aumento la densidad y opacidad de las particulas en tema oscuro;
+  - se genero captura local en `docs/theme-screenshots/header-sidebar-particles-through-dark-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless en modo oscuro: canvas presente, `pJSDom = 1`, sidebar/header con rgba final y muestras de particulas bajo ambas zonas.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Transparencia visible en sidebar y header oscuros
+
+- Objetivo: hacer que las particulas sean visibles tambien bajo el sidebar y el header en modo oscuro.
+- Cambios:
+  - se redujo la opacidad del fondo oscuro del sidebar a `rgb(18 18 18 / 54%)`;
+  - se hizo translucido el header con `rgb(18 18 18 / 50%)`;
+  - se redujo el blur de sidebar y header a `10px` para que las particulas no queden ocultas;
+  - se agrego borde translucido especifico para el header;
+  - se genero captura local en `docs/theme-screenshots/header-sidebar-particles-dark-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless en modo oscuro: canvas presente, sidebar/header con fondos rgba y sin excepciones JS.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Sidebar translucido sobre fondo de particulas
+
+- Objetivo: mejorar la integracion visual del sidebar con el fondo de particulas sin reducir la legibilidad del contenido.
+- Cambios:
+  - se ajusto `--color-bg-sidebar` a fondos translucidos en claro y oscuro;
+  - se agrego `--sidebar-shell-border` para mantener un borde lateral sutil;
+  - se aplico `backdrop-filter` al contenedor del sidebar, manteniendo textos, iconos y estados con opacidad normal;
+  - se generaron capturas locales de verificacion en `docs/theme-screenshots/sidebar-particles-dark-preview.png` y `docs/theme-screenshots/sidebar-particles-light-preview.png`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build` paso en el segundo intento; el primero fallo por asignacion de memoria interna de Vite/Rolldown;
+  - verificacion headless en claro y oscuro: canvas presente, sidebar con opacidad `1` y fondo translucido.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Fondo de particulas con particles.js
+
+- Objetivo: agregar un fondo de particulas usando la libreria `particles.js`.
+- Cambios:
+  - se agrego la dependencia `particles.js`;
+  - se creo `src/components/ParticleBackground/ParticleBackground.tsx`;
+  - se agregaron tipos locales para la API global de `particles.js`;
+  - se carga `particles.js` como script clasico para evitar el error de `arguments.callee` al empaquetarlo como modulo estricto;
+  - se monto el fondo en `AppLayout` con `pointer-events: none` y capas `z-index` seguras;
+  - se ajustaron los fondos generales de Dashboard y Calendario a transparente para dejar ver el fondo global;
+  - se documento la integracion en `docs/THEME-IMPLEMENTATION.md`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - verificacion headless en `/tareas`: app renderizada, canvas presente y muestras con pixeles dibujados.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-09 - Refinamiento visual del tema oscuro inspirado en CMS
+
+- Objetivo: mejorar la estetica del tema oscuro usando como referencia el dark mode del proyecto CMS local.
+- Cambios:
+  - se analizaron `src/index.css`, `ThemeProvider` y documentacion de tema noche del CMS;
+  - se ajusto la paleta oscura de `gestion_tareas` hacia carbon neutro (`#121212`, `#1E1E1E`, `#252525`);
+  - se suavizaron fondos activos, estados, bordes y sombras;
+  - se conservaron el tema claro, el sistema `light`/`dark`/`system`, la identidad indigo y los colores persistidos por el usuario;
+  - se alinearon React Flow y login con el nuevo fondo oscuro;
+  - se documento el ajuste en `docs/COLOR-PALETTE-AUDIT.md` y `docs/THEME-IMPLEMENTATION.md`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
+### 2026-07-05 - Implementacion de tema claro oscuro y sistema
+
+- Objetivo: implementar un sistema completo de temas basado en la auditoria visual, sin desplegar ni tocar servidor.
+- Cambios:
+  - se centralizaron tokens semanticos claros/oscuros en `src/index.css` y se alinearon tokens shadcn;
+  - se agrego `ThemeProvider`, `useTheme`, resolucion `light`/`dark`/`system`, persistencia `agenda-theme` y script anti-flash en `index.html`;
+  - se agrego selector de tema en `Ajustes > Apariencia`;
+  - se migraron layout, header, Dashboard/Kanban, chips dinamicos, Inicio/Recharts, Login, tldraw y React Flow;
+  - se creo `src/utils/theme-colors.ts` para interpretar colores dinamicos sin alterar datos persistidos;
+  - se creo `docs/THEME-IMPLEMENTATION.md` y se actualizo `docs/COLOR-PALETTE-AUDIT.md`;
+  - se generaron capturas locales en `docs/theme-screenshots/`.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`;
+  - servidor local Vite en `http://127.0.0.1:5175/`;
+  - capturas headless de login claro y oscuro con Chrome DevTools Protocol.
+- Despliegue: no realizado por instruccion del usuario.
+- Commit: pendiente.
+
+### 2026-07-05 - Auditoria de paleta visual
+
+- Objetivo: documentar la estetica visual actual y preparar una futura implementacion de tema oscuro sin modificar estilos.
+- Cambios:
+  - se creo `docs/COLOR-PALETTE-AUDIT.md`;
+  - se inventariaron colores fisicos, tokens Tailwind, variables CSS, estados, hardcodes e inconsistencias visuales;
+  - se agrego mapa por componente y recomendaciones para tokenizacion futura.
+- Validaciones:
+  - inspeccion local con `rg` y scripts de conteo sobre codigo versionado;
+  - revision de diff documental.
+- Despliegue: no aplica; cambio documental local.
+- Commit: pendiente.
+
 ### 2026-06-30 - Despliegue produccion mejoras UI y F2
 
 - Objetivo: publicar en produccion las mejoras recientes de UI y atajos del sidebar.

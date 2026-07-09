@@ -9,6 +9,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
+import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
@@ -23,9 +24,11 @@ import { useTaskSettings } from '@/hooks/useTaskSettings'
 import { useWorkspaces } from '@/hooks/useWorkspaces'
 import { downloadLocalBackup } from '@/lib/localBackup'
 import SettingsSidebar, { type SettingsNavGroup } from '@/pages/settings/SettingsSidebar'
+import { useTheme } from '@/theme/theme-context'
+import type { ThemePreference } from '@/theme/theme'
 
 type SettingsTab = 'projects' | 'assignees' | 'labels' | 'priorities' | 'statuses'
-type SettingsSection = 'seguridad' | 'usuarios' | 'roles' | 'proyectos' | 'responsables' | 'etiquetas' | 'prioridades' | 'estados' | 'exportar'
+type SettingsSection = 'seguridad' | 'apariencia' | 'usuarios' | 'roles' | 'proyectos' | 'responsables' | 'etiquetas' | 'prioridades' | 'estados' | 'exportar'
 
 const COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#22c55e', '#f59e0b', '#f87171', '#ec4899', '#a855f7', '#14b8a6', '#94a3b8']
 const SOFT_COLORS = ['#EEF2FF', '#E0F2FE', '#D1FAE5', '#DCFCE7', '#FEF3C7', '#FEE2E2', '#FCE7F3', '#F5F3FF', '#CCFBF1', '#F1F5F9']
@@ -40,6 +43,7 @@ const SECTION_TO_TAB: Partial<Record<SettingsSection, SettingsTab>> = {
 
 const SECTION_TITLES: Record<SettingsSection, string> = {
   seguridad: 'Seguridad',
+  apariencia: 'Apariencia',
   usuarios: 'Usuarios',
   roles: 'Roles y permisos',
   proyectos: 'Proyectos',
@@ -49,6 +53,32 @@ const SECTION_TITLES: Record<SettingsSection, string> = {
   estados: 'Estados',
   exportar: 'Exportar datos',
 }
+
+const THEME_OPTIONS: Array<{
+  value: ThemePreference
+  label: string
+  description: string
+  Icon: typeof SunIcon
+}> = [
+  {
+    value: 'light',
+    label: 'Claro',
+    description: 'Mantiene la apariencia actual.',
+    Icon: SunIcon,
+  },
+  {
+    value: 'dark',
+    label: 'Oscuro',
+    description: 'Usa superficies oscuras y acento indigo.',
+    Icon: MoonIcon,
+  },
+  {
+    value: 'system',
+    label: 'Sistema',
+    description: 'Sigue la configuracion del dispositivo.',
+    Icon: MonitorIcon,
+  },
+]
 
 function slug(value: string) {
   return value
@@ -603,6 +633,55 @@ function UsersSettingsSection({ currentUser }: { currentUser: AuthUser | null })
   )
 }
 
+function AppearanceSettingsSection() {
+  const { theme, resolvedTheme, setTheme } = useTheme()
+
+  return (
+    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="max-w-[720px]">
+        <h3 className="text-[20px] font-semibold text-slate-950">Tema</h3>
+        <p className="mt-1 text-[13px] leading-6 text-slate-500">
+          Elige como quieres ver la aplicacion en este navegador.
+        </p>
+      </div>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        {THEME_OPTIONS.map(({ value, label, description, Icon }) => {
+          const isActive = theme === value
+
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTheme(value)}
+              className={`flex min-h-[116px] flex-col items-start justify-between rounded-2xl border p-4 text-left transition-colors ${
+                isActive
+                  ? 'border-[#6472EB] bg-[#6472EB]/10 text-[#6472EB] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-white hover:text-slate-950'
+              }`}
+              aria-pressed={isActive}
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                <Icon className="h-4 w-4" />
+              </span>
+              <span>
+                <span className="block text-[14px] font-semibold">{label}</span>
+                <span className={`mt-1 block text-[12px] leading-5 ${isActive ? 'text-[#6472EB]' : 'text-slate-500'}`}>
+                  {description}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      <p className="mt-4 text-[12px] text-slate-500">
+        Tema efectivo: <span className="font-semibold text-slate-700">{resolvedTheme === 'dark' ? 'Oscuro' : 'Claro'}</span>.
+      </p>
+    </section>
+  )
+}
+
 export default function AjustesPage() {
   const [addingSection, setAddingSection] = useState<SettingsSection | null>(null)
   const [editingItem, setEditingItem] = useState<{ section: SettingsSection; item: CardItem } | null>(null)
@@ -780,7 +859,10 @@ export default function AjustesPage() {
   const navGroups: SettingsNavGroup[] = [
     {
       title: 'Cuenta',
-      items: [{ label: 'Seguridad', to: '/ajustes/seguridad' }],
+      items: [
+        { label: 'Seguridad', to: '/ajustes/seguridad' },
+        { label: 'Apariencia', to: '/ajustes/apariencia' },
+      ],
     },
     {
       title: 'Administracion',
@@ -869,6 +951,10 @@ export default function AjustesPage() {
 
             {section === 'usuarios' && (
               <UsersSettingsSection currentUser={activeUser} />
+            )}
+
+            {section === 'apariencia' && (
+              <AppearanceSettingsSection />
             )}
 
             {section === 'roles' && (

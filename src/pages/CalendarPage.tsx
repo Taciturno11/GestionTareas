@@ -221,7 +221,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-[#F7F6F3]">
+    <div className="flex h-full flex-col bg-transparent">
       <div className="border-b border-gray-200 px-10 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

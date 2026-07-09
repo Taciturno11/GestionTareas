@@ -1,6 +1,13 @@
-import { BellIcon, ChevronRightIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+import {
+  BellIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+  MoonIcon,
+  SunIcon,
+} from '@heroicons/react/24/outline'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { useLocation } from 'react-router-dom'
 
 import type { AuthUser } from '@/api/auth.api'
@@ -13,6 +20,7 @@ import {
   type PageSaveStatus,
   type PageSaveStatusDetail,
 } from '@/services/page-save-status'
+import { useTheme } from '@/theme/theme-context'
 import UserMenu from './UserMenu'
 
 const PAGE_TITLES: Record<string, string> = {
@@ -31,6 +39,12 @@ interface HeaderProps {
   user: AuthUser | null
   isUserLoading?: boolean
   onUserUpdated?: () => void
+}
+
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (callback: () => void) => {
+    ready: Promise<void>
+  }
 }
 
 function PageSaveStatusLabel({ pageId }: { pageId: string }) {
@@ -175,11 +189,13 @@ function FriendRequestsBell() {
 
 export default function Header({ collapsed, onToggleSidebar, user, isUserLoading = false, onUserUpdated }: HeaderProps) {
   const { pathname } = useLocation()
+  const { resolvedTheme, setTheme } = useTheme()
   const [, setWorkspaceDataVersion] = useState(0)
   const dynamicPageId = pathname.startsWith('/p/') ? pathname.replace('/p/', '') : null
   const pageTitle = dynamicPageId
     ? findWorkspacePage(dynamicPageId)?.title || 'Página sin título'
     : PAGE_TITLES[pathname] ?? 'Pagina'
+  const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
     const syncWorkspaceData = () => setWorkspaceDataVersion(version => version + 1)
@@ -188,12 +204,57 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
     return () => window.removeEventListener(WORKSPACE_DATA_CHANGE_EVENT, syncWorkspaceData)
   }, [])
 
+  function handleThemeToggle() {
+    const nextTheme = isDark ? 'light' : 'dark'
+    const transitionDocument = document as ViewTransitionDocument
+
+    if (!transitionDocument.startViewTransition) {
+      setTheme(nextTheme)
+      return
+    }
+
+    const x = window.innerWidth / 2
+    const y = window.innerHeight / 2
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    )
+
+    const transition = transitionDocument.startViewTransition(() => {
+      flushSync(() => {
+        setTheme(nextTheme)
+      })
+    })
+
+    transition.ready
+      .then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: 620,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        )
+      })
+      .catch(() => {
+        // The theme already changed; unsupported transition details can be ignored.
+      })
+  }
+
   return (
     <header
       className="z-10 flex h-11 shrink-0 items-center justify-between px-4"
       style={{
-        background: '#F7F6F3',
-        borderBottom: '1px solid #E8E7E3',
+        background: 'var(--color-bg-header)',
+        borderBottom: '1px solid var(--header-shell-border)',
+        backdropFilter: 'blur(2px) saturate(1.08)',
+        WebkitBackdropFilter: 'blur(2px) saturate(1.08)',
       }}
     >
       <div className="flex items-center gap-2">
@@ -233,6 +294,16 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
           <EllipsisHorizontalIcon className="h-4 w-4" />
         </button>
         <div className="h-4 w-px bg-gray-200" />
+        <button
+          type="button"
+          onClick={handleThemeToggle}
+          className="rounded-md p-1.5 transition-colors hover:bg-gray-100"
+          style={{ color: 'var(--color-text-muted)' }}
+          title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo noche'}
+          aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo noche'}
+        >
+          {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+        </button>
         {user && <FriendRequestsBell />}
         <UserMenu user={user} isLoading={isUserLoading} onUserUpdated={onUserUpdated} />
       </div>

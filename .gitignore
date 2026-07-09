@@ -25,6 +25,10 @@ backend/backups/
 tmp/
 temp/
 
+# Archivos locales que no deben subirse al repositorio/servidor
+/nuevo-reporte-de-horas.xls
+/opencode.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
