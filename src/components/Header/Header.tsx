@@ -207,11 +207,14 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
   function handleThemeToggle() {
     const nextTheme = isDark ? 'light' : 'dark'
     const transitionDocument = document as ViewTransitionDocument
+    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    if (!transitionDocument.startViewTransition) {
+    if (!transitionDocument.startViewTransition || shouldReduceMotion) {
       setTheme(nextTheme)
       return
     }
+
+    document.documentElement.classList.add('theme-transition-circle')
 
     const transition = transitionDocument.startViewTransition(() => {
       flushSync(() => {
@@ -219,24 +222,12 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
       })
     })
 
-    transition.ready
-      .then(() => {
-        document.documentElement.animate(
-          {
-            clipPath: [
-              'circle(0vmax at 50vw 50vh)',
-              'circle(150vmax at 50vw 50vh)',
-            ],
-          },
-          {
-            duration: 620,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            pseudoElement: '::view-transition-new(root)',
-          },
-        )
-      })
+    transition.finished
       .catch(() => {
         // The theme already changed; unsupported transition details can be ignored.
+      })
+      .finally(() => {
+        document.documentElement.classList.remove('theme-transition-circle')
       })
   }
 

@@ -31,6 +31,21 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Transicion de tema con mascara SVG difuminada
+
+- Objetivo: hacer que el cambio claro/oscuro se sienta mas natural, similar a la referencia `theme-toggle.rdsx.dev`.
+- Cambios:
+  - se reemplazo la animacion manual de `clip-path` por una mascara CSS aplicada a `::view-transition-new(root)`;
+  - el toggle ahora solo inicia `document.startViewTransition` y agrega temporalmente la clase `theme-transition-circle`;
+  - el circulo usa una mascara SVG centrada con blur para suavizar el borde;
+  - la curva de animacion usa un easing tipo `expo-out`;
+  - se respeta `prefers-reduced-motion` desactivando la transicion animada.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: no realizado.
+- Commit: `e2cd871`.
+
 ### 2026-07-09 - Despliegue frontend correccion centro del toggle
 
 - Objetivo: publicar en produccion la correccion para que la transicion circular de tema nazca desde el centro real de la pantalla.
