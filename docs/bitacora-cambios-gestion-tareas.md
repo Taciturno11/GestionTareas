@@ -31,6 +31,25 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Despliegue frontend tema oscuro y particulas
+
+- Objetivo: publicar en produccion el sistema de tema claro/oscuro, particulas en modo oscuro y la transicion circular del toggle.
+- Cambios:
+  - se desplego el release frontend `20260709020939` en `https://agenda.martinnauca.com`;
+  - se publico solo frontend porque no hubo cambios de backend ni migraciones Prisma;
+  - se preservo `/var/www/gestion_tareas/config.js` de produccion;
+  - se creo backup del frontend anterior en `/var/www/gestion_tareas_backup_20260709020939`;
+  - se ejecuto limpieza de retencion del servidor;
+  - no se subieron `nuevo-reporte-de-horas.xls` ni `opencode.json`.
+- Validaciones:
+  - `npm run build`;
+  - health publico `https://agenda.martinnauca.com/health`;
+  - carga publica `https://agenda.martinnauca.com`;
+  - verificacion de release publicado en `/opt/gestion_tareas/releases/20260709020939`;
+  - servicio backend `gestion-tareas-backend` activo.
+- Despliegue: completado.
+- Commit: `ba03bb0`.
+
 ### 2026-07-09 - Exclusion de archivos locales antes de despliegue
 
 - Objetivo: evitar que archivos locales no deseados se suban al repositorio o al servidor.
