@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-07-09 - Ajuste centro real en transicion de tema
+
+- Objetivo: corregir que el circulo del cambio de tema no se perciba naciendo desde el centro exacto de la pantalla.
+- Cambios:
+  - el `clip-path` del View Transition ahora usa `50vw 50vh` como origen fijo;
+  - se reemplazo el calculo JS con `window.innerWidth / 2` y `window.innerHeight / 2` por unidades de viewport;
+  - la expansion usa `150vmax` para cubrir toda la pantalla desde el centro.
+- Validaciones:
+  - `npm run lint`;
+  - `npm run build`.
+- Despliegue: no realizado.
+- Commit: pendiente.
+
 ### 2026-07-09 - Documentar patron seguro PowerShell SSH Bash
 
 - Objetivo: evitar errores recurrentes de despliegue por interpolacion de variables al ejecutar Bash remoto desde PowerShell.

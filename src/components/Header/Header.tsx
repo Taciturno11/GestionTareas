@@ -213,13 +213,6 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
       return
     }
 
-    const x = window.innerWidth / 2
-    const y = window.innerHeight / 2
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y),
-    )
-
     const transition = transitionDocument.startViewTransition(() => {
       flushSync(() => {
         setTheme(nextTheme)
@@ -231,8 +224,8 @@ export default function Header({ collapsed, onToggleSidebar, user, isUserLoading
         document.documentElement.animate(
           {
             clipPath: [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`,
+              'circle(0vmax at 50vw 50vh)',
+              'circle(150vmax at 50vw 50vh)',
             ],
           },
           {
