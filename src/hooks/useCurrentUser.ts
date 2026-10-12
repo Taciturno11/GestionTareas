@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { authApi, type AuthUser } from '@/api/auth.api'
-import { clearAuthToken, getAuthToken } from '@/services/auth-token'
+import { getAuthToken } from '@/services/auth-token'
 
 export function useCurrentUser() {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(() => Boolean(getAuthToken()))
 
   const refreshUser = useCallback(() => {
     if (!getAuthToken()) {
@@ -19,10 +19,7 @@ export function useCurrentUser() {
       .then(response => {
         setUser(response.user)
       })
-      .catch(() => {
-        clearAuthToken()
-        setUser(null)
-      })
+      .catch(() => setUser(null))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -36,9 +33,10 @@ export function useCurrentUser() {
         if (!cancelled) setUser(response.user)
       })
       .catch(() => {
-        if (cancelled) return
-        clearAuthToken()
-        setUser(null)
+        if (!cancelled) setUser(null)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
       })
 
     return () => {

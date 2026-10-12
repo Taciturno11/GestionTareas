@@ -31,6 +31,18 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-10-11 - Redireccion al login al expirar la sesion
+
+- Objetivo: evitar que una sesion vencida permanezca en la vista privada mostrando `Usuario`.
+- Cambios:
+  - se comprueba la expiracion del JWT al recuperar el token y mientras la ruta privada esta abierta;
+  - los `401` autenticados eliminan el token y redirigen a `/login`, sin afectar al `401` del login ni a sesiones nuevas por respuestas tardias;
+  - errores de red ya no borran el token al consultar el usuario;
+  - se documento la decision en ADR 0030.
+- Validaciones: `npm run build`, `npm run lint` y prueba puntual de token valido, token expirado y respuesta tardia; todas correctas.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-07-09 - Despliegue frontend transicion de tema suavizada
 
 - Objetivo: publicar en produccion la transicion de tema basada en mascara SVG difuminada.

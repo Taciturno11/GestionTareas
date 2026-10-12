@@ -1,9 +1,9 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import AppLayout from './components/AppLayout/AppLayout'
 import RouteFallback from './components/RouteFallback/RouteFallback'
-import { getAuthToken } from './services/auth-token'
+import { expireAuthSession, getAuthToken, getAuthTokenExpiration } from './services/auth-token'
 
 const AjustesPage = lazy(() => import('./pages/AjustesPage'))
 const ArchivedTasksPage = lazy(() => import('./pages/ArchivedTasksPage'))
@@ -31,8 +31,34 @@ function PlaceholderPage({ title }: { title: string }) {
 
 function RequireAuth() {
   const location = useLocation()
+  const token = getAuthToken()
 
-  if (!getAuthToken()) {
+  useEffect(() => {
+    if (!token) return
+
+    const expiration = getAuthTokenExpiration(token)
+    if (expiration === null) return
+
+    let timeout: ReturnType<typeof setTimeout>
+    const checkExpiration = () => {
+      clearTimeout(timeout)
+      const remaining = expiration - Date.now()
+      if (remaining <= 0) {
+        expireAuthSession(token)
+      } else {
+        timeout = setTimeout(checkExpiration, Math.min(remaining, 2_147_483_647))
+      }
+    }
+
+    checkExpiration()
+    window.addEventListener('focus', checkExpiration)
+    return () => {
+      clearTimeout(timeout)
+      window.removeEventListener('focus', checkExpiration)
+    }
+  }, [token])
+
+  if (!token) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 

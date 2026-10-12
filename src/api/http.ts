@@ -1,4 +1,4 @@
-import { clearAuthToken, getAuthToken } from '@/services/auth-token'
+import { expireAuthSession, getAuthToken } from '@/services/auth-token'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
@@ -70,7 +70,7 @@ export async function http<T>(path: string, options: HttpOptions = {}): Promise<
   const payload = await parseResponse(response)
 
   if (!response.ok) {
-    if (response.status === 401) clearAuthToken()
+    if (response.status === 401 && token) expireAuthSession(token)
 
     const message = typeof payload === 'object' && payload && 'message' in payload
       ? String((payload as { message: unknown }).message)
