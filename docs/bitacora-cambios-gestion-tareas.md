@@ -39,9 +39,9 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - los `401` autenticados eliminan el token y redirigen a `/login`, sin afectar al `401` del login ni a sesiones nuevas por respuestas tardias;
   - errores de red ya no borran el token al consultar el usuario;
   - se documento la decision en ADR 0030.
-- Validaciones: `npm run build`, `npm run lint` y prueba puntual de token valido, token expirado y respuesta tardia; todas correctas.
-- Despliegue: pendiente.
-- Commit: pendiente.
+- Validaciones: `npm run build`, `npm run lint`, prueba puntual de token valido, token expirado y respuesta tardia, build del backend tras generar Prisma, health local y publico, `/login` publico, `401` de `/api/auth/me` sin token y hash identico del `index.html` publicado.
+- Despliegue: completado en el release frontend `20261011235331`; respaldo de PostgreSQL y frontend verificado, `config.js` preservado, Nginx validado y retencion ejecutada. Sin cambios de backend ni migraciones.
+- Commit: `218b0bb`.
 
 ### 2026-07-09 - Despliegue frontend transicion de tema suavizada
 
