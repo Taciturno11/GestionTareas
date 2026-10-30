@@ -34,10 +34,10 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 ### 2026-10-30 - Reporte de horas IDM octubre
 
 - Objetivo: consolidar los dos cortes de octubre de 2026 en `PROYECTO_IDM / OCTUBRE / REPORTE_HORAS` sin inventar horarios.
-- Cambios: se agrego soporte de duracion directa por fila y se documento en ADR 0031; carga de contenido pendiente.
-- Validaciones: `npm run build`, `npm run lint` y conciliacion de ambos Excel (35 + 43 filas; 20 + 25 horas; sin duplicados ni campos faltantes).
-- Despliegue: pendiente.
-- Commit: pendiente.
+- Cambios: se agrego soporte de duracion directa por fila y se documento en ADR 0031; se consolidaron las 35 actividades del primer corte y las 43 del segundo en la pagina existente, preservando encabezado y tarifa de S/ 60 sin inventar HI/HF.
+- Validaciones: `npm run build`, `npm run lint`, conciliacion de ambos Excel (35 + 43 filas; 20 + 25 horas; sin duplicados ni campos faltantes), coincidencia exacta entre consolidado y JSON persistido, 78 filas y 2700 minutos verificados en PostgreSQL, health y login publicos correctos.
+- Despliegue: frontend publicado en release `20261030011308`; backup PostgreSQL, copia puntual de la pagina y backup frontend creados antes del cambio; solo se actualizo el contenido de `REPORTE_HORAS`, sin migraciones ni cambios de backend.
+- Commit: `0f9a23d`.
 
 ### 2026-10-11 - Redireccion al login al expirar la sesion
 
