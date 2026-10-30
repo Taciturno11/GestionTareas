@@ -31,6 +31,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-10-30 - Segundo reporte de horas IDM en octubre
+
+- Objetivo: crear un reporte adicional en `PROYECTO_IDM / OCTUBRE` con las 30 actividades y duraciones proporcionadas por el usuario.
+- Cambios: se creo `REPORTE_HORAS_RESUMEN` (`cmvv3d8tx0001l6fsziq0l2xs`) con 30 filas y 39 h; se conservaron los textos de actividad y resultado, se copio el encabezado y la tarifa de S/ 60 del reporte existente, y se asignaron HI/HF consecutivos desde las 08:00 sin notas repetidas. `REPORTE_HORAS` no fue modificado.
+- Validaciones: 30 filas, 2340 minutos de duracion y 2340 minutos por HI/HF en PostgreSQL; 0 solapes, 0 horarios fuera de 08:00-23:00; coincidencia exacta de filas con los datos preparados, reporte anterior intacto, health y ruta publicos correctos.
+- Despliegue: creacion puntual de contenido en produccion, sin cambios de codigo ni migraciones; dump PostgreSQL y copia del reporte fuente antes del cambio (`20261030095139`).
+- Commit: no aplica al contenido; registro documental versionado en Git.
+
 ### 2026-10-30 - Retiro de nota repetida en reporte IDM de octubre
 
 - Objetivo: quitar de las observaciones la frase repetida sobre HI/HF que afectaba la lectura del reporte.
