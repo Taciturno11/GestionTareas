@@ -31,6 +31,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-10-30 - Retiro de nota repetida en reporte IDM de octubre
+
+- Objetivo: quitar de las observaciones la frase repetida sobre HI/HF que afectaba la lectura del reporte.
+- Cambios: se elimino exclusivamente el sufijo exacto de las 78 observaciones; actividades, resultados originales, HI/HF, duraciones, encabezado y tarifa permanecieron intactos.
+- Validaciones: simulacion previa; 78 filas, 2700 minutos de duracion y 2700 minutos por HI/HF; 0 frases restantes, 0 horarios fuera de 08:00-23:00; health publico correcto.
+- Despliegue: actualizacion puntual de contenido en produccion, sin cambios de codigo ni migraciones; dump PostgreSQL y copia de la pagina previos al cambio (`20261030012912`).
+- Commit: no aplica al contenido; registro documental versionado en Git.
+
 ### 2026-10-30 - Horarios referenciales para el reporte IDM de octubre
 
 - Objetivo: completar HI/HF en `PROYECTO_IDM / OCTUBRE / REPORTE_HORAS` usando el rango solicitado de 08:00 a 23:00 sin alterar las 45 horas de los dos Excel.
