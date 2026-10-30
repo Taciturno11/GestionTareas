@@ -31,6 +31,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-10-30 - Reporte de horas IDM octubre
+
+- Objetivo: consolidar los dos cortes de octubre de 2026 en `PROYECTO_IDM / OCTUBRE / REPORTE_HORAS` sin inventar horarios.
+- Cambios: se agrego soporte de duracion directa por fila y se documento en ADR 0031; carga de contenido pendiente.
+- Validaciones: `npm run build`, `npm run lint` y conciliacion de ambos Excel (35 + 43 filas; 20 + 25 horas; sin duplicados ni campos faltantes).
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-10-11 - Redireccion al login al expirar la sesion
 
 - Objetivo: evitar que una sesion vencida permanezca en la vista privada mostrando `Usuario`.

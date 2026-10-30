@@ -19,6 +19,7 @@ interface TimeReportRow {
   date: string
   startTime: string
   endTime: string
+  durationMinutes?: number
   observations: string
 }
 
@@ -76,6 +77,9 @@ function normalizeContent(value: unknown): TimeReportContent {
           date: typeof row?.date === 'string' ? row.date : '',
           startTime: typeof row?.startTime === 'string' ? row.startTime : '',
           endTime: typeof row?.endTime === 'string' ? row.endTime : '',
+          ...(Number.isInteger(row?.durationMinutes) && row.durationMinutes! >= 0
+            ? { durationMinutes: row.durationMinutes }
+            : {}),
           observations: typeof row?.observations === 'string' ? row.observations : '',
         }))
       : [],
@@ -101,11 +105,15 @@ function minutesFromTime(value: string) {
   return hours * 60 + minutes
 }
 
-function getRowHours(row: TimeReportRow) {
+function getTimeRangeHours(row: TimeReportRow) {
   const start = minutesFromTime(row.startTime)
   const end = minutesFromTime(row.endTime)
-  if (start == null || end == null || end <= start) return 0
-  return (end - start) / 60
+  if (start == null || end == null) return null
+  return end > start ? (end - start) / 60 : 0
+}
+
+function getRowHours(row: TimeReportRow) {
+  return getTimeRangeHours(row) ?? (row.durationMinutes ?? 0) / 60
 }
 
 function formatDuration(hours: number) {
@@ -748,7 +756,30 @@ export default function TimeReportPage({
                   </td>
                   <td className="px-2 py-2 align-middle">
                     <div className="flex h-10 items-center rounded-lg bg-gray-50 px-2 text-[13px] font-semibold text-gray-700">
-                      {formatDuration(getRowHours(row))}
+                      {readOnly || getTimeRangeHours(row) !== null ? formatDuration(getRowHours(row)) : (
+                        <div className="flex min-w-0 items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={row.durationMinutes === undefined ? '' : row.durationMinutes / 60}
+                            onChange={event => {
+                              const hours = Number(event.target.value)
+                              if (event.target.value === '' || (Number.isFinite(hours) && hours >= 0)) {
+                                updateRow(row.id, {
+                                  durationMinutes: event.target.value === '' ? undefined : Math.round(hours * 60),
+                                })
+                              }
+                            }}
+                            onBlur={() => void onSaveNow()}
+                            placeholder="0"
+                            aria-label="Duracion en horas"
+                            title="Duracion en horas, sin horario de inicio y fin"
+                            className="w-full min-w-0 bg-transparent text-[13px] cursor-text-dark caret-gray-900 outline-none"
+                          />
+                          <span className="shrink-0 text-gray-500">h</span>
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-2 py-2 align-top">
