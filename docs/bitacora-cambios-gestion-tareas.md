@@ -31,6 +31,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-10-30 - Horarios referenciales para el reporte IDM de octubre
+
+- Objetivo: completar HI/HF en `PROYECTO_IDM / OCTUBRE / REPORTE_HORAS` usando el rango solicitado de 08:00 a 23:00 sin alterar las 45 horas de los dos Excel.
+- Cambios: se asignaron horarios consecutivos desde las 08:00 por fecha a las 78 actividades, sin solapes; se agrego a cada observacion la aclaracion de que HI/HF son referenciales porque los Excel solo registran duracion.
+- Validaciones: simulacion previa, 78 filas y 2700 minutos confirmados en PostgreSQL, 0 duraciones discrepantes, 0 solapes, 0 horarios fuera de rango, 78 aclaraciones presentes y health publico correcto.
+- Despliegue: actualizacion puntual de contenido en produccion, sin codigo ni migraciones; dump PostgreSQL y copia valida de la pagina creados antes del cambio (`20261030011944`).
+- Commit: no aplica al contenido; registro documental versionado en Git.
+
 ### 2026-10-30 - Reporte de horas IDM octubre
 
 - Objetivo: consolidar los dos cortes de octubre de 2026 en `PROYECTO_IDM / OCTUBRE / REPORTE_HORAS` sin inventar horarios.
