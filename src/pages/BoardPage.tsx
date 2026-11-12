@@ -1,15 +1,26 @@
 import { useEffect, useMemo, useRef } from 'react'
 import {
+  DefaultColorStyle,
+  DefaultDashStyle,
+  DefaultFillStyle,
+  DefaultSizeStyle,
+  DefaultStylePanel,
+  ReadonlySharedStyleMap,
   Tldraw,
   getSnapshot,
   inlineBase64AssetStore,
+  useEditor,
+  useRelevantStyles,
+  useValue,
   type Editor,
   type TLAssetStore,
+  type TLComponents,
   type TLEditorSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+import BoardShapeLibrary from '@/components/BoardShapeLibrary/BoardShapeLibrary'
 import { usePageSaveQueue } from '@/hooks/usePageSaveQueue'
 import { getTldrawLicenseKey } from '@/lib/runtimeConfig'
 import { useTheme } from '@/theme/theme-context'
@@ -24,6 +35,35 @@ const boardAssetStore: TLAssetStore = {
     if (!src || src.startsWith('asset:')) return null
     return src
   },
+}
+
+const ALWAYS_VISIBLE_STYLES = [DefaultColorStyle, DefaultDashStyle, DefaultFillStyle, DefaultSizeStyle]
+
+// tldraw oculta o encoge el panel segun la seleccion/herramienta; se completa con los
+// estilos de la siguiente forma para que colores y tamanos queden siempre visibles.
+function BoardStylePanel() {
+  const editor = useEditor()
+  const relevantStyles = useRelevantStyles()
+  const styles = useValue('boardStylePanelStyles', () => {
+    const entries = [...(relevantStyles ?? [])]
+    for (const style of ALWAYS_VISIBLE_STYLES) {
+      if (!relevantStyles?.get(style)) {
+        entries.push([style, { type: 'shared', value: editor.getStyleForNextShape(style) }])
+      }
+    }
+    return new ReadonlySharedStyleMap(entries)
+  }, [editor, relevantStyles])
+
+  return (
+    <>
+      <DefaultStylePanel styles={styles} />
+      <BoardShapeLibrary />
+    </>
+  )
+}
+
+const boardComponents: TLComponents = {
+  StylePanel: BoardStylePanel,
 }
 
 interface BoardPageProps {
@@ -200,6 +240,7 @@ export default function BoardPage({ page, readOnly = false }: BoardPageProps) {
         inferDarkMode={false}
         licenseKey={licenseKey}
         assets={boardAssetStore}
+        components={boardComponents}
       />
     </div>
   )

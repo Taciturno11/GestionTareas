@@ -77,6 +77,16 @@ Reglas:
 - No crear borradores locales, copias por edicion ni backups automaticos de la pizarra.
 - Separar mejoras de pizarra de mejoras de texto para evitar mezclar modelos de persistencia.
 
+Panel de figuras:
+
+- Debajo del panel de estilos de tldraw aparece el panel `Figuras` (`src/components/BoardShapeLibrary/`).
+- Se inyecta reemplazando `components.StylePanel` por `DefaultStylePanel` + `BoardShapeLibrary`; no se modifica tldraw.
+- Cada figura es un SVG simple definido en `boardFigures.ts`; se inserta con `editor.putExternalContent({ type: 'svg-text' })` como imagen.
+- Arrastrar suelta la figura centrada en el punto del lienzo; clic la inserta en el centro de la vista.
+- Para agregar figuras, sumar una entrada en `BOARD_FIGURES` con viewBox `0 0 64 64` y colores legibles en tema claro y oscuro.
+- No se muestra en modo solo lectura ni en pantallas pequenas, igual que el panel de estilos.
+- El panel de estilos siempre muestra color, relleno, trazo y tamano (completa los estilos de la seleccion con los de la siguiente forma), para que no se oculte con la mano, el borrador o una imagen seleccionada y `Figuras` quede siempre debajo.
+
 ## Hoja diagrama BD
 
 Archivo principal: `src/pages/DatabaseDiagramPage.tsx`

@@ -31,6 +31,26 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-12 - Panel de figuras arrastrables en la pizarra
+
+- Objetivo: tener a mano figuras de uso frecuente (base de datos, servidor, nube, internet, Linux, router, red, firewall, persona, mujer, usuarios, laptop, PC, celular, API, seguridad, correo y documento) para diagramar en la pizarra.
+- Cambios:
+  - nuevo `src/components/BoardShapeLibrary/` con 18 SVG sencillos y el panel `Figuras` plegable;
+  - `BoardPage` reemplaza `components.StylePanel` por el panel de estilos de tldraw mas el panel de figuras debajo;
+  - arrastrar suelta la figura en el punto del lienzo y clic la inserta en el centro; se inserta como imagen via `putExternalContent('svg-text')`, sin cambiar el formato `tldraw-snapshot-v1`;
+  - el panel de estilos queda siempre visible con color, relleno, trazo y tamano, aunque la seleccion o herramienta no los use (imagen, mano, borrador); en ese caso aplican a la siguiente forma;
+  - documentado en `docs/hojas-texto-pizarra.md`.
+- Validaciones: `npm run build`, `npm run lint`; prueba en navegador con Playwright sobre una pagina temporal de tldraw (incluye panel visible con imagen seleccionada y con la mano) (clic, arrastre a coordenada exacta, 18 figuras, tema claro y oscuro).
+- Despliegue: pendiente. El chunk `BoardPage` cambia de hash y contenido.
+- Commit: pendiente.
+
+### 2026-10-31 - Guia reutilizable de transicion circular de tema
+
+- Objetivo: documentar el cambio claro/oscuro centrado para reutilizarlo en proyectos con otros frameworks o backends.
+- Cambios: se agrego `docs/guia-transicion-circular-tema.md` con el mecanismo real, CSS y JavaScript portables, adaptaciones para Vue, React y backend Python, fallbacks, comprobaciones y fuentes; se enlazo desde README.
+- Validaciones: revision documental y de enlaces; sin cambios de codigo ejecutable.
+- Despliegue: no aplica; documentacion local.
+- Commit: pendiente.
 ### 2026-10-30 - Segundo reporte de horas IDM en octubre
 
 - Objetivo: crear un reporte adicional en `PROYECTO_IDM / OCTUBRE` con las 30 actividades y duraciones proporcionadas por el usuario.
@@ -74,6 +94,49 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 - Validaciones: `npm run build`, `npm run lint`, prueba puntual de token valido, token expirado y respuesta tardia, build del backend tras generar Prisma, health local y publico, `/login` publico, `401` de `/api/auth/me` sin token y hash identico del `index.html` publicado.
 - Despliegue: completado en el release frontend `20261011235331`; respaldo de PostgreSQL y frontend verificado, `config.js` preservado, Nginx validado y retencion ejecutada. Sin cambios de backend ni migraciones.
 - Commit: `218b0bb`.
+
+### 2026-09-30 - Actualizacion de contenido del reporte DT-SEPTIEMBRE
+
+- Objetivo: reemplazar en produccion las actividades del reporte `DT-SEPTIEMBRE` por el consolidado de septiembre de 2026.
+- Cambios:
+  - se conservaron cliente, servicio, trabajador, periodo y precio por hora existentes;
+  - se reemplazaron exclusivamente las actividades anteriores por 24 filas con sus fechas, horarios y observaciones detalladas;
+  - el total calculado por la aplicacion queda en `45 h`;
+  - se creo una copia puntual del reporte antes de modificar el contenido.
+- Validaciones:
+  - se verificaron en PostgreSQL las 24 filas persistidas y las actividades inicial/final;
+  - health publico `https://agenda.martinnauca.com/health` responde `ok`.
+- Despliegue: no aplicable; fue una actualizacion directa y respaldada de contenido en produccion, sin cambios de codigo, migraciones ni configuracion.
+- Commit: pendiente.
+
+### 2026-08-30 - Actualizacion de contenido del reporte de horas de agosto
+
+- Objetivo: consolidar en produccion el reporte `horas-Martin` con el levantamiento de actividades clinicas, administrativas, de infraestructura y facturacion de agosto de 2026.
+- Cambios:
+  - se conservaron cliente, servicio, trabajador, periodo y precio por hora ya registrados;
+  - se reemplazaron exclusivamente las filas por las 29 actividades con sus fechas, horarios y observaciones detalladas;
+  - el total calculado por la aplicacion queda en `45 h`;
+  - se creo una copia puntual del reporte antes de modificar su contenido.
+- Validaciones:
+  - se verificaron en PostgreSQL las 29 filas persistidas y las actividades inicial/final;
+  - health publico `https://agenda.martinnauca.com/health` responde `ok`.
+- Despliegue: no aplicable; fue una actualizacion directa y respaldada de contenido en produccion, sin cambios de codigo, migraciones ni configuracion.
+- Commit: pendiente.
+
+### 2026-08-01 - Actualizacion de contenido del reporte de horas de julio
+
+- Objetivo: actualizar en produccion el reporte de horas `Reporte Horas` con el detalle consolidado de actividades de julio de 2026.
+- Cambios:
+  - se conservaron cliente, servicio, trabajador, periodo y precio por hora existentes;
+  - se reemplazaron exclusivamente las filas del reporte por las 20 actividades, fechas, horas y observaciones proporcionadas;
+  - el total calculado por la aplicacion queda en `30 h`;
+  - se genero una copia puntual de la hoja antes de actualizar su contenido.
+- Validaciones:
+  - se verificaron en PostgreSQL las 20 filas persistidas y las actividades inicial/final;
+  - health publico `https://agenda.martinnauca.com/health` responde `ok`;
+  - Nginx y el servicio `gestion-tareas-backend` estaban activos.
+- Despliegue: no aplicable; fue una actualizacion directa y respaldada de contenido en produccion, sin cambios de codigo, migraciones ni configuracion.
+- Commit: pendiente.
 
 ### 2026-07-09 - Despliegue frontend transicion de tema suavizada
 
