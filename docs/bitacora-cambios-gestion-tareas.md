@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-12 - Despliegue frontend panel de figuras en la pizarra
+
+- Objetivo: publicar en produccion el panel `Figuras` y el panel de estilos siempre visible de la pizarra.
+- Cambios:
+  - se sincronizo la laptop con `origin/main` (7 commits pendientes) conservando todas las entradas de la bitacora de ambas laptops;
+  - se desplego solo frontend (sin cambios de backend ni migraciones) como release `20261112161419`;
+  - backup PostgreSQL `/opt/backups/gestion_tareas/gestion_tareas_before_20261112161419.dump` y backup de frontend `/var/www/gestion_tareas_backup_20261112161419`;
+  - `pg_dump` requiere quitar el parametro `?schema=...` de la URL de Prisma (`"${DATABASE_URL%%\?*}"`); el primer intento fallo antes de modificar produccion;
+  - `config.js` de produccion preservado y verificado por hash; `nginx -t` correcto y recarga;
+  - retencion ejecutada; no se modificaron scripts de `ops/` ni del servidor.
+- Validaciones: `npm run lint`, `npm run build`, build del backend, `prisma migrate status` local; health interno y publico `ok`, frontend y `/login` 200, servicio backend activo sin errores en log, `index.html` publicado identico al build local y chunk `BoardPage` publicado con el panel `Figuras`.
+- Despliegue: completado.
+- Commit: `3f149e3` y `133c594`.
+
 ### 2026-11-12 - Panel de figuras arrastrables en la pizarra
 
 - Objetivo: tener a mano figuras de uso frecuente (base de datos, servidor, nube, internet, Linux, router, red, firewall, persona, mujer, usuarios, laptop, PC, celular, API, seguridad, correo y documento) para diagramar en la pizarra.
@@ -41,8 +55,8 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - el panel de estilos queda siempre visible con color, relleno, trazo y tamano, aunque la seleccion o herramienta no los use (imagen, mano, borrador); en ese caso aplican a la siguiente forma;
   - documentado en `docs/hojas-texto-pizarra.md`.
 - Validaciones: `npm run build`, `npm run lint`; prueba en navegador con Playwright sobre una pagina temporal de tldraw (incluye panel visible con imagen seleccionada y con la mano) (clic, arrastre a coordenada exacta, 18 figuras, tema claro y oscuro).
-- Despliegue: pendiente. El chunk `BoardPage` cambia de hash y contenido.
-- Commit: pendiente.
+- Despliegue: completado en el release frontend `20261112161419`.
+- Commit: `3f149e3`.
 
 ### 2026-10-31 - Guia reutilizable de transicion circular de tema
 
