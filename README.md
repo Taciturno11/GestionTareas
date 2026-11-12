@@ -10,6 +10,7 @@ Aplicacion web full-stack de productividad tipo workspace para gestionar espacio
 - Documentacion de decisiones: [docs/adr](./docs/adr/README.md).
 - Contexto general del estado actual: [docs/contexto-general.md](./docs/contexto-general.md).
 - Reglas generales de diseno UI: [docs/diseno-ui.md](./docs/diseno-ui.md).
+- Guia reutilizable de transicion circular claro/oscuro: [docs/guia-transicion-circular-tema.md](./docs/guia-transicion-circular-tema.md).
 - Hojas de texto y pizarra: [docs/hojas-texto-pizarra.md](./docs/hojas-texto-pizarra.md).
 - Arquitectura frontend: [docs/frontend-arquitectura.md](./docs/frontend-arquitectura.md).
 - Backend MVC modular: [docs/backend.md](./docs/backend.md).
