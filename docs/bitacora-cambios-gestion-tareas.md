@@ -31,6 +31,20 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-12 - Documentacion de continuidad para multiples agentes
+
+- Objetivo: que cualquier agente o laptop conozca el contexto y los ultimos cambios con fechas antes de trabajar.
+- Cambios:
+  - nuevo `docs/historial-cronologico.md` con la linea de tiempo completa desde el primer commit (2026-04-21), fechas de git y bitacora, commits, ADR y releases;
+  - ADR 0032 (panel de figuras en la pizarra) y ADR 0033 (documentacion de continuidad para agentes);
+  - `docs/adr/README.md` convertido en tabla con fecha de cada ADR; agrega los ADR 0028 a 0033 que faltaban;
+  - `AGENTS.md`: orden de lectura obligatorio, estado de produccion real, estructura actual, reglas (no tocar scripts de `ops/` sin pedido, `pg_dump` sin `?schema=`, revisar puertos locales) y checklist de cierre ampliado;
+  - nuevo `CLAUDE.md` que solo importa `AGENTS.md`;
+  - README y `docs/contexto-general.md` actualizados al estado de produccion; se marcaron las secciones antiguas que hablaban de mock data.
+- Validaciones: revision documental; fechas de ADR y commits verificadas con `git log`. Sin cambios de codigo.
+- Despliegue: no aplica; solo documentacion.
+- Commit: pendiente (ver historial).
+
 ### 2026-11-12 - Despliegue frontend panel de figuras en la pizarra
 
 - Objetivo: publicar en produccion el panel `Figuras` y el panel de estilos siempre visible de la pizarra.

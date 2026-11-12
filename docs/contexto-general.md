@@ -4,11 +4,19 @@ Documento maestro de contexto vivo para el frontend de gestion de tareas.
 
 Este documento resume el estado actual del proyecto, lo que ya existe, las decisiones practicas implementadas y las zonas que conviene cuidar al seguir desarrollando. No reemplaza los ADR; los ADR siguen siendo el historial formal de decisiones arquitectonicas.
 
+## Estado al 2026-11-12
+
+- La aplicacion esta en produccion en `https://agenda.martinnauca.com` desde junio de 2026 (frontend en Nginx, backend Express/Prisma, PostgreSQL). Ultimo release frontend: `20261112161419`.
+- El frontend ya trabaja contra la API con login JWT. `localStorage` (`gt_tasks`, `gt_task_settings`, workspaces y paginas) queda como cache y fallback, no como fuente de verdad.
+- Algunas secciones de este documento se escribieron antes de conectar la API y todavia hablan de mock data o persistencia temporal; ante cualquier duda manda el codigo, la bitacora y el historial.
+- Linea de tiempo completa con fechas: [historial-cronologico.md](./historial-cronologico.md). Detalle de cada cambio: [bitacora-cambios-gestion-tareas.md](./bitacora-cambios-gestion-tareas.md).
+- Funcionalidades agregadas despues de la version inicial de este documento: espacios compartidos y amigos (ADR 0027, 0028), reporte de horas con Excel/PDF y duracion directa (ADR 0029, 0031), archivado de tareas, tema claro/oscuro con particulas, cierre de sesion al expirar el JWT (ADR 0030) y panel de figuras en la pizarra (ADR 0032).
+
 ## Objetivo
 
 Construir una SPA frontend para gestion de tareas que pueda evolucionar hacia vistas de inicio, tareas, proyectos, calendario, archivo y ajustes.
 
-El backend ya tiene una base inicial en `backend/` con Express, TypeScript, Prisma y PostgreSQL. El frontend todavia usa mock data local y persistencia temporal en `localStorage` hasta conectar las vistas con la API.
+El backend vive en `backend/` con Express, TypeScript, Prisma y PostgreSQL, y el frontend consume su API. `localStorage` se usa como cache y fallback.
 
 ## Modelo de usuarios y datos
 
@@ -194,6 +202,7 @@ Comportamiento actual:
 - al borrar la hoja abierta, la app navega al subespacio o espacio que la contenia.
 - `TextPage` permite editar titulo y contenido enriquecido.
 - `BoardPage` dedica todo el espacio disponible a tldraw; el nombre de la pizarra se edita inline desde el sidebar.
+- Debajo del panel de estilos de tldraw (siempre visible) esta el panel `Figuras` con SVG arrastrables (ADR 0032, `src/components/BoardShapeLibrary/`).
 - `DatabaseDiagramPage` permite crear tablas, campos y relaciones entre tablas.
 - La documentacion operativa de estos tipos vive en `docs/hojas-texto-pizarra.md`.
 
@@ -456,7 +465,7 @@ Usada por Mis tareas y Ajustes:
 - `gt_tasks`: tareas del tablero/lista.
 - `gt_task_settings`: proyectos, responsables, etiquetas, prioridades y estados.
 
-Esto es temporal hasta definir backend/API.
+Desde la conexion con el backend, estas claves funcionan como cache y fallback; la fuente de verdad es PostgreSQL.
 
 La migracion hacia API ya empezo para tareas y ajustes:
 
@@ -516,13 +525,14 @@ Decisiones actuales:
 - `0017`: backend MVC modular con Express, Prisma y PostgreSQL.
 - `0018`: estructura frontend escalable para API, hooks y utils.
 - `0019`: `projectId` en tareas para proyectos configurables.
+- `0020` a `0033`: ver la tabla con fechas en [adr/README.md](./adr/README.md) (roles y login, pizarras backend-first, multitenancy, compartidos, amigos, reporte de horas, expiracion de sesion, panel de figuras y documentacion de continuidad para agentes).
 
 ## Deuda tecnica conocida
 
 - `DashboardPage.tsx` todavia concentra mucha logica: tareas, drag and drop, tabla, Kanban, persistencia y coordinacion del panel.
 - React Router ya esta implementado, pero falta ADR especifico formalizando esa decision.
 - shadcn/Base UI, iconos y el sistema `components/ui` ya existen, pero falta ADR especifico.
-- La persistencia con `localStorage` es temporal y debe cambiar cuando exista backend.
+- `localStorage` sigue usandose como cache/fallback (`gt_tasks` es una clave global compartida entre workspaces) y puede mostrar datos viejos mientras carga la API.
 - `localStorage` puede quedar con datos viejos que no coincidan con nuevos ajustes si se cambian ids.
 - El filtro de tareas por ahora solo cubre proyecto; mas adelante puede ampliarse a responsable, prioridad, etiqueta, estado y fechas.
 - Si se borran opciones usadas por tareas existentes, todavia no hay validacion o migracion automatica de esas tareas.

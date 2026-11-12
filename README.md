@@ -5,9 +5,11 @@ Aplicacion web full-stack de productividad tipo workspace para gestionar espacio
 ## Contexto rapido
 
 - Producto: app de productividad tipo workspace, inspirada en flujos de Notion, Kanban/Trello, calendario, pizarras y diagramas.
-- Etapa: frontend y backend locales validados con PostgreSQL, migraciones Prisma y dataset fusionado sanitizado.
+- Etapa: en produccion en `https://agenda.martinnauca.com` desde junio de 2026; ultimo despliegue 2026-11-12.
 - Enfoque actual: SPA con React, Vite, TypeScript y Tailwind CSS, con backend Express/Prisma/PostgreSQL.
-- Documentacion de decisiones: [docs/adr](./docs/adr/README.md).
+- **Agentes IA: empezar por [AGENTS.md](./AGENTS.md)** (orden de lectura y checklist de cierre). `CLAUDE.md` solo lo importa.
+- Historial completo con fechas: [docs/historial-cronologico.md](./docs/historial-cronologico.md).
+- Documentacion de decisiones: [docs/adr](./docs/adr/README.md) (indice con fechas, ultimo ADR 0033).
 - Contexto general del estado actual: [docs/contexto-general.md](./docs/contexto-general.md).
 - Reglas generales de diseno UI: [docs/diseno-ui.md](./docs/diseno-ui.md).
 - Guia reutilizable de transicion circular claro/oscuro: [docs/guia-transicion-circular-tema.md](./docs/guia-transicion-circular-tema.md).
@@ -89,7 +91,7 @@ src/
   assets/       Recursos visuales
   components/   Layout, navegacion y componentes reutilizables
   components/ui Componentes base de UI
-  data/         Mock data local
+  data/         Cache local y fallback (mocks antiguos sin uso)
   hooks/        Hooks compartidos
   lib/          Utilidades compartidas
   pages/        Vistas principales
@@ -128,7 +130,8 @@ Scripts principales:
 
 - Mantener cambios pequenos y coherentes con la estructura actual.
 - Usar servicios/hooks existentes para mantener compatibilidad entre API y cache local mientras termina la migracion.
-- Registrar decisiones arquitectonicas nuevas como ADR incremental en `docs/adr/`.
+- Registrar decisiones arquitectonicas nuevas como ADR incremental en `docs/adr/` y agregarlas al indice.
+- Al terminar cada cambio: entrada en la bitacora, linea en el historial cronologico, commit y push (ADR 0033).
 - No reescribir el sentido historico de ADR aprobados; crear uno nuevo si cambia una decision.
 - Antes de cerrar cambios visuales, revisar la seccion completa y las variantes del componente segun `docs/diseno-ui.md`.
 - Inputs, textareas y editores deben usar `cursor-text-dark` junto con `caret-gray-900` si el I-beam nativo se ve blanco o poco visible.
