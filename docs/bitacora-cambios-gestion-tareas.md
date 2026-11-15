@@ -41,8 +41,8 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
   - produccion: `JWT_EXPIRES_IN` pasa de `1d` a `30d` (decision del usuario);
   - ADR 0034; docs de backend, README del backend, AGENTS, README e historial actualizados.
 - Validaciones: `npm run lint`, `npm run build`, typecheck del backend; prueba local del endpoint (token valido renovado, `401` sin token y con token invalido); prueba en navegador con Playwright: sesion emitida hace 2 h se renueva al abrir sin pasar por `/login`, y con token reciente no hay llamadas extra al recargar ni al recuperar el foco.
-- Despliegue: pendiente.
-- Commit: pendiente.
+- Despliegue: completado en el release `20261115132827` (backend y frontend). Backup PostgreSQL `gestion_tareas_before_20261115132827.dump`, backups de frontend y backend, copia `/etc/gestion_tareas/backend.env.before_20261115132827` antes de cambiar solo `JWT_EXPIRES_IN` a `30d`; `npm ci`, `prisma generate`, sin migraciones pendientes, servicio reiniciado y activo; `config.js` preservado por hash; `nginx -t` correcto; retencion ejecutada. Health interno y publico `ok`, frontend y `/login` 200, `POST /api/auth/refresh` sin token `401`, `index.html` publicado identico al build y chunk `auth.api` con la ruta de renovacion; sin errores en el log.
+- Commit: `e11ad51`.
 
 ### 2026-11-12 - Documentacion de continuidad para multiples agentes
 
