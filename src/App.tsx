@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 
 import AppLayout from './components/AppLayout/AppLayout'
 import RouteFallback from './components/RouteFallback/RouteFallback'
+import { useSessionRefresh } from './hooks/useSessionRefresh'
 import { expireAuthSession, getAuthToken, getAuthTokenExpiration } from './services/auth-token'
 
 const AjustesPage = lazy(() => import('./pages/AjustesPage'))
@@ -32,6 +33,7 @@ function PlaceholderPage({ title }: { title: string }) {
 function RequireAuth() {
   const location = useLocation()
   const token = getAuthToken()
+  useSessionRefresh(Boolean(token))
 
   useEffect(() => {
     if (!token) return

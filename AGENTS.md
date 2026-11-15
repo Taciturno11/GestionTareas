@@ -2,7 +2,7 @@
 
 Contexto operativo para agentes IA que trabajen en este repositorio (Codex, Claude Code, opencode u otros). `CLAUDE.md` solo importa este archivo.
 
-Ultima revision de este archivo: 2026-11-12.
+Ultima revision de este archivo: 2026-11-15.
 
 ## Primero: orden de lectura obligatorio
 
@@ -25,7 +25,7 @@ Aplicacion web full-stack de productividad tipo workspace: espacios y subespacio
 
 - **En produccion** en `https://agenda.martinnauca.com` (frontend estatico en Nginx, backend Express en el puerto interno 4100, PostgreSQL). Ultimo release frontend: `20261112161419` (2026-11-12).
 - Repositorio publico: `https://github.com/Taciturno11/GestionTareas`, rama `main`.
-- Frontend SPA (React + Vite) conectado al backend `backend/` (Express MVC modular + Prisma + PostgreSQL) con login JWT.
+- Frontend SPA (React + Vite) conectado al backend `backend/` (Express MVC modular + Prisma + PostgreSQL) con login JWT. La sesion se renueva sola mientras se usa (`POST /api/auth/refresh`, ADR 0034) y en produccion caduca tras `JWT_EXPIRES_IN=30d` sin actividad.
 - Los datos viven en PostgreSQL. `localStorage` solo funciona como cache/fallback (`src/data/workspaces.ts`, `gt_tasks`); `src/data/mockTasks.ts` y `mockHome.ts` son mocks antiguos sin uso.
 - Routing con `react-router-dom`; todas las rutas son lazy.
 - UI con Tailwind CSS, componentes `components/ui`, Base UI/shadcn, Heroicons/Lucide, tema claro/oscuro y fondo de particulas.

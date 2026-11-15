@@ -17,10 +17,11 @@ Linea de tiempo completa del proyecto, con fechas, desde el primer commit. Sirve
 
 - Produccion: `https://agenda.martinnauca.com` (frontend estatico en Nginx + backend Express/Prisma/PostgreSQL). Ultimo release frontend: `20261112161419`.
 - Codigo: rama `main` de `https://github.com/Taciturno11/GestionTareas` (repositorio publico).
-- ADR mas reciente: `0033`.
+- ADR mas reciente: `0034`.
 
 ## 2026-11
 
+- 2026-11-15 - Sesion con renovacion deslizante: `POST /api/auth/refresh`, hook `useSessionRefresh` y `JWT_EXPIRES_IN=30d` en produccion; antes caducaba a las 24 h (ADR 0034).
 - 2026-11-12 - Documentacion de continuidad para agentes: historial cronologico, ADR 0032 y 0033, `AGENTS.md`, `CLAUDE.md`, README e indice de ADR actualizados.
 - 2026-11-12 - Despliegue frontend del panel de figuras (release `20261112161419`, commit `b1db91c`).
 - 2026-11-12 - Pizarra: panel `Figuras` con 18 SVG arrastrables bajo el panel de estilos de tldraw, y panel de estilos siempre visible (commit `3f149e3`, ADR 0032).

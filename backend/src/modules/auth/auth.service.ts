@@ -63,6 +63,13 @@ export async function login(dto: LoginDto): Promise<AuthSuccessResponse> {
   return toAuthSuccess(user)
 }
 
+// Renovacion deslizante: emite un token nuevo mientras el usuario siga existiendo.
+export async function refreshSession(userId: string): Promise<AuthSuccessResponse> {
+  const user = await authRepository.findPublicUserById(userId)
+  if (!user) throw new HttpError(401, 'Unauthorized')
+  return toAuthSuccess(user)
+}
+
 export async function getAuthenticatedUser(userId: string) {
   const user = await authRepository.findPublicUserById(userId)
   if (!user) throw new HttpError(404, 'User not found')

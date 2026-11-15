@@ -198,7 +198,10 @@ Auth:
 POST /api/auth/register
 POST /api/auth/login
 GET  /api/auth/me
+POST /api/auth/refresh
 ```
+
+`/auth/refresh` emite un token nuevo mientras el actual sea valido; el frontend lo usa para la renovacion deslizante (ADR 0034). En produccion `JWT_EXPIRES_IN=30d`.
 
 Users:
 

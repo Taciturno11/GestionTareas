@@ -9,7 +9,7 @@ Aplicacion web full-stack de productividad tipo workspace para gestionar espacio
 - Enfoque actual: SPA con React, Vite, TypeScript y Tailwind CSS, con backend Express/Prisma/PostgreSQL.
 - **Agentes IA: empezar por [AGENTS.md](./AGENTS.md)** (orden de lectura y checklist de cierre). `CLAUDE.md` solo lo importa.
 - Historial completo con fechas: [docs/historial-cronologico.md](./docs/historial-cronologico.md).
-- Documentacion de decisiones: [docs/adr](./docs/adr/README.md) (indice con fechas, ultimo ADR 0033).
+- Documentacion de decisiones: [docs/adr](./docs/adr/README.md) (indice con fechas, ultimo ADR 0034).
 - Contexto general del estado actual: [docs/contexto-general.md](./docs/contexto-general.md).
 - Reglas generales de diseno UI: [docs/diseno-ui.md](./docs/diseno-ui.md).
 - Guia reutilizable de transicion circular claro/oscuro: [docs/guia-transicion-circular-tema.md](./docs/guia-transicion-circular-tema.md).

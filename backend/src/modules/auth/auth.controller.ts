@@ -21,6 +21,11 @@ export async function login(req: Request, res: Response) {
   res.json(result)
 }
 
+export async function refresh(req: Request, res: Response) {
+  const result = await authService.refreshSession(requireUserId(req))
+  res.json(result)
+}
+
 export async function me(req: Request, res: Response) {
   const user = await authService.getAuthenticatedUser(requireUserId(req))
   res.json({ user })

@@ -31,6 +31,19 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-15 - Renovacion automatica de la sesion
+
+- Objetivo: dejar de pedir login casi cada vez que se entra a la app.
+- Causa encontrada: en produccion `JWT_EXPIRES_IN=1d` y el frontend nunca renovaba el token; tras 24 h desde el login, ADR 0030 redirigia siempre a `/login`. El `JWT_SECRET` es estable y el backend no se reinicio, asi que no influyen.
+- Cambios:
+  - backend: `POST /api/auth/refresh` (con `authMiddleware`) devuelve un token nuevo si el usuario existe; `401` si no;
+  - frontend: `src/hooks/useSessionRefresh.ts` en `RequireAuth` renueva cuando el token tiene mas de 1 h (al abrir, cada 15 min, en focus y al volver a la pestana); `replaceAuthToken` evita pisar un login nuevo; `getAuthTokenIssuedAt` en `auth-token.ts`;
+  - produccion: `JWT_EXPIRES_IN` pasa de `1d` a `30d` (decision del usuario);
+  - ADR 0034; docs de backend, README del backend, AGENTS, README e historial actualizados.
+- Validaciones: `npm run lint`, `npm run build`, typecheck del backend; prueba local del endpoint (token valido renovado, `401` sin token y con token invalido); prueba en navegador con Playwright: sesion emitida hace 2 h se renueva al abrir sin pasar por `/login`, y con token reciente no hay llamadas extra al recargar ni al recuperar el foco.
+- Despliegue: pendiente.
+- Commit: pendiente.
+
 ### 2026-11-12 - Documentacion de continuidad para multiples agentes
 
 - Objetivo: que cualquier agente o laptop conozca el contexto y los ultimos cambios con fechas antes de trabajar.

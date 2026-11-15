@@ -122,6 +122,7 @@ Privados:
 
 ```text
 GET  /api/auth/me
+POST /api/auth/refresh   # renueva el token (ADR 0034)
 GET  /api/users/me
 GET  /api/workspaces
 GET  /api/shared-spaces

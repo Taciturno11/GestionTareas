@@ -41,6 +41,7 @@ Fecha = fecha en que el ADR se agrego al repositorio (`git log`).
 | [0031](./0031-duracion-directa-en-reportes-de-horas.md) | 2026-10-30 | Duracion directa en reportes de horas |
 | [0032](./0032-panel-de-figuras-en-pizarra.md) | 2026-11-12 | Panel de figuras en la pizarra |
 | [0033](./0033-documentacion-de-continuidad-para-agentes.md) | 2026-11-12 | Documentacion de continuidad para multiples agentes |
+| [0034](./0034-renovacion-deslizante-de-sesion.md) | 2026-11-15 | Renovacion deslizante de la sesion |
 
 ## Convencion
 

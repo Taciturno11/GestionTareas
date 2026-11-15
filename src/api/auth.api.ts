@@ -24,4 +24,5 @@ export interface LoginRequest {
 export const authApi = {
   login: (body: LoginRequest) => http<AuthResponse>('/auth/login', { method: 'POST', body, auth: false }),
   me: () => http<{ user: AuthUser }>('/auth/me'),
+  refresh: () => http<AuthResponse>('/auth/refresh', { method: 'POST' }),
 }
