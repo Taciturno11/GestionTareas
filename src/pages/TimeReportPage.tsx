@@ -105,11 +105,25 @@ function minutesFromTime(value: string) {
   return hours * 60 + minutes
 }
 
+const MINUTES_PER_DAY = 24 * 60
+
+// Si HF es menor que HI, la actividad termino al dia siguiente (cruza la medianoche).
+function endsNextDay(row: TimeReportRow) {
+  const start = minutesFromTime(row.startTime)
+  const end = minutesFromTime(row.endTime)
+  return start != null && end != null && end < start
+}
+
 function getTimeRangeHours(row: TimeReportRow) {
   const start = minutesFromTime(row.startTime)
   const end = minutesFromTime(row.endTime)
   if (start == null || end == null) return null
-  return end > start ? (end - start) / 60 : 0
+  if (end === start) return 0
+  return (end > start ? end - start : end + MINUTES_PER_DAY - start) / 60
+}
+
+function formatEndTime(row: TimeReportRow) {
+  return endsNextDay(row) ? `${row.endTime} (+1)` : row.endTime
 }
 
 function getRowHours(row: TimeReportRow) {
@@ -266,7 +280,7 @@ export default function TimeReportPage({
             <td class="text-cell">${formatExcelText(row.activity)}</td>
             <td class="center-cell">${escapeHtml(row.date)}</td>
             <td class="center-cell">${escapeHtml(row.startTime)}</td>
-            <td class="center-cell">${escapeHtml(row.endTime)}</td>
+            <td class="center-cell">${escapeHtml(formatEndTime(row))}</td>
             <td class="center-cell total-cell">${formatDuration(getRowHours(row))}</td>
             <td class="text-cell">${formatExcelText(row.observations)}</td>
           </tr>
@@ -491,7 +505,7 @@ export default function TimeReportPage({
             formatPdfText(row.activity),
             row.date,
             row.startTime,
-            row.endTime,
+            formatEndTime(row),
             formatDuration(getRowHours(row)),
             formatPdfText(row.observations),
           ])
@@ -746,13 +760,23 @@ export default function TimeReportPage({
                     />
                   </td>
                   <td className="px-2 py-2 align-middle">
-                    <TimeInput
-                      value={row.endTime}
-                      disabled={readOnly}
-                      onChange={value => updateRow(row.id, { endTime: value })}
-                      onBlur={() => void onSaveNow()}
-                      placeholder="HF"
-                    />
+                    <div className="relative">
+                      <TimeInput
+                        value={row.endTime}
+                        disabled={readOnly}
+                        onChange={value => updateRow(row.id, { endTime: value })}
+                        onBlur={() => void onSaveNow()}
+                        placeholder="HF"
+                      />
+                      {endsNextDay(row) && (
+                        <span
+                          title="Termina al dia siguiente: HF es menor que HI"
+                          className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-gray-100 px-1 py-0.5 text-[10px] font-semibold text-gray-500"
+                        >
+                          +1 día
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-2 py-2 align-middle">
                     <div className="flex h-10 items-center rounded-lg bg-gray-50 px-2 text-[13px] font-semibold text-gray-700">
