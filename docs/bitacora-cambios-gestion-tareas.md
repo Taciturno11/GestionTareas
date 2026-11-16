@@ -31,6 +31,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-16 - Boton "Agregar fila" tambien al final del reporte de horas
+
+- Objetivo: no tener que subir hasta arriba para agregar una fila cuando el reporte tiene muchas actividades.
+- Cambios: `src/pages/TimeReportPage.tsx` muestra un segundo boton `Agregar fila` en una franja debajo de la tabla (misma accion `addRow` y mismo estilo que el de la cabecera). Solo aparece si hay filas y el reporte no es de solo lectura. El boton de arriba no cambia.
+- Validaciones: `npm run lint` y `npm run build`.
+- Despliegue: completado en el release frontend `20261116122415`. Backup PostgreSQL `gestion_tareas_before_20261116122415.dump` (143M) y backup del frontend; `config.js` preservado por hash; `nginx -t` correcto; retencion ejecutada. Health interno y publico `ok`, `/login` 200, `index.html` publicado identico al build y chunk `TimeReportPage` con los dos botones.
+- Commit: `5719682`.
+
 ### 2026-11-15 - Renovacion automatica de la sesion
 
 - Objetivo: dejar de pedir login casi cada vez que se entra a la app.
