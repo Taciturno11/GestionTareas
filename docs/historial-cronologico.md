@@ -15,12 +15,13 @@ Linea de tiempo completa del proyecto, con fechas, desde el primer commit. Sirve
 
 ## Estado actual (2026-11-16)
 
-- Produccion: `https://agenda.martinnauca.com` (frontend estatico en Nginx + backend Express/Prisma/PostgreSQL). Ultimo release: `20261116122415` (solo frontend).
+- Produccion: `https://agenda.martinnauca.com` (frontend estatico en Nginx + backend Express/Prisma/PostgreSQL). Ultimo release: `20261116130626` (solo frontend).
 - Codigo: rama `main` de `https://github.com/Taciturno11/GestionTareas` (repositorio publico).
-- ADR mas reciente: `0034`.
+- ADR mas reciente: `0035`.
 
 ## 2026-11
 
+- 2026-11-16 - Reporte de horas: actividades que cruzan la medianoche cuentan su duracion real y muestran `+1 día` (commit `2bb64a9`, ADR 0035, release `20261116130626`).
 - 2026-11-16 - Reporte de horas: boton `Agregar fila` tambien al final de la tabla (commit `5719682`, release `20261116122415`).
 - 2026-11-15 - Sesion con renovacion deslizante: `POST /api/auth/refresh`, hook `useSessionRefresh` y `JWT_EXPIRES_IN=30d` en produccion; antes caducaba a las 24 h (commit `e11ad51`, ADR 0034, release `20261115132827`).
 - 2026-11-12 - Documentacion de continuidad para agentes: historial cronologico, ADR 0032 y 0033, `AGENTS.md`, `CLAUDE.md`, README e indice de ADR actualizados.

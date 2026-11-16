@@ -31,6 +31,15 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-16 - Reporte de horas: actividades que cruzan la medianoche
+
+- Objetivo: una actividad de `23:46` a `00:40` marcaba `0 min`; debe contar `54 min`.
+- Causa: `getTimeRangeHours` devolvia `0` cuando `HF <= HI`.
+- Cambios: `src/pages/TimeReportPage.tsx`: si `HF < HI` se suma un dia (`endsNextDay`); etiqueta `+1 día` junto a HF en la tabla; Excel y PDF muestran HF como `00:40 (+1)` (`formatEndTime`). `HF == HI` sigue en `0`. Sin cambio de datos. ADR 0035.
+- Validaciones: `npm run lint`, `npm run build`; servidores locales en 4000 y 5180 para revision del usuario, apagados al terminar.
+- Despliegue: completado en el release frontend `20261116130626`. Backup PostgreSQL `gestion_tareas_before_20261116130626.dump` (143M) y backup del frontend; `config.js` preservado por hash; `nginx -t` correcto; retencion ejecutada. Health interno y publico `ok`, `/login` 200, `index.html` publicado identico al build y chunk `TimeReportPage` con la mejora.
+- Commit: `2bb64a9`.
+
 ### 2026-11-16 - Boton "Agregar fila" tambien al final del reporte de horas
 
 - Objetivo: no tener que subir hasta arriba para agregar una fila cuando el reporte tiene muchas actividades.

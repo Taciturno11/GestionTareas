@@ -23,7 +23,7 @@ Aplicacion web full-stack de productividad tipo workspace: espacios y subespacio
 
 ## Estado actual
 
-- **En produccion** en `https://agenda.martinnauca.com` (frontend estatico en Nginx, backend Express en el puerto interno 4100, PostgreSQL). Ultimo release: `20261116122415` (2026-11-16, solo frontend; el ultimo de backend fue `20261115132827`).
+- **En produccion** en `https://agenda.martinnauca.com` (frontend estatico en Nginx, backend Express en el puerto interno 4100, PostgreSQL). Ultimo release: `20261116130626` (2026-11-16, solo frontend; el ultimo de backend fue `20261115132827`).
 - Repositorio publico: `https://github.com/Taciturno11/GestionTareas`, rama `main`.
 - Frontend SPA (React + Vite) conectado al backend `backend/` (Express MVC modular + Prisma + PostgreSQL) con login JWT. La sesion se renueva sola mientras se usa (`POST /api/auth/refresh`, ADR 0034) y en produccion caduca tras `JWT_EXPIRES_IN=30d` sin actividad.
 - Los datos viven en PostgreSQL. `localStorage` solo funciona como cache/fallback (`src/data/workspaces.ts`, `gt_tasks`); `src/data/mockTasks.ts` y `mockHome.ts` son mocks antiguos sin uso.
