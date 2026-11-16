@@ -819,6 +819,19 @@ export default function TimeReportPage({
             </tbody>
           </table>
         </div>
+
+        {!readOnly && report.rows.length > 0 && (
+          <div className="flex justify-end border-t border-gray-100 px-4 py-3">
+            <button
+              type="button"
+              onClick={addRow}
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-[#6472EB] px-3 text-[13px] font-semibold text-white transition hover:bg-[#5360D8]"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Agregar fila
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="ml-auto grid w-full max-w-[520px] gap-3 sm:grid-cols-2">
