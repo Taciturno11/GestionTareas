@@ -31,6 +31,14 @@ Documento vivo para conservar el contexto cronologico de los cambios realizados 
 
 ## Cambios recientes
 
+### 2026-11-25 - Reporte de horas: boton + para insertar una fila debajo
+
+- Objetivo: agregar actividades olvidadas de dias anteriores entre filas existentes, sin tener que agregarlas al final.
+- Cambios: `src/pages/TimeReportPage.tsx`: cada fila (salvo la ultima, que ya tiene `Agregar fila` al final) muestra al pasar el mouse un boton circular `+` en su esquina inferior derecha, sobre el borde con la siguiente fila; inserta una fila vacia justo debajo (`insertRowAfter`, `createEmptyRow`). Sin cambio de datos.
+- Validaciones: `npm run lint`, `npm run build`; revision del usuario en local (4000 y 5180, apagados al terminar).
+- Despliegue: completado en el release frontend `20261125215551`. Backup PostgreSQL `gestion_tareas_before_20261125215551.dump` (143M) y backup del frontend; `config.js` preservado por hash; `nginx -t` correcto; retencion ejecutada. Health interno y publico `ok`, `/login` 200, `index.html` publicado identico al build y chunk `TimeReportPage` con la mejora.
+- Commit: `963da6d`.
+
 ### 2026-11-16 - Reporte de horas: actividades que cruzan la medianoche
 
 - Objetivo: una actividad de `23:46` a `00:40` marcaba `0 min`; debe contar `54 min`.
