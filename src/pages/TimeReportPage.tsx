@@ -249,20 +249,30 @@ export default function TimeReportPage({
     })
   }
 
+  function createEmptyRow(): TimeReportRow {
+    return {
+      id: createId(),
+      activity: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      observations: '',
+    }
+  }
+
   function addRow() {
     updateReport({
       ...report,
-      rows: [
-        ...report.rows,
-        {
-          id: createId(),
-          activity: '',
-          date: '',
-          startTime: '',
-          endTime: '',
-          observations: '',
-        },
-      ],
+      rows: [...report.rows, createEmptyRow()],
+    })
+  }
+
+  function insertRowAfter(rowId: string) {
+    const index = report.rows.findIndex(row => row.id === rowId)
+    if (index === -1) return
+    updateReport({
+      ...report,
+      rows: [...report.rows.slice(0, index + 1), createEmptyRow(), ...report.rows.slice(index + 1)],
     })
   }
 
@@ -724,8 +734,8 @@ export default function TimeReportPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {report.rows.map(row => (
-                <tr key={row.id} className="text-[13px]">
+              {report.rows.map((row, index) => (
+                <tr key={row.id} className="group text-[13px]">
                   <td className="px-4 py-2 align-top">
                     <AutoResizeTextarea
                       value={row.activity}
@@ -817,7 +827,7 @@ export default function TimeReportPage({
                     />
                   </td>
                   {!readOnly && (
-                    <td className="px-4 py-2 align-top">
+                    <td className="relative px-4 py-2 align-top">
                       <button
                         type="button"
                         onClick={() => deleteRow(row.id)}
@@ -826,6 +836,17 @@ export default function TimeReportPage({
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>
+                      {index < report.rows.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => insertRowAfter(row.id)}
+                          className="absolute bottom-0 right-4 z-10 flex h-6 w-6 translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 opacity-0 shadow-sm transition hover:border-[#6472EB] hover:bg-[#6472EB] hover:text-white focus-visible:opacity-100 group-hover:opacity-100"
+                          title="Insertar fila debajo"
+                          aria-label="Insertar fila debajo"
+                        >
+                          <PlusIcon className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>
